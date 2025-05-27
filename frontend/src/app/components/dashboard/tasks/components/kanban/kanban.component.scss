@@ -1,0 +1,79 @@
+.kanban-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f4f4f4;
+  min-height: 300px; /* Hauteur minimale pour voir les zones de dépôt */
+}
+
+.kanban-column {
+  flex: 1;
+  background-color: #e9ecef;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-column h2 {
+  text-align: center;
+  margin-top: 0;
+  color: #333;
+}
+
+.task-list {
+  background-color: #fff;
+  min-height: 200px; /* Zone de dépôt visible même si vide */
+  border-radius: 4px;
+  padding: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.task-card {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: grab;
+}
+
+.task-card h3 {
+  margin-top: 0;
+  font-size: 1.1em;
+}
+
+.task-card p {
+  font-size: 0.9em;
+  color: #555;
+}
+
+.task-card small {
+  font-size: 0.8em;
+  color: #777;
+  display: block;
+  margin-top: 5px;
+}
+
+.empty-list {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
+
+/* Style pendant le glisser-déposer */
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+              0 8px 10px 1px rgba(0, 0, 0, 0.14),
+              0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.cdk-drop-list-dragging .task-card:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

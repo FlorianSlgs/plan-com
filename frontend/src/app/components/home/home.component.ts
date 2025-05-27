@@ -1,0 +1,24 @@
+import { Component, inject } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+import { NavbarComponent } from '../layout/navbar/navbar.component';
+import { HeaderComponent } from '../layout/header/header.component';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-home',
+  standalone: true, // Marquer comme standalone
+  imports: [RouterOutlet, NavbarComponent, HeaderComponent], // Pas d'imports spécifiques nécessaires ici pour le moment
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss']
+})
+export class HomeComponent {
+  // Injecter le service
+  authService = inject(AuthService);
+
+  // Pas besoin de OnInit juste pour afficher l'état du signal
+  // Pas besoin de stocker isLoggedIn$ car on utilise directement le signal dans le template
+
+  logout(): void {
+    this.authService.logout();
+  }
+}

@@ -1,0 +1,120 @@
+<div class="register-container flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+    <h2 class="text-2xl font-bold mb-6 text-center">Inscription</h2>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <div class="form-group flex flex-col">
+        <label for="lastName" class="mb-1 font-medium">Nom :</label>
+        <input
+          type="text"
+          id="lastName"
+          formControlName="lastName"
+          required
+          class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        @if (registerForm.controls['lastName'].invalid && (registerForm.controls['lastName'].dirty || registerForm.controls['lastName'].touched)) {
+          <div class="error text-red-600 text-sm mt-1">
+            @if (registerForm.controls['lastName'].errors?.['required']) {
+              <span>Le nom est requis.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group flex flex-col">
+        <label for="firstName" class="mb-1 font-medium">Prénom :</label>
+        <input
+          type="text"
+          id="firstName"
+          formControlName="firstName"
+          required
+          class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        @if (registerForm.controls['firstName'].invalid && (registerForm.controls['firstName'].dirty || registerForm.controls['firstName'].touched)) {
+          <div class="error text-red-600 text-sm mt-1">
+            @if (registerForm.controls['firstName'].errors?.['required']) {
+              <span>Le prénom est requis.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group flex flex-col">
+        <label for="birthDate" class="mb-1 font-medium">Date de naissance :</label>
+        <input
+          type="date"
+          id="birthDate"
+          formControlName="birthDate"
+          required
+          class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        @if (registerForm.controls['birthDate'].invalid && (registerForm.controls['birthDate'].dirty || registerForm.controls['birthDate'].touched)) {
+          <div class="error text-red-600 text-sm mt-1">
+            @if (registerForm.controls['birthDate'].errors?.['required']) {
+              <span>La date de naissance est requise.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group flex flex-col">
+        <label for="email" class="mb-1 font-medium">Email :</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          required
+          class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        @if (registerForm.controls['email'].invalid && (registerForm.controls['email'].dirty || registerForm.controls['email'].touched)) {
+          <div class="error text-red-600 text-sm mt-1">
+            @if (registerForm.controls['email'].errors?.['required']) {
+              <span>L'email est requis.</span>
+            }
+            @if (registerForm.controls['email'].errors?.['email']) {
+              <span>Veuillez entrer une adresse email valide.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group flex flex-col">
+        <label for="password" class="mb-1 font-medium">Mot de passe :</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          required
+          class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        @if (registerForm.controls['password'].invalid && (registerForm.controls['password'].dirty || registerForm.controls['password'].touched)) {
+          <div class="error text-red-600 text-sm mt-1">
+            @if (registerForm.controls['password'].errors?.['required']) {
+              <span>Le mot de passe est requis.</span>
+            }
+            @if (registerForm.controls['password'].errors?.['minLength']) {
+              <span>Le mot de passe doit contenir au moins 6 caractères.</span>
+            }
+          </div>
+        }
+      </div>
+
+      @if (errorMessage) {
+        <div class="error-message text-red-700 text-center text-sm">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        [disabled]="registerForm.invalid"
+        class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+      >
+        S'inscrire
+      </button>
+    </form>
+    <p class="mt-4 text-center text-sm">
+      Déjà un compte ?
+      <a routerLink="/login" class="text-blue-600 hover:underline">Connectez-vous ici</a>
+    </p>
+  </div>
+</div>
