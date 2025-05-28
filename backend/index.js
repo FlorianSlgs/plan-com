@@ -34,6 +34,9 @@ app.use('/api/header', header);
 const goals = require('./goals.routes')(pool);
 app.use('/api/goals', goals);
 
+const actionsRoutes = require('./actions.routes')(pool);
+app.use('/api/actions', actionsRoutes);
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Serveur plan de com l'écoute sur http://localhost:${PORT}`);

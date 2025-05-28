@@ -2,82 +2,157 @@ import { Component, signal, computed, WritableSignal, effect } from '@angular/co
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent } from './event.model';
+import { ActionsService } from '../../../services/actions/actions.service';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe], // DatePipe pour formater les dates
+  imports: [CommonModule, FormsModule, DatePipe],
   templateUrl: './actions.component.html',
   styleUrls: ['./actions.component.scss']
 })
 export class ActionsComponent {
-  // --- Signaux pour la gestion de l'état ---
   events: WritableSignal<CalendarEvent[]> = signal([]);
-  selectedDate: WritableSignal<Date> = signal(new Date()); // Date actuellement affichée/sélectionnée
+  selectedDate: WritableSignal<Date> = signal(new Date());
   newEventTitle: WritableSignal<string> = signal('');
-  newEventTime: WritableSignal<string> = signal(''); // Pour simplifier, on combine date et heure plus tard
+  newEventTime: WritableSignal<string> = signal('');
   showAddEventModal: WritableSignal<boolean> = signal(false);
 
-  // Propriétés pour l'affichage du calendrier
   currentMonth: WritableSignal<Date> = signal(new Date());
   daysInMonth = computed(() => {
     const date = this.currentMonth();
     const year = date.getFullYear();
     const month = date.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
-    const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 = Dimanche, 1 = Lundi...
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
     return {
       totalDays: days,
-      emptyStartDays: (firstDayOfMonth === 0 ? 6 : firstDayOfMonth -1) // Ajuster si la semaine commence le Lundi
+      emptyStartDays: (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1)
     };
   });
 
   weekDays: string[] = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-  // Événements filtrés pour le mois courant (ou une autre logique de filtrage)
-  // Pour l'affichage au-dessus, on pourrait vouloir tous les événements ou ceux d'une période.
-  // Ici, on affiche tous les événements triés par date.
   displayedEvents = computed(() => this.events().sort((a, b) => a.date.getTime() - b.date.getTime()));
 
-  constructor() {
-    // Effet pour logger les changements (optionnel, pour démo)
+  constructor(private actionsService: ActionsService) {
     effect(() => {
       console.log('Events changed:', this.events());
       console.log('Selected date:', this.selectedDate());
     });
 
-    // Exemple d'événements initiaux
-    this.events.set([
-      { id: '1', title: 'Réunion équipe', date: new Date(2025, 4, 12, 10, 0)}, // Mai est le mois 4 en JS (0-indexé)
-      { id: '2', title: 'Présentation client', date: new Date(2025, 4, 15, 14, 30)},
-      { id: '3', title: 'Déploiement v2.0', date: new Date(new Date().setDate(new Date().getDate() + 1)) }
-    ]);
+    this.loadEvents();
   }
 
-  // --- Méthodes pour la gestion des événements ---
+  // --- Chargement des événements depuis la base ou le local ---
+  loadEvents(): void {
+    const userId = localStorage.getItem('userId') || undefined;
+    const currentCampaign = localStorage.getItem('currentCampaign') || undefined;
+    this.actionsService.getEvents(userId, currentCampaign).subscribe({
+      next: (dbEvents) => {
+        // Vérification de cohérence avec le localStorage
+        const localEventsStr = localStorage.getItem('events');
+        let localEvents: CalendarEvent[] = [];
+        if (localEventsStr) {
+          try {
+            localEvents = JSON.parse(localEventsStr).map((e: any) => ({
+              ...e,
+              date: new Date(e.date)
+            }));
+          } catch {
+            localEvents = [];
+          }
+        }
+
+        // Si les données locales sont différentes, on prend la base
+        if (!this.areEventsEqual(dbEvents, localEvents)) {
+          this.events.set(dbEvents.map(e => ({ ...e, date: new Date(e.date) })));
+          localStorage.setItem('events', JSON.stringify(dbEvents));
+        } else {
+          this.events.set(localEvents);
+        }
+      },
+      error: () => {
+        // Si erreur (ex: pas de connexion), fallback sur localStorage
+        const localEventsStr = localStorage.getItem('events');
+        if (localEventsStr) {
+          try {
+            const localEvents = JSON.parse(localEventsStr).map((e: any) => ({
+              ...e,
+              date: new Date(e.date)
+            }));
+            this.events.set(localEvents);
+          } catch {
+            this.events.set([]);
+          }
+        } else {
+          this.events.set([]);
+        }
+      }
+    });
+  }
+
+  // --- Comparaison simple des listes d'événements ---
+  areEventsEqual(eventsA: CalendarEvent[], eventsB: CalendarEvent[]): boolean {
+    if (eventsA.length !== eventsB.length) return false;
+    const sortFn = (a: CalendarEvent, b: CalendarEvent) => (a.id || '').localeCompare(b.id || '');
+    const aSorted = [...eventsA].sort(sortFn);
+    const bSorted = [...eventsB].sort(sortFn);
+    for (let i = 0; i < aSorted.length; i++) {
+      if (
+        aSorted[i].id !== bSorted[i].id ||
+        aSorted[i].title !== bSorted[i].title ||
+        new Date(aSorted[i].date).getTime() !== new Date(bSorted[i].date).getTime() ||
+        aSorted[i].startTime !== bSorted[i].startTime
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // --- Ajout d'un événement ---
   addEvent(): void {
     const title = this.newEventTitle().trim();
-    const eventDate = new Date(this.selectedDate()); // Utilise la date sélectionnée du calendrier
+    const eventDate = new Date(this.selectedDate());
 
     if (this.newEventTime()) {
       const [hours, minutes] = this.newEventTime().split(':').map(Number);
       eventDate.setHours(hours);
       eventDate.setMinutes(minutes);
     } else {
-      eventDate.setHours(0,0,0,0); // Début de journée si pas d'heure
+      eventDate.setHours(0, 0, 0, 0);
     }
 
+    const currentCampaign = localStorage.getItem('currentCampaign');
+    const userId = localStorage.getItem('userId');
 
     if (title && eventDate) {
       const newEvent: CalendarEvent = {
-        id: crypto.randomUUID(), // Génération d'ID simple pour l'exemple
+        id: crypto.randomUUID(),
         title,
         date: eventDate,
-        startTime: this.newEventTime() || undefined
+        startTime: this.newEventTime() || undefined,
+        currentCampaign: currentCampaign || undefined,
+        userId: userId || undefined
       };
-      this.events.update(currentEvents => [...currentEvents, newEvent]);
-      this.newEventTitle.set('');
-      this.newEventTime.set('');
+      this.actionsService.addEvent(newEvent).subscribe({
+        next: (savedEvent) => {
+          // Recharge depuis la base pour garantir la cohérence
+          this.loadEvents();
+          this.newEventTitle.set('');
+          this.newEventTime.set('');
+        },
+        error: (err) => {
+          // Si erreur, ajoute localement et sauvegarde dans localStorage
+          const updatedEvents = [...this.events(), newEvent];
+          this.events.set(updatedEvents);
+          localStorage.setItem('events', JSON.stringify(updatedEvents));
+          this.newEventTitle.set('');
+          this.newEventTime.set('');
+          console.error('Erreur lors de l\'ajout de l\'événement', err);
+        }
+      });
     }
   }
 
@@ -87,12 +162,10 @@ export class ActionsComponent {
       this.selectedDate.set(newSelectedDate);
     }
     if (event) {
-      // Potentiellement ouvrir un modal pour ajouter un événement à cette date
       console.log('Date cliquée:', this.selectedDate());
     }
   }
 
-  // --- Méthodes pour la navigation du calendrier ---
   previousMonth(): void {
     this.currentMonth.update(date => {
       const newDate = new Date(date);
