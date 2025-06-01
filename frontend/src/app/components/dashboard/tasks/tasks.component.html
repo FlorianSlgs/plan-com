@@ -4,7 +4,146 @@
   </header>
 
   <main>
-    <app-kanban-board />
+    <div class="kanban-container flex flex-col md:flex-row gap-6">
+      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
+        <h2 class="text-lg font-bold text-blue-700 mb-4 text-center">À Faire</h2>
+        <button
+          class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
+          (click)="openAddTaskModal('todo')"
+          title="Ajouter une tâche"
+          type="button"
+        >+</button>
+        <div
+          cdkDropList
+          id="todoList"
+          [cdkDropListData]="todo()"
+          [cdkDropListConnectedTo]="getConnectedLists()"
+          class="task-list flex-1 flex flex-col gap-3"
+          (cdkDropListDropped)="drop($event, 'todo')">
+          @for (task of todo(); track task.id) {
+            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-blue-400" cdkDrag>
+              <h3 class="font-semibold text-blue-800">{{ task.title }}</h3>
+              <p class="text-gray-700 text-sm mb-1">{{ task.description }}</p>
+              @if (task.assignee) {
+                <small class="text-xs text-gray-500">Assigné à : {{ task.assignee }}</small>
+              }
+            </div>
+          } @empty {
+            <p class="empty-list text-gray-400 italic text-center">Aucune tâche</p>
+          }
+        </div>
+      </div>
+
+      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
+        <h2 class="text-lg font-bold text-yellow-600 mb-4 text-center">En Cours</h2>
+        <button
+        class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
+        (click)="openAddTaskModal('inProgress')"
+        title="Ajouter une tâche"
+        type="button"
+        >+</button>
+        <div
+          cdkDropList
+          id="inProgressList"
+          [cdkDropListData]="inProgress()"
+          [cdkDropListConnectedTo]="getConnectedLists()"
+          class="task-list flex-1 flex flex-col gap-3"
+          (cdkDropListDropped)="drop($event, 'inProgress')">
+          @for (task of inProgress(); track task.id) {
+            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-yellow-400" cdkDrag>
+              <h3 class="font-semibold text-yellow-800">{{ task.title }}</h3>
+              <p class="text-gray-700 text-sm mb-1">{{ task.description }}</p>
+              @if (task.assignee) {
+                <small class="text-xs text-gray-500">Assigné à : {{ task.assignee }}</small>
+              }
+            </div>
+          } @empty {
+            <p class="empty-list text-gray-400 italic text-center">Aucune tâche</p>
+          }
+        </div>
+      </div>
+
+      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
+        <h2 class="text-lg font-bold text-green-700 mb-4 text-center">Terminé</h2>
+        <button
+        class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
+        (click)="openAddTaskModal('done')"
+        title="Ajouter une tâche"
+        type="button"
+        >+</button>
+        <div
+          cdkDropList
+          id="doneList"
+          [cdkDropListData]="done()"
+          [cdkDropListConnectedTo]="getConnectedLists()"
+          class="task-list flex-1 flex flex-col gap-3"
+          (cdkDropListDropped)="drop($event, 'done')">
+          @for (task of done(); track task.id) {
+            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-green-400" cdkDrag>
+              <h3 class="font-semibold text-green-800">{{ task.title }}</h3>
+              <p class="text-gray-700 text-sm mb-1">{{ task.description }}</p>
+              @if (task.assignee) {
+                <small class="text-xs text-gray-500">Assigné à : {{ task.assignee }}</small>
+              }
+            </div>
+          } @empty {
+            <p class="empty-list text-gray-400 italic text-center">Aucune tâche</p>
+          }
+        </div>
+      </div>
+      
+      @if (showAddTaskModal) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+          <button
+            class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
+            (click)="closeAddTaskModal()"
+            title="Fermer"
+            type="button"
+          >&times;</button>
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Ajouter une tâche</h2>
+          <form (ngSubmit)="addTask()" class="space-y-4">
+            <div>
+              <label for="title" class="block mb-1 font-medium">Titre :</label>
+              <input
+                type="text"
+                id="title"
+                [(ngModel)]="newTaskTitle"
+                name="title"
+                required
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label for="description" class="block mb-1 font-medium">Description :</label>
+              <textarea
+                id="description"
+                [(ngModel)]="newTaskDescription"
+                name="description"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+            <div>
+              <label for="assignee" class="block mb-1 font-medium">Assigné à :</label>
+              <input
+                type="text"
+                id="assignee"
+                [(ngModel)]="newTaskAssignee"
+                name="assignee"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
+            >
+              Ajouter Tâche
+            </button>
+          </form>
+        </div>
+      </div>
+      }
+    </div>
   </main>
 
 </div>
