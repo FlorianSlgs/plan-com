@@ -1,11 +1,11 @@
-<header class="flex items-center justify-between px-6 py-4 bg-white shadow-md">
+<header class="flex items-center justify-between px-6 py-4">
   <div class="flex items-center gap-4">
-    <span class="text-xl font-bold text-gray-800">{{ currentCampaign || "Créez ou choisissez une campagne" }}</span>
+    <h2 class="text-2xl font-medium text-gray-800">{{ currentCampaign || "Créez ou choisissez une campagne" }}</h2>
     <div class="relative group" tabindex="0">
       <button class="flex items-center px-2 py-1 rounded hover:bg-gray-100 focus:outline-none">
         <span class="material-icons">expand_more</span>
       </button>
-      <ul class="absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 pointer-events-none group-focus-within:pointer-events-auto group-hover:pointer-events-auto transition-opacity z-10">
+      <ul class="absolute left-0 w-40 bg-white border border-gray-200 rounded shadow-lg opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 pointer-events-none group-focus-within:pointer-events-auto group-hover:pointer-events-auto transition-opacity z-10">
       @for (campaign of campaigns; track campaign.id) {
         <li>
           <a href="#" class="block px-4 py-2 hover:bg-gray-100"
@@ -27,17 +27,20 @@
     </div>
   </div>
   <div class="flex items-center gap-3">
-    <img class="w-10 h-10 rounded-full object-cover border border-gray-300" src="assets/images/avatar.jpg" alt="Photo de l'utilisateur" />
-    <span class="text-gray-700 font-medium">{{ userFullName }}</span>
-    <button class="ml-2 text-gray-500 hover:text-red-600 transition" title="Déconnexion" (click)="onLogout()">
-      <span class="material-icons text-2xl">logout</span>
+    <img class="w-10 h-10 rounded-full object-cover border border-gray-300" src="assets/images/users-01.png" alt="Photo de l'utilisateur" />
+    <span class="text-gray-700 font-medium flex-1">{{ userFullName }}</span>
+    <button class="text-gray-500 hover:text-blue-700 transition w-10 h-10 flex items-center justify-center" title="Paramètres">
+      <span class="material-icons text-xl">settings</span>
+    </button>
+    <button class="text-gray-500 hover:text-red-600 transition w-10 h-10 flex items-center justify-center" title="Déconnexion" (click)="onLogout()">
+      <span class="material-icons text-xl">logout</span>
     </button>
   </div>
 </header>
 
 <!-- Popup formulaire campagne -->
 @if (showCampaignModal) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30">
     <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"

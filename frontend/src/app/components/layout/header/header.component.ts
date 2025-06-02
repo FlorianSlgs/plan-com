@@ -10,6 +10,8 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit {
+  dropdownOpen = false;
+  
   @Output() logout = new EventEmitter<void>();
   userFullName: string = '';
   campaigns: { id: number, name: string }[] = [];

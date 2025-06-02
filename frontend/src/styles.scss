@@ -20,6 +20,14 @@ html {
 html, body { height: 100%; }
 body { 
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: 'Inter', sans-serif;
   background-color: #d1d5db;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+
+button {
+  cursor: pointer;
 }
