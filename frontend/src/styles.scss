@@ -21,7 +21,7 @@ html, body { height: 100%; }
 body { 
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #d1d5db;
+  background-color: #e7e7e7;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -30,4 +30,8 @@ h1, h2, h3, h4, h5, h6 {
 
 button {
   cursor: pointer;
+}
+
+@theme {
+  --color-blueComp: #86c9ef;
 }

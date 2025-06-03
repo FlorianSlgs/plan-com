@@ -1,27 +1,33 @@
-<div class="flex flex-col items-center">
-  <div class="w-full flex justify-end mb-4">
-    <button
-      class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
-      (click)="openAddCardModal()"
-      title="Ajouter un objectif"
-      type="button"
-    >+</button>
-  </div>
+<div class="max-w-4xl mx-auto">
+  <header class="mb-8">
+    <div class="flex items-center justify-between gap-4">
+      <h1 class="text-2xl font-bold text-blue-700">Objectifs</h1>
+      <button
+        class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
+        (click)="openAddCardModal()"
+        title="Ajouter un objectif"
+        type="button"
+      >+</button>
+    </div>
+    <span class="block h-px bg-gray-300 w-9/10 mt-2"></span>
+  </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-    @for (card of cards; track card) {
-      <app-goals-cards
-        [title]="card.title"
-        [imageUrl]="card.imageUrl"
-        [description]="card.description"
-        [items]="card.items">
-      </app-goals-cards>
-    }
-  </div>
+  <main>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      @for (card of cards; track card) {
+        <app-goals-cards
+          [title]="card.title"
+          [imageUrl]="card.imageUrl"
+          [description]="card.description"
+          [items]="card.items">
+        </app-goals-cards>
+      }
+    </div>
+  </main>
 </div>
 
 @if (showAddCardModal) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30">
     <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"

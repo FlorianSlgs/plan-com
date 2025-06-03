@@ -1,18 +1,20 @@
 <div class="task-management-container max-w-4xl mx-auto p-6">
   <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <h1 class="text-2xl font-bold text-blue-700">Gestionnaire de Tâches</h1>
+    <h1 class="text-2xl font-bold text-blue-700">Gestionnaire de tâches</h1>
   </header>
 
   <main>
     <div class="kanban-container flex flex-col md:flex-row gap-6">
       <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
-        <h2 class="text-lg font-bold text-blue-700 mb-4 text-center">À Faire</h2>
-        <button
-          class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
-          (click)="openAddTaskModal('todo')"
-          title="Ajouter une tâche"
-          type="button"
-        >+</button>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="flex-1 text-lg font-bold text-blue-700 text-center m-0">À Faire</h2>
+          <button
+            class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
+            (click)="openAddTaskModal('todo')"
+            title="Ajouter une tâche"
+            type="button"
+          >+</button>
+        </div>
         <div
           cdkDropList
           id="todoList"
@@ -21,7 +23,17 @@
           class="task-list flex-1 flex flex-col gap-3"
           (cdkDropListDropped)="drop($event, 'todo')">
           @for (task of todo(); track task.id) {
-            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-blue-400" cdkDrag>
+            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-blue-400 relative group" cdkDrag>
+              <button
+                class="absolute top-2 right-2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
+                title="Modifier"
+                type="button"
+              >
+                <!-- Icône crayon SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              </button>
               <h3 class="font-semibold text-blue-800">{{ task.title }}</h3>
               <p class="text-gray-700 text-sm mb-1">{{ task.description }}</p>
               @if (task.assignee) {
@@ -35,13 +47,15 @@
       </div>
 
       <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
-        <h2 class="text-lg font-bold text-yellow-600 mb-4 text-center">En Cours</h2>
-        <button
-        class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
-        (click)="openAddTaskModal('inProgress')"
-        title="Ajouter une tâche"
-        type="button"
-        >+</button>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="flex-1 text-lg font-bold text-yellow-600 text-center m-0">En Cours</h2>
+          <button
+            class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-yellow-600 text-white text-2xl hover:bg-yellow-700 transition"
+            (click)="openAddTaskModal('inProgress')"
+            title="Ajouter une tâche"
+            type="button"
+          >+</button>
+        </div>
         <div
           cdkDropList
           id="inProgressList"
@@ -50,7 +64,17 @@
           class="task-list flex-1 flex flex-col gap-3"
           (cdkDropListDropped)="drop($event, 'inProgress')">
           @for (task of inProgress(); track task.id) {
-            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-yellow-400" cdkDrag>
+            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-yellow-400 relative group" cdkDrag>
+              <button
+                class="absolute top-2 right-2 bg-white/80 hover:bg-yellow-100 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
+                title="Modifier"
+                type="button"
+              >
+                <!-- Icône crayon SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              </button>
               <h3 class="font-semibold text-yellow-800">{{ task.title }}</h3>
               <p class="text-gray-700 text-sm mb-1">{{ task.description }}</p>
               @if (task.assignee) {
@@ -64,13 +88,15 @@
       </div>
 
       <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
-        <h2 class="text-lg font-bold text-green-700 mb-4 text-center">Terminé</h2>
-        <button
-        class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
-        (click)="openAddTaskModal('done')"
-        title="Ajouter une tâche"
-        type="button"
-        >+</button>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="flex-1 text-lg font-bold text-green-700 text-center m-0">Terminé</h2>
+          <button
+            class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white text-2xl hover:bg-green-700 transition"
+            (click)="openAddTaskModal('done')"
+            title="Ajouter une tâche"
+            type="button"
+          >+</button>
+        </div>
         <div
           cdkDropList
           id="doneList"
@@ -79,7 +105,17 @@
           class="task-list flex-1 flex flex-col gap-3"
           (cdkDropListDropped)="drop($event, 'done')">
           @for (task of done(); track task.id) {
-            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-green-400" cdkDrag>
+            <div class="task-card bg-white rounded shadow px-4 py-3 cursor-move border-l-4 border-green-400 relative group" cdkDrag>
+              <button
+                class="absolute top-2 right-2 bg-white/80 hover:bg-green-100 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
+                title="Modifier"
+                type="button"
+              >
+                <!-- Icône crayon SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              </button>
               <h3 class="font-semibold text-green-800">{{ task.title }}</h3>
               <p class="text-gray-700 text-sm mb-1">{{ task.description }}</p>
               @if (task.assignee) {
@@ -93,7 +129,7 @@
       </div>
       
       @if (showAddTaskModal) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div class="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm bg-white/30">
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
           <button
             class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"

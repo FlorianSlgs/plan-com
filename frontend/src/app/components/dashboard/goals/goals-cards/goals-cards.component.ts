@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-goals-cards',
@@ -11,4 +11,6 @@ export class GoalsCardsComponent {
   @Input() imageUrl = 'https://via.placeholder.com/120x80';
   @Input() description = 'Description de l’objectif.';
   @Input() items: string[] = [];
+
+  @Output() edit = new EventEmitter<void>();
 }
