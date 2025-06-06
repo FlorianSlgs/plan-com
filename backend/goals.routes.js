@@ -64,7 +64,7 @@ module.exports = (pool) => {
 
         // Récupère les goals pour ce user ET cette campagne
         const result = await pool.query(
-        `SELECT goals_name, goals_description, subgoals, goals_imageurl
+        `SELECT id, goals_name, goals_description, subgoals, goals_imageurl
         FROM goals WHERE user_id = $1 AND currentCampaign = $2`,
         [userId, campaignId]
         );
@@ -73,6 +73,44 @@ module.exports = (pool) => {
         console.error(err);
         res.status(500).json({ message: 'Erreur serveur.' });
     }
+    });
+
+    router.put('/update/:goalId', upload.single('image'), async (req, res) => {
+      try {
+        const { goalId } = req.params;
+        const { title, description, subgoals } = req.body;
+        let imageUrl = null;
+
+        if (req.file) {
+          imageUrl = req.file.filename;
+        }
+
+        // Mets à jour les champs
+        const updateFields = [];
+        const values = [];
+        let idx = 1;
+
+        if (title) { updateFields.push(`goals_name = $${idx++}`); values.push(title); }
+        if (description) { updateFields.push(`goals_description = $${idx++}`); values.push(description); }
+        if (subgoals) { updateFields.push(`subgoals = $${idx++}`); values.push(subgoals); }
+        if (imageUrl) { updateFields.push(`goals_imageurl = $${idx++}`); values.push(imageUrl); }
+
+        if (updateFields.length === 0) {
+          return res.status(400).json({ message: 'Aucun champ à mettre à jour.' });
+        }
+
+        values.push(goalId);
+
+        await pool.query(
+          `UPDATE goals SET ${updateFields.join(', ')} WHERE id = $${values.length}`,
+          values
+        );
+
+        res.json({ message: 'Objectif mis à jour.' });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erreur serveur.' });
+      }
     });
 
   return router;
