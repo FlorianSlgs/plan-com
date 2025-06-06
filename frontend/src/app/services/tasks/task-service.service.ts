@@ -81,4 +81,10 @@ export class TaskService {
   getTaskById(id: string) {
     return computed(() => this.tasks().find(task => task.id === id));
   }
+
+  deleteTask(id: string): void {
+    this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
+      this.tasks.update(currentTasks => currentTasks.filter(task => task.id !== id));
+    });
+  }
 }

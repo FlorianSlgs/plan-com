@@ -28,6 +28,7 @@
                 class="absolute top-2 right-2 bg-white/80 hover:bg-blue-100 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
                 title="Modifier"
                 type="button"
+                (click)="openEditTaskModal(task)"
               >
                 <!-- Icône crayon SVG -->
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -69,6 +70,7 @@
                 class="absolute top-2 right-2 bg-white/80 hover:bg-yellow-100 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
                 title="Modifier"
                 type="button"
+                (click)="openEditTaskModal(task)"
               >
                 <!-- Icône crayon SVG -->
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -110,6 +112,7 @@
                 class="absolute top-2 right-2 bg-white/80 hover:bg-green-100 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
                 title="Modifier"
                 type="button"
+                (click)="openEditTaskModal(task)"
               >
                 <!-- Icône crayon SVG -->
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -178,6 +181,59 @@
           </form>
         </div>
       </div>
+      }
+
+      @if (showEditTaskModal) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30">
+          <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <button
+              class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
+              (click)="closeEditTaskModal()"
+              title="Fermer"
+              type="button"
+            >&times;</button>
+            <h2 class="text-lg font-bold mb-4 text-blue-700">Modifier la tâche</h2>
+            <form (ngSubmit)="updateTask()" class="space-y-4">
+              <div>
+                <label class="block mb-1 font-medium">Titre :</label>
+                <input type="text" [(ngModel)]="editTaskTitle" name="editTitle" required
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 font-medium">Description :</label>
+                <textarea [(ngModel)]="editTaskDescription" name="editDescription"
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+              </div>
+              <div>
+                <label class="block mb-1 font-medium">Assigné à :</label>
+                <input type="text" [(ngModel)]="editTaskAssignee" name="editAssignee"
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 font-medium">Statut :</label>
+                <select [(ngModel)]="editTaskStatus" name="editStatus"
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="todo">À faire</option>
+                  <option value="inProgress">En cours</option>
+                  <option value="done">Terminé</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
+              >
+                Enregistrer les modifications
+              </button>
+              <button
+                type="button"
+                (click)="deleteTask()"
+                class="w-full bg-red-400 text-white font-semibold py-2 rounded hover:bg-red-700 transition mt-2"
+              >
+                Supprimer la tâche
+              </button>
+            </form>
+          </div>
+        </div>
       }
     </div>
   </main>

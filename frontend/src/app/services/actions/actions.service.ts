@@ -24,4 +24,15 @@ export class ActionsService {
       date: event.date instanceof Date ? event.date.toISOString() : event.date
     });
   }
-}
+
+  updateEvent(event: CalendarEvent) {
+    return this.http.put<CalendarEvent>(`${this.apiUrl}/${event.id}`, {
+      ...event,
+      date: event.date instanceof Date ? event.date.toISOString() : event.date
+    }); 
+  }
+
+  deleteEvent(id: string) {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+  }

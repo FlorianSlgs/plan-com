@@ -82,4 +82,43 @@ export class TasksComponent implements OnInit {
   getConnectedLists(): string[] {
     return ['todoList', 'inProgressList', 'doneList'];
   }
+
+  editTaskId: string | null = null;
+  editTaskTitle = '';
+  editTaskDescription = '';
+  editTaskAssignee = '';
+  editTaskStatus: 'todo' | 'inProgress' | 'done' = 'todo';
+  showEditTaskModal = false;
+
+  openEditTaskModal(task: Task) {
+    this.editTaskId = task.id;
+    this.editTaskTitle = task.title;
+    this.editTaskDescription = task.description || '';
+    this.editTaskAssignee = task.assignee || '';
+    this.editTaskStatus = task.status;
+    this.showEditTaskModal = true;
+  }
+
+  closeEditTaskModal() {
+    this.showEditTaskModal = false;
+    this.editTaskId = null;
+  }
+
+  updateTask() {
+    if (!this.editTaskId) return;
+    this.taskService.updateTask({
+      id: this.editTaskId,
+      title: this.editTaskTitle,
+      description: this.editTaskDescription,
+      assignee: this.editTaskAssignee,
+      status: this.editTaskStatus
+    });
+    this.closeEditTaskModal();
+  }
+
+  deleteTask() {
+    if (!this.editTaskId) return;
+    this.taskService.deleteTask(this.editTaskId);
+    this.closeEditTaskModal();
+  }
 }

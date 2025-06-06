@@ -217,4 +217,18 @@ export class GoalsComponent implements OnInit {
     this.editGoalId = null;
     this.editImagePreview = null;
   }
+
+  deleteGoal() {
+    if (!this.editGoalId) return;
+    
+    this.goalsService.deleteGoal(this.editGoalId).subscribe({
+      next: () => {
+        this.closeEditModal();
+        this.loadGoals();
+      },
+      error: () => {
+        alert('Erreur lors de la suppression');
+      }
+    });
+  }
 }

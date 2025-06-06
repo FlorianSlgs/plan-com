@@ -113,5 +113,17 @@ module.exports = (pool) => {
       }
     });
 
+    // Supprimer un goal
+    router.delete('/delete/:goalId', async (req, res) => {
+      try {
+        const { goalId } = req.params;
+        await pool.query('DELETE FROM goals WHERE id = $1', [goalId]);
+        res.json({ message: 'Objectif supprimé.' });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erreur serveur.' });
+      }
+    });
+
   return router;
 };

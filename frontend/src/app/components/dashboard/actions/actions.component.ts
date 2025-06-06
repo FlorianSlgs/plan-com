@@ -33,6 +33,12 @@ export class ActionsComponent {
 
   weekDays: string[] = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
+  editEvent: WritableSignal<CalendarEvent | null> = signal(null);
+  editEventTitle: WritableSignal<string> = signal('');
+  editEventTime: WritableSignal<string> = signal('');
+  editEventDate: WritableSignal<Date | null> = signal(null);
+  showEditEventModal: WritableSignal<boolean> = signal(false);
+
   displayedEvents = computed(() => this.events().sort((a, b) => a.date.getTime() - b.date.getTime()));
 
   constructor(private actionsService: ActionsService) {
@@ -203,5 +209,57 @@ export class ActionsComponent {
       event.date.getMonth() === dateToCheck.getMonth() &&
       event.date.getDate() === dateToCheck.getDate()
     );
+  }
+
+  openEditEventModal(event: CalendarEvent) {
+    this.editEvent.set(event);
+    this.editEventTitle.set(event.title);
+    this.editEventTime.set(event.startTime || '');
+    this.editEventDate.set(event.date);
+    this.showEditEventModal.set(true);
+  }
+
+  updateEvent(): void {
+    const event = this.editEvent();
+    if (!event) return;
+
+    const updatedEvent: CalendarEvent = {
+      ...event,
+      title: this.editEventTitle(),
+      date: this.editEventDate()!,
+      startTime: this.editEventTime() || undefined,
+    };
+
+    this.actionsService.updateEvent(updatedEvent).subscribe({
+      next: () => {
+        this.showEditEventModal.set(false);
+        this.editEvent.set(null);
+        this.loadEvents();
+      },
+      error: (err) => {
+        alert('Erreur lors de la modification');
+        console.error(err);
+      }
+    });
+  }
+
+  onEditEventDateChange(value: string) {
+    this.editEventDate.set(value ? new Date(value) : null);
+  }
+
+  deleteEvent() {
+    const event = this.editEvent();
+    if (!event || !event.id) return;
+    this.actionsService.deleteEvent(event.id).subscribe({
+      next: () => {
+        this.showEditEventModal.set(false);
+        this.editEvent.set(null);
+        this.loadEvents();
+      },
+      error: (err) => {
+        alert('Erreur lors de la suppression');
+        console.error(err);
+      }
+    });
   }
 }

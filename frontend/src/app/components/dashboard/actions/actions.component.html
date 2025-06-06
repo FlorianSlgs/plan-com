@@ -17,6 +17,7 @@
               class="absolute top-2 right-2 bg-white/80 rounded-full p-2 shadow transition opacity-0 group-hover:opacity-100"
               title="Modifier"
               type="button"
+              (click)="openEditEventModal(event)"
             >
               <!-- Icône crayon SVG -->
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -77,6 +78,54 @@
         type="button"
       >
         Ajouter l'Événement
+      </button>
+    </div>
+  </div>
+}
+
+@if (showEditEventModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+      <button
+        class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
+        (click)="showEditEventModal.set(false)"
+        title="Fermer"
+        type="button"
+      >&times;</button>
+      <h2 class="text-lg font-bold mb-4 text-blue-700">Modifier l'Événement</h2>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Titre :</label>
+        <input type="text"
+          [ngModel]="editEventTitle()" (ngModelChange)="editEventTitle.set($event)"
+          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Date :</label>
+        <input type="date"
+          [ngModel]="editEventDate() ? (editEventDate() | date:'yyyy-MM-dd') : ''"
+          (ngModelChange)="onEditEventDateChange($event)"
+          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Heure (HH:mm) :</label>
+        <input type="time"
+          [ngModel]="editEventTime()" (ngModelChange)="editEventTime.set($event)"
+          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <button
+        (click)="updateEvent()"
+        [disabled]="!editEventTitle() || !editEventDate()"
+        class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+        type="button"
+      >
+        Enregistrer les modifications
+      </button>
+      <button
+        (click)="deleteEvent()"
+        type="button"
+        class="w-full bg-red-400 text-white font-semibold py-2 rounded hover:bg-red-700 transition mt-2"
+      >
+        Supprimer l'événement
       </button>
     </div>
   </div>

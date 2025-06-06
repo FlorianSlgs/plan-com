@@ -63,5 +63,16 @@ module.exports = function(pool) {
     }
   });
 
+  // Supprimer une tâche
+  router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+      await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+      res.json({ message: 'Tâche supprimée' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };

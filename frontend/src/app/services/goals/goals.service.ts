@@ -26,4 +26,8 @@ export class GoalsService {
   updateGoal(goalId: string, formData: FormData) {
     return this.http.put(`${this.apiUrl}/update/${goalId}`, formData);
   }
+
+  deleteGoal(goalId: string) {
+    return this.http.delete(`${this.apiUrl}/delete/${goalId}`);
+  }
 }
