@@ -19,13 +19,8 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 
-// Helper to generate a fake token
-const generateToken = (email) => {
-  return Buffer.from(email + Date.now()).toString('base64');
-};
-
 // Import and use the auth routes
-const authRoutes = require('./auth.routes')(pool, generateToken);
+const authRoutes = require('./auth.routes')(pool);
 app.use('/api/auth', authRoutes);
 
 const header = require('./header.routes')(pool);

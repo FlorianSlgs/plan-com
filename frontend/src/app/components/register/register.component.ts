@@ -1,11 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // Importer ReactiveFormsModule
-import { Router, RouterLink } from '@angular/router'; // Importer RouterLink
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
-  standalone: true, // Marquer comme standalone
+  standalone: true,
   imports: [
     ReactiveFormsModule, // Importer pour [formGroup], formControlName
     RouterLink           // Importer pour routerLink="/login"

@@ -2,13 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // Importer ReactiveFormsModule ici
 import { Router, RouterLink } from '@angular/router'; // Importer RouterLink
 import { AuthService } from '../../services/auth.service';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-login',
-  standalone: true, // Marquer comme standalone
+  standalone: true,
   imports: [
     ReactiveFormsModule, // Importer pour [formGroup], formControlName
     RouterLink,           // Importer pour routerLink="/register"
@@ -20,7 +17,6 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMessage: string | null = null;
 
-  // Injection via constructeur (ou utiliser inject() si préféré)
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);

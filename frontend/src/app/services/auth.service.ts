@@ -11,7 +11,6 @@ import { environment } from '../../environments/environment';
 export class AuthService {
   private apiUrl = environment.apiUrl;
 
-  // Injection de dépendances avec inject()
   private http = inject(HttpClient);
   private router = inject(Router);
 
@@ -20,7 +19,7 @@ export class AuthService {
   private loggedInState = signal<boolean>(this.hasToken());
 
   // Signal public en lecture seule pour les composants
-  // les composants liront directement la valeur avec isLoggedIn()
+  // les composants lisent directement la valeur avec isLoggedIn()
   public isLoggedIn = this.loggedInState.asReadonly();
 
   // Vérifie si un token existe dans le localStorage
@@ -33,7 +32,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
         localStorage.setItem('authToken', response.token);
-        localStorage.setItem('userId', response.id); // <-- Ajoute cette ligne
+        localStorage.setItem('userId', response.id);
         this.loggedInState.set(true);
         this.router.navigate(['/home']);
       }),
