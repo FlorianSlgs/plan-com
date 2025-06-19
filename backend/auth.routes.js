@@ -4,6 +4,8 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const authenticateToken = require('./middlewares/auth');
+
 const JWT_SECRET = process.env.JWT_SECRET
 const SALT_ROUNDS = 10;
 
@@ -60,18 +62,52 @@ module.exports = (pool, generateToken) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email }, // payload
+      { id: user.id, email: user.email },
       JWT_SECRET,
-      { expiresIn: '2h' } // durée de validité
+      { expiresIn: '2h' }
     );
-    return res.status(200).json({ token, id: user.id });
+
+    // Ajoute le token dans un cookie HTTP Only
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // true en prod (HTTPS)
+      sameSite: 'strict',
+      maxAge: 2 * 60 * 60 * 1000 // 2h
+    });
+
+    // Ajoute aussi le userId si besoin (optionnel)
+    res.cookie('userId', user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 2 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json({ message: 'Connexion réussie.' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Erreur serveur.' });
   }
 });
 
-  
+  router.post('/logout', (req, res) => {
+    res.clearCookie('authToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+    res.clearCookie('userId', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+    return res.status(200).json({ message: 'Déconnexion réussie.' });
+  });
+
+  router.get('/me', authenticateToken, async (req, res) => {
+    // req.user contient les infos du token
+    res.status(200).json({ id: req.user.id, email: req.user.email });
+  });
 
   return router;
 };

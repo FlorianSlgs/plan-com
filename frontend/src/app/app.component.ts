@@ -12,7 +12,6 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
   title = 'angular-auth-app-standalone';
   // Injecter AuthService pour l'utiliser dans le template
-  authService = inject(AuthService);
+  private authService = inject(AuthService);
 
-  // Pas besoin de constructeur juste pour l'injection si on utilise inject() comme ci-dessus
 }

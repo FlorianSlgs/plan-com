@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const app = express();
+const cookieParser = require('cookie-parser');
+
 const PORT = 3000;
 
 app.use('/uploads/goals_images', express.static(__dirname + '/uploads/goals_images'));
@@ -16,8 +18,12 @@ const pool = new Pool({
   port: process.env.PGPORT,
 });
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Import and use the auth routes
 const authRoutes = require('./auth.routes')(pool);
