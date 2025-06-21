@@ -9,25 +9,37 @@ export class GoalsService {
 
   constructor(private http: HttpClient) {}
 
+  // Upload d'image avec authentification par cookie
   uploadGoalImage(formData: FormData) {
-    return this.http.post<{ filePath: string }>(`${this.apiUrl}/upload-image`, formData);
+    return this.http.post<{ filePath: string }>(`${this.apiUrl}/upload-image`, formData, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 
-  getGoalsByUserAndCampaign(userId: string, campaignName: string) {
+  // Récupère les goals par campagne (l'utilisateur est identifié par le cookie)
+  getGoalsByCampaign(campaignName: string) {
     return this.http.get<{
-      id: string, // Ajoute cette ligne
+      id: string,
       goals_name: string,
       goals_description: string,
       subgoals: string,
       goals_imageurl: string
-    }[]>(`${this.apiUrl}/user/${userId}/campaign/${encodeURIComponent(campaignName)}`);
+    }[]>(`${this.apiUrl}/campaign/${encodeURIComponent(campaignName)}`, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 
+  // Met à jour un goal
   updateGoal(goalId: string, formData: FormData) {
-    return this.http.put(`${this.apiUrl}/update/${goalId}`, formData);
+    return this.http.put(`${this.apiUrl}/update/${goalId}`, formData, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 
+  // Supprime un goal
   deleteGoal(goalId: string) {
-    return this.http.delete(`${this.apiUrl}/delete/${goalId}`);
+    return this.http.delete(`${this.apiUrl}/delete/${goalId}`, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 }

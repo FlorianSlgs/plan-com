@@ -9,15 +9,24 @@ export class HeaderService {
 
   constructor(private http: HttpClient) {}
 
-  getUserNameById(id: string) {
-    return this.http.get<{ first_name: string, last_name: string }>(`${this.apiUrl}/user/${id}`);
+  // Récupère le nom de l'utilisateur connecté (utilise le cookie userId automatiquement)
+  getUserName() {
+    return this.http.get<{ first_name: string, last_name: string }>(`${this.apiUrl}/user`, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 
-  createCampaign(userId: string, name: string) {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/campaign`, { userId, name });
+  // Crée une campagne pour l'utilisateur connecté
+  createCampaign(name: string) {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/campaign`, { name }, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 
-  getCampaignsByUserId(userId: string) {
-    return this.http.get<{ id: number, name: string }[]>(`${this.apiUrl}/campaigns/${userId}`);
+  // Récupère les campagnes de l'utilisateur connecté
+  getCampaigns() {
+    return this.http.get<{ id: number, name: string }[]>(`${this.apiUrl}/campaigns`, {
+      withCredentials: true // Important pour envoyer les cookies
+    });
   }
 }

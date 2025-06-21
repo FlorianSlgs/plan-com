@@ -20,20 +20,18 @@ export class HeaderComponent implements OnInit {
   constructor(private headerService: HeaderService) {}
 
   ngOnInit() {
-    const userId = localStorage.getItem('userId');
-    this.currentCampaign = localStorage.getItem('currentCampaign') || '';
-    if (userId) {
-      this.headerService.getUserNameById(userId).subscribe({
-        next: user => {
-          this.userFullName = `${user.first_name} ${user.last_name}`;
-        },
-        error: () => {
-          this.userFullName = 'Utilisateur';
-        }
-      });
+    // Récupère le nom de l'utilisateur depuis le backend (le backend utilisera le cookie)
+    this.headerService.getUserName().subscribe({
+      next: user => {
+        this.userFullName = `${user.first_name} ${user.last_name}`;
+      },
+      error: () => {
+        this.userFullName = 'Utilisateur';
+      }
+    });
 
-          // Récupère les campagnes de l'utilisateur
-    this.headerService.getCampaignsByUserId(userId).subscribe({
+    // Récupère les campagnes de l'utilisateur depuis le backend
+    this.headerService.getCampaigns().subscribe({
       next: campaigns => {
         this.campaigns = campaigns;
       },
@@ -41,10 +39,9 @@ export class HeaderComponent implements OnInit {
         this.campaigns = [];
       }
     });
-    } else {
-      this.userFullName = 'Utilisateur';
-      this.campaigns = [];
-    }
+
+    // Récupère la campagne courante depuis le localStorage (côté client seulement)
+    this.currentCampaign = localStorage.getItem('currentCampaign') || '';
   }
 
   selectCampaign(name: string) {
@@ -62,23 +59,14 @@ export class HeaderComponent implements OnInit {
 
   createCampaign() {
     if (!this.campaignName.trim()) return;
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-      alert('Utilisateur non connecté.');
-      return;
-    }
-    this.headerService.createCampaign(userId, this.campaignName).subscribe({
+    
+    this.headerService.createCampaign(this.campaignName).subscribe({
       next: () => {
         // Stocke le nom de la campagne dans le localStorage
         localStorage.setItem('currentCampaign', this.campaignName);
 
         // Recharge la page pour afficher la nouvelle campagne sélectionnée
         window.location.reload();
-
-        // (Optionnel : tu peux retirer le rafraîchissement manuel de la liste)
-        // this.headerService.getCampaignsByUserId(userId).subscribe({...});
-        // this.showCampaignModal = false;
-        // this.campaignName = '';
       },
       error: () => {
         alert('Erreur lors de la création de la campagne.');

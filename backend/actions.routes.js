@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const authenticateToken = require('./middlewares/auth');
 
 // pool doit être passé lors de l'importation de la route dans index.js
 module.exports = (pool) => {
-  // Récupérer tous les événements
-  router.get('/', async (req, res) => {
+  // Récupérer tous les événements (route protégée)
+  router.get('/', authenticateToken, async (req, res) => {
     try {
-      const { userId, currentCampaign } = req.query;
+      // userId récupéré depuis le token JWT décodé par le middleware
+      const userId = req.user.id;
+      const { currentCampaign } = req.query;
+      
       let query = `
         SELECT 
           id, 
@@ -16,13 +20,10 @@ module.exports = (pool) => {
           currentcampaign AS "currentCampaign", 
           user_id AS "userId"
         FROM actions
-        WHERE 1=1
+        WHERE user_id = $1
       `;
-      const params = [];
-      if (userId) {
-        params.push(userId);
-        query += ` AND user_id = $${params.length}`;
-      }
+      const params = [userId];
+      
       if (currentCampaign) {
         params.push(currentCampaign);
         query += ` AND currentcampaign = $${params.length}`;
@@ -41,10 +42,13 @@ module.exports = (pool) => {
     }
   });
 
-  // Ajouter un événement
-  router.post('/', async (req, res) => {
+  // Ajouter un événement (route protégée)
+  router.post('/', authenticateToken, async (req, res) => {
     try {
-      const { id, title, date, startTime, currentCampaign, userId } = req.body;
+      // userId récupéré depuis le token JWT décodé par le middleware
+      const userId = req.user.id;
+      const { id, title, date, startTime, currentCampaign } = req.body;
+      
       const result = await pool.query(
         `INSERT INTO actions (id, title, event_date, start_time, currentcampaign, user_id)
          VALUES ($1, $2, $3, $4, $5, $6)
@@ -55,9 +59,10 @@ module.exports = (pool) => {
           date, // ISO string, PostgreSQL gère le format
           startTime || null,
           currentCampaign || null,
-          userId || null
+          userId // Utilise l'userId du token JWT
         ]
       );
+      
       // Conversion de la date en ISO pour le frontend
       const savedEvent = result.rows[0];
       if (savedEvent && savedEvent.date) {
@@ -70,11 +75,27 @@ module.exports = (pool) => {
     }
   });
 
-  // Modifier un événement
-  router.put('/:id', async (req, res) => {
+  // Modifier un événement (route protégée)
+  router.put('/:id', authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, date, startTime, currentCampaign, userId } = req.body;
+      // userId récupéré depuis le token JWT décodé par le middleware
+      const userId = req.user.id;
+      const { title, date, startTime, currentCampaign } = req.body;
+
+      // Vérifier que l'événement appartient à l'utilisateur connecté
+      const ownershipCheck = await pool.query(
+        'SELECT user_id FROM actions WHERE id = $1',
+        [id]
+      );
+      
+      if (ownershipCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+      
+      if (ownershipCheck.rows[0].user_id !== userId) {
+        return res.status(403).json({ error: 'Accès non autorisé à cet événement' });
+      }
 
       const result = await pool.query(
         `UPDATE actions
@@ -90,10 +111,11 @@ module.exports = (pool) => {
           date,
           startTime || null,
           currentCampaign || null,
-          userId || null,
+          userId, // S'assurer que l'userId reste correct
           id
         ]
       );
+      
       const updatedEvent = result.rows[0];
       if (updatedEvent && updatedEvent.date) {
         updatedEvent.date = new Date(updatedEvent.date).toISOString();
@@ -105,10 +127,27 @@ module.exports = (pool) => {
     }
   });
 
-  // Supprimer un événement
-  router.delete('/:id', async (req, res) => {
+  // Supprimer un événement (route protégée)
+  router.delete('/:id', authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
+      // userId récupéré depuis le token JWT décodé par le middleware
+      const userId = req.user.id;
+
+      // Vérifier que l'événement appartient à l'utilisateur connecté
+      const ownershipCheck = await pool.query(
+        'SELECT user_id FROM actions WHERE id = $1',
+        [id]
+      );
+      
+      if (ownershipCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+      
+      if (ownershipCheck.rows[0].user_id !== userId) {
+        return res.status(403).json({ error: 'Accès non autorisé à cet événement' });
+      }
+
       await pool.query('DELETE FROM actions WHERE id = $1', [id]);
       res.json({ message: 'Événement supprimé' });
     } catch (error) {

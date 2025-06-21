@@ -20,62 +20,67 @@ export class TaskService {
     this.fetchTasks();
   }
 
-  private getUserId(): string | null {
-    return localStorage.getItem('userId');
-  }
-
   private getCurrentCampaign(): string | null {
     return localStorage.getItem('currentCampaign');
   }
 
   fetchTasks(): void {
-    const userId = this.getUserId();
     const campaign = this.getCurrentCampaign();
-    if (!userId || !campaign) return;
+    if (!campaign) return;
 
-    this.http.get<Task[]>(`${this.apiUrl}?userId=${userId}&campaign=${campaign}`)
-      .subscribe(tasks => this.tasks.set(tasks));
+    // Le userId est maintenant récupéré automatiquement depuis le cookie par le backend
+    // On envoie seulement la campagne en query parameter
+    this.http.get<Task[]>(`${this.apiUrl}?campaign=${campaign}`, {
+      withCredentials: true // Important pour envoyer les cookies
+    }).subscribe(tasks => this.tasks.set(tasks));
   }
 
   addTask(taskData: Omit<Task, 'id'>): void {
-    const userId = this.getUserId();
     const campaign = this.getCurrentCampaign();
-    if (!userId || !campaign) return;
+    if (!campaign) return;
 
-    const payload = { ...taskData, userId, campaign };
-    this.http.post<Task>(this.apiUrl, payload).subscribe(newTask => {
+    const payload = { ...taskData, campaign };
+    this.http.post<Task>(this.apiUrl, payload, {
+      withCredentials: true // Important pour envoyer les cookies
+    }).subscribe(newTask => {
       this.tasks.update(currentTasks => [...currentTasks, newTask]);
     });
   }
 
   updateTaskStatus(taskId: string, newStatus: 'todo' | 'inProgress' | 'done'): void {
-    const userId = this.getUserId();
     const campaign = this.getCurrentCampaign();
-    if (!userId || !campaign) return;
+    if (!campaign) return;
 
-    this.http.patch<Task>(`${this.apiUrl}/${taskId}`, { status: newStatus, userId, campaign })
-      .subscribe(updatedTask => {
-        this.tasks.update(currentTasks =>
-          currentTasks.map(task =>
-            task.id === updatedTask.id ? updatedTask : task
-          )
-        );
-      });
+    this.http.patch<Task>(`${this.apiUrl}/${taskId}`, { 
+      status: newStatus, 
+      campaign 
+    }, {
+      withCredentials: true // Important pour envoyer les cookies
+    }).subscribe(updatedTask => {
+      this.tasks.update(currentTasks =>
+        currentTasks.map(task =>
+          task.id === updatedTask.id ? updatedTask : task
+        )
+      );
+    });
   }
 
   updateTask(updatedTask: Task): void {
-    const userId = this.getUserId();
     const campaign = this.getCurrentCampaign();
-    if (!userId || !campaign) return;
+    if (!campaign) return;
 
-    this.http.put<Task>(`${this.apiUrl}/${updatedTask.id}`, { ...updatedTask, userId, campaign })
-      .subscribe(task => {
-        this.tasks.update(currentTasks =>
-          currentTasks.map(t =>
-            t.id === task.id ? task : t
-          )
-        );
-      });
+    this.http.put<Task>(`${this.apiUrl}/${updatedTask.id}`, { 
+      ...updatedTask, 
+      campaign 
+    }, {
+      withCredentials: true // Important pour envoyer les cookies
+    }).subscribe(task => {
+      this.tasks.update(currentTasks =>
+        currentTasks.map(t =>
+          t.id === task.id ? task : t
+        )
+      );
+    });
   }
 
   getTaskById(id: string) {
@@ -83,7 +88,9 @@ export class TaskService {
   }
 
   deleteTask(id: string): void {
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
+    this.http.delete(`${this.apiUrl}/${id}`, {
+      withCredentials: true // Important pour envoyer les cookies
+    }).subscribe(() => {
       this.tasks.update(currentTasks => currentTasks.filter(task => task.id !== id));
     });
   }

@@ -6,7 +6,7 @@ import { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface GoalCard {
-  id: string; // Ajoute cette ligne
+  id: string;
   title: string;
   imageUrl: string;
   description: string;
@@ -21,7 +21,7 @@ interface GoalCard {
   styleUrl: './goals.component.scss'
 })
 export class GoalsComponent implements OnInit {
-  cards: GoalCard[] = [ /* ... */ ];
+  cards: GoalCard[] = [];
 
   showAddCardModal = false;
 
@@ -48,25 +48,26 @@ export class GoalsComponent implements OnInit {
   }
 
   loadGoals() {
-    const userId = localStorage.getItem('userId');
     const currentCampaign = localStorage.getItem('currentCampaign');
-    if (!userId || !currentCampaign) {
+    if (!currentCampaign) {
       this.cards = [];
       return;
     }
-    this.goalsService.getGoalsByUserAndCampaign(userId, currentCampaign).subscribe({
+    
+    // Le service utilisera automatiquement les cookies pour l'authentification
+    this.goalsService.getGoalsByCampaign(currentCampaign).subscribe({
       next: goals => {
         this.cards = goals.map(goal => ({
-        id: goal.id, // Ajoute cette ligne
-        title: goal.goals_name,
-        description: goal.goals_description,
-        items: Array.isArray(goal.subgoals)
-          ? goal.subgoals
-          : (typeof goal.subgoals === 'string'
-              ? JSON.parse(goal.subgoals)
-              : []),
-        imageUrl: `http://localhost:3000/uploads/goals_images/${goal.goals_imageurl}`
-      }));
+          id: goal.id,
+          title: goal.goals_name,
+          description: goal.goals_description,
+          items: Array.isArray(goal.subgoals)
+            ? goal.subgoals
+            : (typeof goal.subgoals === 'string'
+                ? JSON.parse(goal.subgoals)
+                : []),
+          imageUrl: `http://localhost:3000/uploads/goals_images/${goal.goals_imageurl}`
+        }));
       },
       error: () => {
         this.cards = [];
@@ -109,19 +110,14 @@ export class GoalsComponent implements OnInit {
   addCard() {
     if (!this.newTitle.trim() || !this.selectedFile) return;
 
-    const userId = localStorage.getItem('userId');
-    const currentCampaign = localStorage.getItem('currentCampaign'); // ici c'est le nom
-    if (!userId || !currentCampaign) {
-      alert('Utilisateur ou campagne non sélectionné.');
+    const currentCampaign = localStorage.getItem('currentCampaign');
+    if (!currentCampaign) {
+      alert('Aucune campagne sélectionnée.');
       return;
     }
 
-    // Utilise le nom de la campagne
-    const campaignName = currentCampaign;
-
     const formData = new FormData();
-    formData.append('userId', userId);
-    formData.append('campaignName', campaignName); // <-- envoie le nom
+    formData.append('campaignName', currentCampaign);
     formData.append('title', this.newTitle);
     formData.append('description', this.newDescription);
     formData.append('subgoals', JSON.stringify(
@@ -129,6 +125,7 @@ export class GoalsComponent implements OnInit {
     ));
     formData.append('image', this.selectedFile);
 
+    // Le service utilisera automatiquement les cookies pour l'authentification
     this.goalsService.uploadGoalImage(formData).subscribe({
       next: (res: any) => {
         this.closeAddCardModal();
@@ -141,7 +138,7 @@ export class GoalsComponent implements OnInit {
   }
 
   onDragOver(event: DragEvent) {
-  event.preventDefault();
+    event.preventDefault();
   }
 
   onDrop(event: DragEvent) {

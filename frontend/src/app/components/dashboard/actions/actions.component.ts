@@ -50,36 +50,18 @@ export class ActionsComponent {
     this.loadEvents();
   }
 
-  // --- Chargement des événements depuis la base ou le local ---
+  // --- Chargement des événements depuis la base ---
   loadEvents(): void {
-    const userId = localStorage.getItem('userId') || undefined;
     const currentCampaign = localStorage.getItem('currentCampaign') || undefined;
-    this.actionsService.getEvents(userId, currentCampaign).subscribe({
+    this.actionsService.getEvents(currentCampaign).subscribe({
       next: (dbEvents) => {
-        // Vérification de cohérence avec le localStorage
-        const localEventsStr = localStorage.getItem('events');
-        let localEvents: CalendarEvent[] = [];
-        if (localEventsStr) {
-          try {
-            localEvents = JSON.parse(localEventsStr).map((e: any) => ({
-              ...e,
-              date: new Date(e.date)
-            }));
-          } catch {
-            localEvents = [];
-          }
-        }
-
-        // Si les données locales sont différentes, on prend la base
-        if (!this.areEventsEqual(dbEvents, localEvents)) {
-          this.events.set(dbEvents.map(e => ({ ...e, date: new Date(e.date) })));
-          localStorage.setItem('events', JSON.stringify(dbEvents));
-        } else {
-          this.events.set(localEvents);
-        }
+        this.events.set(dbEvents.map(e => ({ ...e, date: new Date(e.date) })));
+        // Optionnel : sauvegarder en local pour cache
+        localStorage.setItem('events', JSON.stringify(dbEvents));
       },
-      error: () => {
-        // Si erreur (ex: pas de connexion), fallback sur localStorage
+      error: (err) => {
+        console.error('Erreur lors du chargement des événements:', err);
+        // Fallback sur localStorage si disponible
         const localEventsStr = localStorage.getItem('events');
         if (localEventsStr) {
           try {
@@ -98,25 +80,6 @@ export class ActionsComponent {
     });
   }
 
-  // --- Comparaison simple des listes d'événements ---
-  areEventsEqual(eventsA: CalendarEvent[], eventsB: CalendarEvent[]): boolean {
-    if (eventsA.length !== eventsB.length) return false;
-    const sortFn = (a: CalendarEvent, b: CalendarEvent) => (a.id || '').localeCompare(b.id || '');
-    const aSorted = [...eventsA].sort(sortFn);
-    const bSorted = [...eventsB].sort(sortFn);
-    for (let i = 0; i < aSorted.length; i++) {
-      if (
-        aSorted[i].id !== bSorted[i].id ||
-        aSorted[i].title !== bSorted[i].title ||
-        new Date(aSorted[i].date).getTime() !== new Date(bSorted[i].date).getTime() ||
-        aSorted[i].startTime !== bSorted[i].startTime
-      ) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   // --- Ajout d'un événement ---
   addEvent(): void {
     const title = this.newEventTitle().trim();
@@ -131,7 +94,6 @@ export class ActionsComponent {
     }
 
     const currentCampaign = localStorage.getItem('currentCampaign');
-    const userId = localStorage.getItem('userId');
 
     if (title && eventDate) {
       const newEvent: CalendarEvent = {
@@ -139,9 +101,10 @@ export class ActionsComponent {
         title,
         date: eventDate,
         startTime: this.newEventTime() || undefined,
-        currentCampaign: currentCampaign || undefined,
-        userId: userId || undefined
+        currentCampaign: currentCampaign || undefined
+        // userId sera automatiquement récupéré depuis le cookie côté serveur
       };
+      
       this.actionsService.addEvent(newEvent).subscribe({
         next: (savedEvent) => {
           // Recharge depuis la base pour garantir la cohérence
@@ -150,13 +113,13 @@ export class ActionsComponent {
           this.newEventTime.set('');
         },
         error: (err) => {
+          console.error('Erreur lors de l\'ajout de l\'événement', err);
           // Si erreur, ajoute localement et sauvegarde dans localStorage
           const updatedEvents = [...this.events(), newEvent];
           this.events.set(updatedEvents);
           localStorage.setItem('events', JSON.stringify(updatedEvents));
           this.newEventTitle.set('');
           this.newEventTime.set('');
-          console.error('Erreur lors de l\'ajout de l\'événement', err);
         }
       });
     }
@@ -223,11 +186,14 @@ export class ActionsComponent {
     const event = this.editEvent();
     if (!event) return;
 
+    const currentCampaign = localStorage.getItem('currentCampaign');
     const updatedEvent: CalendarEvent = {
       ...event,
       title: this.editEventTitle(),
       date: this.editEventDate()!,
       startTime: this.editEventTime() || undefined,
+      currentCampaign: currentCampaign || undefined
+      // userId sera automatiquement récupéré depuis le cookie côté serveur
     };
 
     this.actionsService.updateEvent(updatedEvent).subscribe({
