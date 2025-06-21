@@ -2,19 +2,19 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, take } from 'rxjs/operators';
 
-export const authGuard: CanActivateFn = ():
-  Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree => {
-
+export const authGuard: CanActivateFn = (): Observable<boolean | UrlTree> => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Utilise checkAuth() pour vérifier côté serveur
   return authService.checkAuth().pipe(
-    map(() => true), // Authentifié
-    catchError(() => {
-      console.log('Access denied by authGuard - Redirecting to login');
+    take(1),
+    map(() => true),
+    catchError((error) => {
+      console.error('Authentication failed:', error);
+      // Optionnel : stocker l'URL tentée pour redirection post-login
+      // router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
       return of(router.parseUrl('/login'));
     })
   );

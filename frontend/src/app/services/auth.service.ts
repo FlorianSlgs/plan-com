@@ -45,7 +45,9 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('Registration failed:', error);
-        return throwError(() => new Error("Échec de l'inscription. L'email est peut-être déjà utilisé."));
+        // Récupère le message du backend s'il existe, sinon message par défaut
+        const backendMsg = error?.error?.message || "Échec de l'inscription. L'email est peut-être déjà utilisé.";
+        return throwError(() => new Error(backendMsg));
       })
     );
   }

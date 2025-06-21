@@ -1,6 +1,18 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { HeaderService } from '../../../services/header/header.service';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin } from 'rxjs';
+
+interface Campaign {
+  id: number;
+  name: string;
+}
+
+interface User {
+  first_name: string;
+  last_name: string;
+}
 
 @Component({
   selector: 'app-header',
@@ -10,67 +22,118 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit {
-  dropdownOpen = false;
+  private destroyRef = inject(DestroyRef);
   
   @Output() logout = new EventEmitter<void>();
-  userFullName: string = '';
-  campaigns: { id: number, name: string }[] = [];
-  currentCampaign: string = '';
+  @Output() campaignSelected = new EventEmitter<string>();
+  
+  // Signals pour la gestion d'état réactive
+  userFullName = signal<string>('');
+  campaigns = signal<Campaign[]>([]);
+  currentCampaign = signal<string>('');
+  showCampaignModal = signal<boolean>(false);
+  campaignName = signal<string>('');
+  loadingState = signal<'idle' | 'loading' | 'error'>('idle');
+  error = signal<string | null>(null);
 
   constructor(private headerService: HeaderService) {}
 
   ngOnInit() {
-    // Récupère le nom de l'utilisateur depuis le backend (le backend utilisera le cookie)
-    this.headerService.getUserName().subscribe({
-      next: user => {
-        this.userFullName = `${user.first_name} ${user.last_name}`;
+    this.loadInitialData();
+    this.loadCurrentCampaign();
+  }
+
+  private loadInitialData() {
+    this.loadingState.set('loading');
+    
+    forkJoin({
+      user: this.headerService.getUserName(),
+      campaigns: this.headerService.getCampaigns()
+    })
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: ({ user, campaigns }) => {
+        this.userFullName.set(`${user.first_name} ${user.last_name}`);
+        this.campaigns.set(campaigns);
+        this.loadingState.set('idle');
+        this.error.set(null);
       },
-      error: () => {
-        this.userFullName = 'Utilisateur';
+      error: (err) => {
+        this.userFullName.set('Utilisateur');
+        this.campaigns.set([]);
+        this.loadingState.set('error');
+        this.error.set('Erreur lors du chargement des données');
+        console.error('Erreur lors du chargement:', err);
       }
     });
+  }
 
-    // Récupère les campagnes de l'utilisateur depuis le backend
-    this.headerService.getCampaigns().subscribe({
-      next: campaigns => {
-        this.campaigns = campaigns;
-      },
-      error: () => {
-        this.campaigns = [];
-      }
-    });
-
-    // Récupère la campagne courante depuis le localStorage (côté client seulement)
-    this.currentCampaign = localStorage.getItem('currentCampaign') || '';
+  private loadCurrentCampaign() {
+    const savedCampaign = localStorage.getItem('currentCampaign') || '';
+    this.currentCampaign.set(savedCampaign);
   }
 
   selectCampaign(name: string) {
     localStorage.setItem('currentCampaign', name);
-    this.currentCampaign = name;
-    window.location.reload();
+    this.currentCampaign.set(name);
+    this.campaignSelected.emit(name);
   }
 
   onLogout() {
     this.logout.emit();
   }
 
-  showCampaignModal = false;
-  campaignName = '';
-
   createCampaign() {
-    if (!this.campaignName.trim()) return;
+    const name = this.campaignName().trim();
+    if (!name) return;
     
-    this.headerService.createCampaign(this.campaignName).subscribe({
-      next: () => {
-        // Stocke le nom de la campagne dans le localStorage
-        localStorage.setItem('currentCampaign', this.campaignName);
-
-        // Recharge la page pour afficher la nouvelle campagne sélectionnée
-        window.location.reload();
-      },
-      error: () => {
-        alert('Erreur lors de la création de la campagne.');
-      }
-    });
+    this.loadingState.set('loading');
+    
+    this.headerService.createCampaign(name)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // Ajoute la nouvelle campagne à la liste
+          const newCampaign: Campaign = { 
+            id: Date.now(), // ID temporaire
+            name: name 
+          };
+          this.campaigns.update(campaigns => [...campaigns, newCampaign]);
+          
+          // Sélectionne la nouvelle campagne
+          this.selectCampaign(name);
+          
+          // Ferme le modal et remet à zéro
+          this.showCampaignModal.set(false);
+          this.campaignName.set('');
+          this.loadingState.set('idle');
+          this.error.set(null);
+        },
+        error: (err) => {
+          this.loadingState.set('error');
+          this.error.set('Erreur lors de la création de la campagne');
+          console.error('Erreur création campagne:', err);
+        }
+      });
   }
+
+  openCampaignModal() {
+    this.showCampaignModal.set(true);
+    this.campaignName.set('');
+    this.error.set(null);
+  }
+
+  closeCampaignModal() {
+    this.showCampaignModal.set(false);
+    this.campaignName.set('');
+    this.error.set(null);
+  }
+
+  updateCampaignName(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.campaignName.set(target.value);
+  }
+
+  // Getters pour compatibilité template
+  get dropdownOpen() { return false; } // Géré par CSS
 }

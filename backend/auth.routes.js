@@ -9,6 +9,43 @@ const authenticateToken = require('./middlewares/auth');
 const JWT_SECRET = process.env.JWT_SECRET
 const SALT_ROUNDS = 10;
 
+// Fonction pour valider le mot de passe
+const validatePassword = (password) => {
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+};
+
+// Fonction pour valider la date de naissance
+const validateBirthDate = (birthDate) => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  
+  // Vérifier que la date n'est pas dans le futur
+  if (birth > today) {
+    return { valid: false, message: "La date de naissance ne peut pas être dans le futur." };
+  }
+  
+  // Calculer l'âge
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  
+  // Vérifier que la personne a plus de 12 ans
+  if (age <= 12) {
+    return { valid: false, message: "Vous devez avoir plus de 12 ans pour vous inscrire." };
+  }
+  
+  return { valid: true };
+};
+
 module.exports = (pool, generateToken) => {
   // Register route
   router.post('/register', async (req, res) => {
@@ -16,6 +53,19 @@ module.exports = (pool, generateToken) => {
 
     if (!email || !password || !lastName || !firstName || !birthDate) {
       return res.status(400).json({ message: 'Tous les champs sont requis.' });
+    }
+
+    // Validation du mot de passe
+    if (!validatePassword(password)) {
+      return res.status(400).json({ 
+        message: 'Le mot de passe doit contenir au minimum 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial.' 
+      });
+    }
+
+    // Validation de la date de naissance
+    const birthDateValidation = validateBirthDate(birthDate);
+    if (!birthDateValidation.valid) {
+      return res.status(400).json({ message: birthDateValidation.message });
     }
 
     try {
