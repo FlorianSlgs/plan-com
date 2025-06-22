@@ -269,10 +269,6 @@ export class GoalsComponent implements OnInit, OnDestroy {
     const goalId = this.editGoalId();
     if (!goalId) return;
 
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) {
-      return;
-    }
-
     this.loading.set(true);
 
     this.goalsService.deleteGoal(goalId)

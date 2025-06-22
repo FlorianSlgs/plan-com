@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-goals-cards',
@@ -8,12 +8,14 @@ import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from 
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GoalsCardsComponent {
-  @Input() title = "Titre de l'objectif";
-  @Input() imageUrl = 'https://via.placeholder.com/120x80';
-  @Input() description = "Description de l'objectif.";
-  @Input() items: string[] = [];
+  // Nouveaux input signals
+  title = input<string>("Titre de l'objectif");
+  imageUrl = input<string>('https://via.placeholder.com/120x80');
+  description = input<string>("Description de l'objectif.");
+  items = input<string[]>([]);
 
-  @Output() edit = new EventEmitter<void>();
+  // Nouveau output
+  edit = output<void>();
 
   // TrackBy function pour optimiser le rendu des listes
   trackByItem = (index: number, item: string): string => item;
