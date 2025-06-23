@@ -16,9 +16,26 @@ export class AuthService {
   // Signal pour suivre l'état de connexion
   // Initialisé à false (car on ne peut plus lire le token côté client)
   private loggedInState = signal<boolean>(false);
+  private authChecked = signal<boolean>(false);
 
   // Signal public en lecture seule pour les composants
   public isLoggedIn = this.loggedInState.asReadonly();
+
+  constructor() {
+    // Vérifier l'auth au démarrage
+    this.initializeAuth();
+  }
+
+  private initializeAuth(): void {
+    this.checkAuth().subscribe({
+      next: () => {
+        this.authChecked.set(true);
+      },
+      error: () => {
+        this.authChecked.set(true);
+      }
+    });
+  }
 
   // Méthode de connexion
   login(credentials: { email: string, password: string }): Observable<any> {
@@ -85,5 +102,10 @@ export class AuthService {
   // Méthode simple pour vérifier l'état de connexion (utilisée par le Guard et les composants)
   isUserLoggedIn(): boolean {
     return this.isLoggedIn();
+  }
+
+  // Getter pour savoir si la vérification initiale est terminée
+  isAuthChecked(): boolean {
+    return this.authChecked();
   }
 }
