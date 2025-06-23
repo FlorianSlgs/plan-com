@@ -1,13 +1,19 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'; // Pour HttpClient
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
 
 import { routes } from './app.routes';
 
+// Enregistrer la locale française
+registerLocaleData(localeFr);
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes), // Fournir le routeur avec les routes définies
-    provideHttpClient(withInterceptorsFromDi()), // Fournir HttpClient (avec support pour intercepteurs DI si besoin)
+    provideRouter(routes),
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: LOCALE_ID, useValue: 'fr-FR' }, // Configurer la locale française
     // importProvidersFrom(BrowserAnimationsModule) // Si vous utilisez des animations
   ]
 };

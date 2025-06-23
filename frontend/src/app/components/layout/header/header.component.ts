@@ -3,6 +3,7 @@ import { HeaderService } from '../../../services/header/header.service';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
+import { DOCUMENT } from '@angular/common'; // Ajout de cet import
 
 interface Campaign {
   id: number;
@@ -23,6 +24,7 @@ interface User {
 })
 export class HeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
+  private document = inject(DOCUMENT); // Injection du document
   
   @Output() logout = new EventEmitter<void>();
   @Output() campaignSelected = new EventEmitter<string>();
@@ -77,6 +79,9 @@ export class HeaderComponent implements OnInit {
     localStorage.setItem('currentCampaign', name);
     this.currentCampaign.set(name);
     this.campaignSelected.emit(name);
+    
+    // Rechargement de la page
+    this.document.defaultView?.location.reload();
   }
 
   onLogout() {
