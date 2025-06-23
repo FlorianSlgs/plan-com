@@ -75,10 +75,15 @@ export class AuthService {
     this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
       next: () => {
         this.loggedInState.set(false);
+        // Supprimer currentCampaign du localStorage
+        localStorage.removeItem('currentCampaign');
+        localStorage.removeItem('events');
         this.router.navigate(['/login']);
       },
       error: () => {
         this.loggedInState.set(false);
+        // Supprimer currentCampaign du localStorage même en cas d'erreur
+        localStorage.removeItem('currentCampaign');
         this.router.navigate(['/login']);
       }
     });

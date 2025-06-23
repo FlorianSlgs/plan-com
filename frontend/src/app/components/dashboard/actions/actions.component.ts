@@ -53,6 +53,13 @@ export class ActionsComponent {
   // --- Chargement des événements depuis la base ---
   loadEvents(): void {
     const currentCampaign = localStorage.getItem('currentCampaign') || undefined;
+
+    // 🔧 Arrêter si pas de campagne sélectionnée
+    if (!currentCampaign) {
+      this.events.set([]);
+      return;
+    }
+
     this.actionsService.getEvents(currentCampaign).subscribe({
       next: (dbEvents) => {
         this.events.set(dbEvents.map(e => ({ ...e, date: new Date(e.date) })));

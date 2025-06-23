@@ -18,6 +18,10 @@ interface CreateCampaignResponse {
   campaign?: Campaign;
 }
 
+interface DeleteAccountResponse {
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -63,6 +67,16 @@ export class HeaderService {
     return this.http.get<Campaign[]>(`${this.apiUrl}/campaigns`, this.httpOptions)
       .pipe(
         retry(1), // Retry une fois en cas d'échec
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Supprime le compte de l'utilisateur connecté
+   */
+  deleteAccount(): Observable<DeleteAccountResponse> {
+    return this.http.delete<DeleteAccountResponse>(`${this.apiUrl}/account`, this.httpOptions)
+      .pipe(
         catchError(this.handleError)
       );
   }

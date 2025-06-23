@@ -3,7 +3,7 @@ import { HeaderService } from '../../../services/header/header.service';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
-import { DOCUMENT } from '@angular/common'; // Ajout de cet import
+import { DOCUMENT } from '@angular/common';
 
 interface Campaign {
   id: number;
@@ -24,16 +24,19 @@ interface User {
 })
 export class HeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
-  private document = inject(DOCUMENT); // Injection du document
+  private document = inject(DOCUMENT);
   
   @Output() logout = new EventEmitter<void>();
   @Output() campaignSelected = new EventEmitter<string>();
+  @Output() accountDeleted = new EventEmitter<void>(); // Event emitter pour la suppression de compte
   
   // Signals pour la gestion d'état réactive
   userFullName = signal<string>('');
   campaigns = signal<Campaign[]>([]);
   currentCampaign = signal<string>('');
   showCampaignModal = signal<boolean>(false);
+  showSettingsModal = signal<boolean>(false);
+  showDeleteConfirmModal = signal<boolean>(false);
   campaignName = signal<string>('');
   loadingState = signal<'idle' | 'loading' | 'error'>('idle');
   error = signal<string | null>(null);
@@ -88,6 +91,7 @@ export class HeaderComponent implements OnInit {
     this.logout.emit();
   }
 
+  // === Méthodes pour la gestion des campagnes ===
   createCampaign() {
     const name = this.campaignName().trim();
     if (!name) return;
@@ -132,6 +136,55 @@ export class HeaderComponent implements OnInit {
     this.showCampaignModal.set(false);
     this.campaignName.set('');
     this.error.set(null);
+  }
+
+  // === Méthodes pour la gestion des paramètres ===
+  openSettingsModal() {
+    this.showSettingsModal.set(true);
+    this.error.set(null);
+  }
+
+  closeSettingsModal() {
+    this.showSettingsModal.set(false);
+    this.error.set(null);
+  }
+
+  confirmDeleteAccount() {
+    this.showDeleteConfirmModal.set(true);
+  }
+
+  closeDeleteConfirmModal() {
+    this.showDeleteConfirmModal.set(false);
+  }
+
+  // === Méthode pour supprimer le compte ===
+  deleteAccount() {
+    this.loadingState.set('loading');
+    this.error.set(null);
+    
+    this.headerService.deleteAccount()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // Nettoyer le localStorage
+          localStorage.removeItem('currentCampaign');
+          
+          // Fermer tous les modals
+          this.showDeleteConfirmModal.set(false);
+          this.showSettingsModal.set(false);
+          
+          // Émettre l'événement pour informer le composant parent
+          this.accountDeleted.emit();
+          
+          // Optionnel : rediriger vers la page de connexion
+          this.document.defaultView?.location.assign('/login');
+        },
+        error: (err) => {
+          this.loadingState.set('error');
+          this.error.set('Erreur lors de la suppression du compte');
+          console.error('Erreur suppression compte:', err);
+        }
+      });
   }
 
   updateCampaignName(event: Event) {

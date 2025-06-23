@@ -56,5 +56,49 @@ module.exports = (pool) => {
     }
   });
 
+  // Route protégée pour supprimer le compte de l'utilisateur connecté
+  router.delete('/account', authenticateToken, async (req, res) => {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // Supprimer d'abord les campagnes associées à l'utilisateur
+      await client.query(
+        'DELETE FROM campaign WHERE user_id = $1',
+        [req.user.id]
+      );
+      
+      // Puis supprimer l'utilisateur
+      const result = await client.query(
+        'DELETE FROM users WHERE id = $1 RETURNING id',
+        [req.user.id]
+      );
+      
+      if (result.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+      }
+      
+      await client.query('COMMIT');
+      
+      // Supprimer le cookie d'authentification
+      res.clearCookie('authToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
+      res.json({ message: 'Compte supprimé avec succès.' });
+      
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Erreur lors de la suppression du compte:', err);
+      res.status(500).json({ message: 'Erreur serveur lors de la suppression du compte.' });
+    } finally {
+      client.release();
+    }
+  });
+
   return router;
 };

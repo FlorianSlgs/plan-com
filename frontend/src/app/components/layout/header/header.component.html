@@ -1,6 +1,10 @@
 <header class="flex items-center justify-between px-6 py-4">
   <div class="flex items-center gap-4">
-    <h2 class="text-2xl font-medium text-gray-800">{{ currentCampaign() || "Créez ou choisissez une campagne" }}</h2>
+    <h2 class="text-2xl font-medium"
+        [class.text-blue-700]="currentCampaign()"
+    [class]="currentCampaign() ? 'text-gray-800' : 'text-red-500'">
+      {{ currentCampaign() || "Créer ou choisir une campagne" }}
+    </h2>
     <div class="relative group" tabindex="0">
       <button 
         class="flex items-center px-2 py-1 rounded hover:bg-gray-100 focus:outline-none"
@@ -54,6 +58,7 @@
       class="text-gray-500 hover:text-blue-700 transition w-10 h-10 flex items-center justify-center" 
       title="Paramètres"
       aria-label="Paramètres"
+      (click)="openSettingsModal()"
       type="button">
       <span class="material-icons text-xl">settings</span>
     </button>
@@ -73,7 +78,7 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
        role="dialog"
        aria-modal="true"
-       aria-labelledby="modal-title">
+       aria-labelledby="campaign-modal-title">
     <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
@@ -83,7 +88,7 @@
         type="button"
       >&times;</button>
       
-      <h2 id="modal-title" class="text-lg font-bold mb-4 text-blue-700">Nouvelle campagne</h2>
+      <h2 id="campaign-modal-title" class="text-lg font-bold mb-4 text-blue-700">Nouvelle campagne</h2>
       
       @if (error()) {
         <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded" role="alert">
@@ -118,6 +123,105 @@
           }
         </button>
       </form>
+    </div>
+  </div>
+}
+
+<!-- Popup paramètres -->
+@if (showSettingsModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="settings-modal-title">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+      <button
+        class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
+        (click)="closeSettingsModal()"
+        title="Fermer"
+        aria-label="Fermer la modal des paramètres"
+        type="button"
+      >&times;</button>
+      
+      <h2 id="settings-modal-title" class="text-lg font-bold mb-6 text-gray-800">Paramètres du compte</h2>
+      
+      @if (error()) {
+        <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded" role="alert">
+          {{ error() }}
+        </div>
+      }
+      
+      <div class="space-y-4">
+        <!-- Informations utilisateur -->
+        <div class="border-b border-gray-200 pb-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Informations personnelles</h3>
+          <p class="text-gray-600">{{ userFullName() }}</p>
+        </div>
+        
+        <!-- Section danger -->
+        <div class="w-4/5 mx-auto">
+          <button
+            type="button"
+            (click)="confirmDeleteAccount()"
+            [disabled]="loadingState() === 'loading'"
+            class="w-full bg-red-600 text-white font-semibold py-2 rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            <span class="material-icons mr-2 text-lg">delete_forever</span>
+            @if (loadingState() === 'loading') {
+              Suppression en cours...
+            } @else {
+              Supprimer mon compte
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Popup de confirmation de suppression -->
+@if (showDeleteConfirmModal()) {
+  <div class="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm bg-black/50"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="delete-confirm-title">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm relative">
+      <div class="text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <span class="material-icons text-red-600 text-2xl">warning</span>
+        </div>
+        
+        <h3 id="delete-confirm-title" class="text-lg font-bold text-gray-900 mb-2">
+          Confirmer la suppression
+        </h3>
+        
+        <p class="text-sm text-gray-600 mb-6">
+          Êtes-vous sûr de vouloir supprimer définitivement votre compte ? 
+          Cette action ne peut pas être annulée.
+        </p>
+        
+        <div class="flex gap-3">
+          <button
+            type="button"
+            (click)="closeDeleteConfirmModal()"
+            [disabled]="loadingState() === 'loading'"
+            class="flex-1 bg-gray-200 text-gray-800 font-medium py-2 rounded hover:bg-gray-300 transition disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            (click)="deleteAccount()"
+            [disabled]="loadingState() === 'loading'"
+            class="flex-1 bg-red-600 text-white font-medium py-2 rounded hover:bg-red-700 transition disabled:opacity-50"
+          >
+            @if (loadingState() === 'loading') {
+              Suppression...
+            } @else {
+              Supprimer
+            }
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 }
