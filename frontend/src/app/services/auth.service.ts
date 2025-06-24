@@ -77,6 +77,7 @@ export class AuthService {
         this.loggedInState.set(false);
         // Supprimer currentCampaign du localStorage
         localStorage.removeItem('currentCampaign');
+        localStorage.removeItem('currentCampaignId');
         localStorage.removeItem('events');
         this.router.navigate(['/login']);
       },

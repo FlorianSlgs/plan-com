@@ -22,6 +22,22 @@ interface DeleteAccountResponse {
   message: string;
 }
 
+interface DeleteCampaignResponse {
+  message: string;
+  success: boolean;
+}
+
+interface InviteUserRequest {
+  email: string;
+  campaignId: number;
+  role: 'reader' | 'editor';
+}
+
+interface InviteUserResponse {
+  message: string;
+  success: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -72,6 +88,25 @@ export class HeaderService {
   }
 
   /**
+   * Supprime une campagne spécifique
+   */
+  deleteCampaign(campaignId: number, campaignName: string): Observable<DeleteCampaignResponse> {
+    if (!campaignId || !campaignName?.trim()) {
+      return throwError(() => new Error('L\'ID et le nom de la campagne sont requis'));
+    }
+
+    return this.http.delete<DeleteCampaignResponse>(
+      `${this.apiUrl}/campaign/${campaignId}`, 
+      {
+        ...this.httpOptions,
+        body: { campaignName: campaignName.trim() }
+      }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
    * Supprime le compte de l'utilisateur connecté
    */
   deleteAccount(): Observable<DeleteAccountResponse> {
@@ -79,6 +114,33 @@ export class HeaderService {
       .pipe(
         catchError(this.handleError)
       );
+  }
+
+  /**
+   * Invite un utilisateur à rejoindre une campagne
+   */
+  inviteUser(email: string, campaignId: number, role: 'reader' | 'editor'): Observable<InviteUserResponse> {
+    if (!email?.trim()) {
+      return throwError(() => new Error('L\'email est requis'));
+    }
+
+    if (!campaignId) {
+      return throwError(() => new Error('L\'ID de campagne est requis'));
+    }
+
+    const requestData: InviteUserRequest = {
+      email: email.trim(),
+      campaignId,
+      role
+    };
+
+    return this.http.post<InviteUserResponse>(
+      `${this.apiUrl}/invite`, 
+      requestData, 
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -104,6 +166,10 @@ export class HeaderService {
           break;
         case 404:
           errorMessage = 'Ressource non trouvée';
+          break;
+        case 422:
+          // Code spécifique pour email non enregistré
+          errorMessage = error.error?.message || 'Email non enregistré dans le système';
           break;
         case 500:
           errorMessage = 'Erreur serveur interne';

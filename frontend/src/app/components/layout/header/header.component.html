@@ -46,6 +46,10 @@
     @if (error()) {
       <div class="text-sm text-red-500" role="alert">{{ error() }}</div>
     }
+
+    @if (successMessage()) {
+      <div class="text-sm text-green-600" role="alert">{{ successMessage() }}</div>
+    }
   </div>
   
   <div class="flex items-center gap-3">
@@ -133,7 +137,7 @@
        role="dialog"
        aria-modal="true"
        aria-labelledby="settings-modal-title">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
         (click)="closeSettingsModal()"
@@ -149,12 +153,132 @@
           {{ error() }}
         </div>
       }
+
+      @if (successMessage()) {
+        <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded" role="alert">
+          {{ successMessage() }}
+        </div>
+      }
       
-      <div class="space-y-4">
+      <div class="space-y-6">
         <!-- Informations utilisateur -->
         <div class="border-b border-gray-200 pb-4">
           <h3 class="text-sm font-medium text-gray-700 mb-2">Informations personnelles</h3>
           <p class="text-gray-600">{{ userFullName() }}</p>
+        </div>
+        
+        <!-- Liste des campagnes -->
+        <div class="border-b border-gray-200 pb-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-4">Mes campagnes</h3>
+          @if (campaigns().length > 0) {
+            <div class="space-y-3">
+              @for (campaign of campaigns(); track campaign.id) {
+                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                  <div class="flex items-center gap-3">
+                    <span class="font-medium text-gray-800">{{ campaign.name }}</span>
+                    @if (campaign.name === currentCampaign()) {
+                      <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                        Actuelle
+                      </span>
+                    }
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      (click)="toggleInviteForm(campaign.id)"
+                      class="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition disabled:opacity-50"
+                      [disabled]="loadingState() === 'loading'"
+                    >
+                      <span class="material-icons text-sm">person_add</span>
+                      Inviter
+                    </button>
+                    <button
+                      type="button"
+                      (click)="confirmDeleteCampaign(campaign)"
+                      class="flex items-center gap-1 px-3 py-1 text-sm font-medium rounded transition"
+                      [class]="canDeleteCampaign(campaign) ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                      [disabled]="loadingState() === 'loading' || !canDeleteCampaign(campaign)"
+                      [title]="canDeleteCampaign(campaign) ? 'Supprimer cette campagne' : 'Impossible de supprimer la campagne actuellement sélectionnée'"
+                    >
+                      <span class="material-icons text-sm">delete</span>
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Formulaire d'invitation -->
+                @if (inviteFormVisible() === campaign.id) {
+                  <div class="ml-4 mt-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 class="text-sm font-medium text-blue-800 mb-3">
+                      Inviter un utilisateur à "{{ campaign.name }}"
+                    </h4>
+                    <form (ngSubmit)="sendInvitation(campaign.id)" class="space-y-3">
+                      <div>
+                        <label for="inviteEmail-{{ campaign.id }}" class="block text-xs font-medium text-gray-700 mb-1">
+                          Adresse email :
+                        </label>
+                        <input
+                          id="inviteEmail-{{ campaign.id }}"
+                          type="email"
+                          [value]="inviteEmail()"
+                          (input)="updateInviteEmail($event)"
+                          name="inviteEmail"
+                          required
+                          [disabled]="loadingState() === 'loading'"
+                          class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          placeholder="exemple@email.com"
+                          autocomplete="email"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label for="inviteRole-{{ campaign.id }}" class="block text-xs font-medium text-gray-700 mb-1">
+                          Rôle :
+                        </label>
+                        <select
+                          id="inviteRole-{{ campaign.id }}"
+                          [value]="inviteRole()"
+                          (change)="updateInviteRole($event)"
+                          name="inviteRole"
+                          required
+                          [disabled]="loadingState() === 'loading'"
+                          class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="reader">Lecteur - Peut consulter la campagne</option>
+                          <option value="editor">Éditeur - Peut modifier la campagne</option>
+                        </select>
+                      </div>
+                      
+                      <div class="flex gap-2">
+                        <button
+                          type="submit"
+                          [disabled]="loadingState() === 'loading' || !inviteEmail().trim() || !inviteRole()"
+                          class="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span class="material-icons text-sm">send</span>
+                          @if (loadingState() === 'loading') {
+                            Envoi...
+                          } @else {
+                            Envoyer l'invitation
+                          }
+                        </button>
+                        <button
+                          type="button"
+                          (click)="hideInviteForm()"
+                          [disabled]="loadingState() === 'loading'"
+                          class="px-3 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-300 transition disabled:opacity-50"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <p class="text-gray-500 text-sm">Aucune campagne créée</p>
+          }
         </div>
         
         <!-- Section danger -->
@@ -178,7 +302,60 @@
   </div>
 }
 
-<!-- Popup de confirmation de suppression -->
+<!-- Popup de confirmation de suppression de campagne -->
+@if (showDeleteCampaignModal()) {
+  <div class="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm bg-black/50"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="delete-campaign-confirm-title">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative">
+      <div class="text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <span class="material-icons text-red-600 text-2xl">warning</span>
+        </div>
+        
+        <h3 id="delete-campaign-confirm-title" class="text-lg font-bold text-gray-900 mb-2">
+          Supprimer la campagne
+        </h3>
+        
+        <p class="text-sm text-gray-600 mb-2">
+          Êtes-vous sûr de vouloir supprimer définitivement la campagne 
+          <span class="font-medium text-gray-800">"{{ campaignToDelete()?.name }}"</span> ?
+        </p>
+        
+        <p class="text-xs text-red-600 mb-6">
+          Cette action supprimera également tous les objectifs, actions et tâches associés. 
+          Cette action ne peut pas être annulée.
+        </p>
+        
+        <div class="flex gap-3">
+          <button
+            type="button"
+            (click)="closeDeleteCampaignModal()"
+            [disabled]="loadingState() === 'loading'"
+            class="flex-1 bg-gray-200 text-gray-800 font-medium py-2 rounded hover:bg-gray-300 transition disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            (click)="deleteCampaign()"
+            [disabled]="loadingState() === 'loading'"
+            class="flex-1 bg-red-600 text-white font-medium py-2 rounded hover:bg-red-700 transition disabled:opacity-50"
+          >
+            @if (loadingState() === 'loading') {
+              Suppression...
+            } @else {
+              Supprimer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Popup de confirmation de suppression de compte -->
 @if (showDeleteConfirmModal()) {
   <div class="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm bg-black/50"
        role="dialog"

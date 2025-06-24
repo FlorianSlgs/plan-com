@@ -30,7 +30,7 @@ module.exports = (pool) => {
         return res.status(400).json({ message: 'Champs requis manquants.' });
       }
 
-      // Récupère l'id de la campagne à partir de son nom et de l'utilisateur connecté
+      // Vérifie que la campagne existe pour cet utilisateur
       const campaignResult = await pool.query(
         'SELECT id FROM campaign WHERE name = $1 AND user_id = $2 LIMIT 1',
         [campaignName, userId]
@@ -39,13 +39,12 @@ module.exports = (pool) => {
       if (campaignResult.rows.length === 0) {
         return res.status(404).json({ message: 'Campagne non trouvée.' });
       }
-      
-      const campaignId = campaignResult.rows[0].id;
 
+      // Stocke directement le campaignName au lieu du campaignId
       await pool.query(
         `INSERT INTO goals (user_id, currentCampaign, goals_name, goals_description, subgoals, goals_imageurl)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [userId, campaignId, title, description, subgoals, filePath]
+        [userId, campaignName, title, description, subgoals, filePath]
       );
 
       res.status(201).json({ message: 'Objectif enregistré.', filePath });
@@ -61,7 +60,7 @@ module.exports = (pool) => {
     const userId = req.user.id; // Récupéré depuis le token JWT
     
     try {
-      // Récupère l'id de la campagne à partir de son nom et de l'utilisateur connecté
+      // Vérifie que la campagne existe pour cet utilisateur
       const campaignResult = await pool.query(
         'SELECT id FROM campaign WHERE name = $1 AND user_id = $2 LIMIT 1',
         [campaignName, userId]
@@ -70,15 +69,13 @@ module.exports = (pool) => {
       if (campaignResult.rows.length === 0) {
         return res.json([]); // Pas de campagne trouvée, retourne un tableau vide
       }
-      
-      const campaignId = campaignResult.rows[0].id;
 
-      // Récupère les goals pour cet utilisateur ET cette campagne
+      // Récupère les goals en filtrant directement par campaignName
       const result = await pool.query(
         `SELECT id, goals_name, goals_description, subgoals, goals_imageurl
          FROM goals WHERE user_id = $1 AND currentCampaign = $2
          ORDER BY goals_name`,
-        [userId, campaignId]
+        [userId, campaignName]
       );
       
       res.json(result.rows);
