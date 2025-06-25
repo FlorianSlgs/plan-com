@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError, retry, map } from 'rxjs/operators';
 
 interface User {
   first_name: string;
@@ -11,6 +11,9 @@ interface User {
 interface Campaign {
   id: number;
   name: string;
+  first_name?: string;
+  last_name?: string;
+  user_role: 'owner' | 'reader' | 'editor';
 }
 
 interface CreateCampaignResponse {
@@ -27,6 +30,11 @@ interface DeleteCampaignResponse {
   success: boolean;
 }
 
+interface LeaveSharedCampaignResponse {
+  message: string;
+  success: boolean;
+}
+
 interface InviteUserRequest {
   email: string;
   campaignId: number;
@@ -36,6 +44,25 @@ interface InviteUserRequest {
 interface InviteUserResponse {
   message: string;
   success: boolean;
+}
+
+interface PendingInvitation {
+  id: number;
+  campaignId: number;
+  campaignName: string;
+  inviterName: string;
+  role: 'reader' | 'editor';
+}
+
+interface PendingInvitationsResponse {
+  invitations: PendingInvitation[];
+  success: boolean;
+}
+
+interface InvitationActionResponse {
+  message: string;
+  success: boolean;
+  campaignId?: number;
 }
 
 @Injectable({
@@ -77,7 +104,7 @@ export class HeaderService {
   }
 
   /**
-   * Récupère les campagnes de l'utilisateur connecté
+   * Récupère les campagnes de l'utilisateur connecté (propres et partagées)
    */
   getCampaigns(): Observable<Campaign[]> {
     return this.http.get<Campaign[]>(`${this.apiUrl}/campaigns`, this.httpOptions)
@@ -88,7 +115,7 @@ export class HeaderService {
   }
 
   /**
-   * Supprime une campagne spécifique
+   * Supprime une campagne spécifique (pour les campagnes dont l'utilisateur est propriétaire)
    */
   deleteCampaign(campaignId: number, campaignName: string): Observable<DeleteCampaignResponse> {
     if (!campaignId || !campaignName?.trim()) {
@@ -101,6 +128,22 @@ export class HeaderService {
         ...this.httpOptions,
         body: { campaignName: campaignName.trim() }
       }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Quitte une campagne partagée
+   */
+  leaveSharedCampaign(campaignId: number): Observable<LeaveSharedCampaignResponse> {
+    if (!campaignId) {
+      return throwError(() => new Error('L\'ID de campagne est requis'));
+    }
+
+    return this.http.delete<LeaveSharedCampaignResponse>(
+      `${this.apiUrl}/shared-campaign/${campaignId}`, 
+      this.httpOptions
     ).pipe(
       catchError(this.handleError)
     );
@@ -137,6 +180,52 @@ export class HeaderService {
     return this.http.post<InviteUserResponse>(
       `${this.apiUrl}/invite`, 
       requestData, 
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère les invitations en attente pour l'utilisateur connecté
+   */
+  getPendingInvitations(): Observable<PendingInvitation[]> {
+    return this.http.get<PendingInvitationsResponse>(`${this.apiUrl}/invitations`, this.httpOptions)
+      .pipe(
+        retry(1),
+        catchError(this.handleError),
+        // Extraire seulement le tableau d'invitations
+        map(response => response.invitations || [])
+      );
+  }
+
+  /**
+   * Accepte une invitation
+   */
+  acceptInvitation(invitationId: number): Observable<InvitationActionResponse> {
+    if (!invitationId) {
+      return throwError(() => new Error('L\'ID de l\'invitation est requis'));
+    }
+
+    return this.http.put<InvitationActionResponse>(
+      `${this.apiUrl}/invitation/${invitationId}/accept`, 
+      {}, 
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Refuse une invitation
+   */
+  rejectInvitation(invitationId: number): Observable<InvitationActionResponse> {
+    if (!invitationId) {
+      return throwError(() => new Error('L\'ID de l\'invitation est requis'));
+    }
+
+    return this.http.delete<InvitationActionResponse>(
+      `${this.apiUrl}/invitation/${invitationId}/reject`, 
       this.httpOptions
     ).pipe(
       catchError(this.handleError)

@@ -1,0 +1,102 @@
+@if (isOpen()) {
+  <div 
+    class="modal-overlay fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="campaign-modal-title"
+    (click)="onBackdropClick($event)"
+    (keydown)="onKeydown($event)"
+    tabindex="-1">
+    
+    <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative animate-modal-in">
+      <!-- Bouton de fermeture -->
+      <button
+        class="modal-close-btn absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl transition-colors duration-200"
+        (click)="onClose()"
+        title="Fermer la modal"
+        aria-label="Fermer la modal de création de campagne"
+        type="button">
+        &times;
+      </button>
+      
+      <!-- Titre de la modal -->
+      <div class="modal-header mb-6">
+        <h2 id="campaign-modal-title" class="text-xl font-bold text-blue-700 flex items-center">
+          <span class="material-icons mr-2">campaign</span>
+          Nouvelle campagne
+        </h2>
+        <p class="text-sm text-gray-600 mt-1">
+          Créez une nouvelle campagne pour organiser vos objectifs et actions.
+        </p>
+      </div>
+      
+      <!-- Message d'erreur -->
+      @if (error()) {
+        <div class="error-message mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-start" 
+             role="alert">
+          <span class="material-icons text-red-500 mr-2 text-sm mt-0.5">error</span>
+          <span>{{ error() }}</span>
+        </div>
+      }
+      
+      <!-- Formulaire -->
+      <form (ngSubmit)="onSubmit()" class="modal-form space-y-4">
+        <div class="form-group">
+          <label for="campaignName" class="block mb-2 font-medium text-gray-700">
+            Nom de la campagne <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="campaignName"
+            type="text"
+            [value]="campaignName()"
+            (input)="onCampaignNameChange($event)"
+            name="campaignName"
+            required
+            [disabled]="loadingState() === 'loading'"
+            class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            autocomplete="off"
+            maxlength="100"
+          />
+          <div class="text-xs text-gray-500 mt-1">
+            {{ campaignName().length }}/100 caractères
+          </div>
+        </div>
+        
+        <!-- Boutons d'action -->
+        <div class="modal-actions flex gap-3 pt-4">
+          <button
+            type="button"
+            (click)="onClose()"
+            [disabled]="loadingState() === 'loading'"
+            class="cancel-btn flex-1 bg-gray-200 text-gray-800 font-medium py-3 rounded-lg hover:bg-gray-300 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+            Annuler
+          </button>
+          
+          <button
+            type="submit"
+            [disabled]="loadingState() === 'loading' || !campaignName().trim()"
+            class="submit-btn flex-1 bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+            @if (loadingState() === 'loading') {
+              <div class="loading-spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Création...
+            } @else {
+              <span class="material-icons mr-2 text-lg">add</span>
+              Créer la campagne
+            }
+          </button>
+        </div>
+      </form>
+      
+      <!-- Aide contextuelle -->
+      <div class="modal-help mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start">
+          <span class="material-icons text-blue-500 mr-2 text-sm mt-0.5">info</span>
+          <div class="text-xs text-blue-700">
+            <strong>Conseil :</strong> Choisissez un nom descriptif et unique pour votre campagne. 
+            Vous pourrez toujours le modifier plus tard dans les paramètres.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
