@@ -9,6 +9,7 @@ export interface Goal {
   goals_description: string;
   subgoals: string | string[];
   goals_imageurl: string;
+  campaign_id?: string; // Ajout du campaign_id
 }
 
 export interface UploadResponse {
@@ -38,14 +39,14 @@ export class GoalsService {
   }
 
   /**
-   * Récupère les goals par campagne (l'utilisateur est identifié par le cookie)
+   * Récupère les goals par ID de campagne (l'utilisateur est identifié par le cookie)
    */
-  getGoalsByCampaign(campaignName: string): Observable<Goal[]> {
-    if (!campaignName?.trim()) {
-      return throwError(() => new Error('Le nom de campagne est requis'));
+  getGoalsByCampaignId(campaignId: string): Observable<Goal[]> {
+    if (!campaignId?.trim()) {
+      return throwError(() => new Error('L\'ID de campagne est requis'));
     }
 
-    return this.http.get<Goal[]>(`${this.apiUrl}/campaign/${encodeURIComponent(campaignName)}`, this.httpOptions)
+    return this.http.get<Goal[]>(`${this.apiUrl}/campaign-id/${encodeURIComponent(campaignId)}`, this.httpOptions)
       .pipe(
         retry(1),
         catchError(this.handleError)

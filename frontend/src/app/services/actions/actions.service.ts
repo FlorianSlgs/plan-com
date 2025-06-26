@@ -13,9 +13,9 @@ export class ActionsService {
 
   // Les cookies sont automatiquement envoyés avec les requêtes HTTP
   // Le userId sera récupéré côté serveur depuis le cookie
-  getEvents(currentCampaign?: string): Observable<CalendarEvent[]> {
+  getEvents(currentCampaignId?: string): Observable<CalendarEvent[]> {
     let params: any = {};
-    if (currentCampaign) params.currentCampaign = currentCampaign;
+    if (currentCampaignId) params.currentCampaignId = currentCampaignId;
     return this.http.get<CalendarEvent[]>(this.apiUrl, { 
       params,
       withCredentials: true // Important pour envoyer les cookies

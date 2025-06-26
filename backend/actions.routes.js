@@ -9,7 +9,7 @@ module.exports = (pool) => {
     try {
       // userId récupéré depuis le token JWT décodé par le middleware
       const userId = req.user.id;
-      const { currentCampaign } = req.query;
+      const { currentCampaignId } = req.query;
       
       let query = `
         SELECT 
@@ -17,16 +17,16 @@ module.exports = (pool) => {
           title, 
           event_date AS date, 
           start_time AS "startTime", 
-          currentcampaign AS "currentCampaign", 
+          campaign_id AS "campaignId", 
           user_id AS "userId"
         FROM actions
         WHERE user_id = $1
       `;
       const params = [userId];
       
-      if (currentCampaign) {
-        params.push(currentCampaign);
-        query += ` AND currentcampaign = $${params.length}`;
+      if (currentCampaignId) {
+        params.push(currentCampaignId);
+        query += ` AND campaign_id = $${params.length}`;
       }
       query += ' ORDER BY event_date ASC';
 
@@ -47,18 +47,18 @@ module.exports = (pool) => {
     try {
       // userId récupéré depuis le token JWT décodé par le middleware
       const userId = req.user.id;
-      const { id, title, date, startTime, currentCampaign } = req.body;
+      const { id, title, date, startTime, campaignId } = req.body;
       
       const result = await pool.query(
-        `INSERT INTO actions (id, title, event_date, start_time, currentcampaign, user_id)
+        `INSERT INTO actions (id, title, event_date, start_time, campaign_id, user_id)
          VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, title, event_date AS date, start_time AS "startTime", currentcampaign AS "currentCampaign", user_id AS "userId"`,
+         RETURNING id, title, event_date AS date, start_time AS "startTime", campaign_id AS "campaignId", user_id AS "userId"`,
         [
           id,
           title,
           date, // ISO string, PostgreSQL gère le format
           startTime || null,
-          currentCampaign || null,
+          campaignId || null,
           userId // Utilise l'userId du token JWT
         ]
       );
@@ -81,7 +81,7 @@ module.exports = (pool) => {
       const { id } = req.params;
       // userId récupéré depuis le token JWT décodé par le middleware
       const userId = req.user.id;
-      const { title, date, startTime, currentCampaign } = req.body;
+      const { title, date, startTime, campaignId } = req.body;
 
       // Vérifier que l'événement appartient à l'utilisateur connecté
       const ownershipCheck = await pool.query(
@@ -102,15 +102,15 @@ module.exports = (pool) => {
         SET title = $1,
             event_date = $2,
             start_time = $3,
-            currentcampaign = $4,
+            campaign_id = $4,
             user_id = $5
         WHERE id = $6
-        RETURNING id, title, event_date AS date, start_time AS "startTime", currentcampaign AS "currentCampaign", user_id AS "userId"`,
+        RETURNING id, title, event_date AS date, start_time AS "startTime", campaign_id AS "campaignId", user_id AS "userId"`,
         [
           title,
           date,
           startTime || null,
-          currentCampaign || null,
+          campaignId || null,
           userId, // S'assurer que l'userId reste correct
           id
         ]

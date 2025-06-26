@@ -7,19 +7,19 @@ module.exports = function(pool) {
   // Appliquer le middleware d'authentification à toutes les routes
   router.use(authenticateToken);
 
-  // Récupérer les tâches pour un user et une campagne
+  // Récupérer les tâches pour un user et une campagne par ID
   router.get('/', async (req, res) => {
-    const { campaign } = req.query;
+    const { campaignId } = req.query;
     const userId = req.user.id; // Récupéré depuis le token JWT décodé
     
-    if (!campaign) {
-      return res.status(400).json({ error: 'Campaign parameter is required' });
+    if (!campaignId) {
+      return res.status(400).json({ error: 'CampaignId parameter is required' });
     }
 
     try {
       const result = await pool.query(
-        'SELECT * FROM tasks WHERE "user_id" = $1 AND currentcampaign = $2',
-        [userId, campaign]
+        'SELECT * FROM tasks WHERE "user_id" = $1 AND campaign_id = $2',
+        [userId, campaignId]
       );
       res.json(result.rows);
     } catch (err) {
@@ -29,19 +29,19 @@ module.exports = function(pool) {
 
   // Ajouter une tâche
   router.post('/', async (req, res) => {
-    const { title, description, status, assignee, priority, campaign } = req.body;
+    const { title, description, status, assignee, priority, campaignId } = req.body;
     const userId = req.user.id; // Récupéré depuis le token JWT décodé
     
-    if (!campaign) {
-      return res.status(400).json({ error: 'Campaign is required' });
+    if (!campaignId) {
+      return res.status(400).json({ error: 'CampaignId is required' });
     }
 
     try {
         const result = await pool.query(
-        `INSERT INTO tasks (id, title, description, status, assignee, priority, "user_id", currentcampaign)
+        `INSERT INTO tasks (id, title, description, status, assignee, priority, "user_id", campaign_id)
         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
         RETURNING *`,
-        [title, description, status, assignee, priority, userId, campaign]
+        [title, description, status, assignee, priority, userId, campaignId]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {

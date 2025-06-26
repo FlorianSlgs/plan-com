@@ -27,17 +27,17 @@ export class TasksComponent implements OnInit {
   addTaskStatus: 'todo' | 'inProgress' | 'done' = 'todo';
 
   constructor() {
-    // Recharge si currentCampaign change dans le localStorage
+    // Recharge si currentCampaignId change dans le localStorage
     // (le userId est maintenant géré par les cookies HTTP-only)
     effect(() => {
-      const campaign = localStorage.getItem('currentCampaign');
-      // On relance fetchTasks si la campagne change
+      const campaignId = localStorage.getItem('currentCampaignId');
+      // On relance fetchTasks si l'ID de la campagne change
       this.taskService.fetchTasks();
     });
   }
 
   ngOnInit(): void {
-    // Charge les tâches à l'initialisation selon le cookie userId et currentCampaign
+    // Charge les tâches à l'initialisation selon le cookie userId et currentCampaignId
     this.taskService.fetchTasks();
   }
 

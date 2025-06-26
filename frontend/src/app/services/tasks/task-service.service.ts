@@ -20,26 +20,26 @@ export class TaskService {
     this.fetchTasks();
   }
 
-  private getCurrentCampaign(): string | null {
-    return localStorage.getItem('currentCampaign');
+  private getCurrentCampaignId(): string | null {
+    return localStorage.getItem('currentCampaignId');
   }
 
   fetchTasks(): void {
-    const campaign = this.getCurrentCampaign();
-    if (!campaign) return;
+    const campaignId = this.getCurrentCampaignId();
+    if (!campaignId) return;
 
     // Le userId est maintenant récupéré automatiquement depuis le cookie par le backend
-    // On envoie seulement la campagne en query parameter
-    this.http.get<Task[]>(`${this.apiUrl}?campaign=${campaign}`, {
+    // On envoie seulement l'ID de la campagne en query parameter
+    this.http.get<Task[]>(`${this.apiUrl}?campaignId=${campaignId}`, {
       withCredentials: true // Important pour envoyer les cookies
     }).subscribe(tasks => this.tasks.set(tasks));
   }
 
   addTask(taskData: Omit<Task, 'id'>): void {
-    const campaign = this.getCurrentCampaign();
-    if (!campaign) return;
+    const campaignId = this.getCurrentCampaignId();
+    if (!campaignId) return;
 
-    const payload = { ...taskData, campaign };
+    const payload = { ...taskData, campaignId };
     this.http.post<Task>(this.apiUrl, payload, {
       withCredentials: true // Important pour envoyer les cookies
     }).subscribe(newTask => {
@@ -48,12 +48,12 @@ export class TaskService {
   }
 
   updateTaskStatus(taskId: string, newStatus: 'todo' | 'inProgress' | 'done'): void {
-    const campaign = this.getCurrentCampaign();
-    if (!campaign) return;
+    const campaignId = this.getCurrentCampaignId();
+    if (!campaignId) return;
 
     this.http.patch<Task>(`${this.apiUrl}/${taskId}`, { 
       status: newStatus, 
-      campaign 
+      campaignId 
     }, {
       withCredentials: true // Important pour envoyer les cookies
     }).subscribe(updatedTask => {
@@ -66,12 +66,12 @@ export class TaskService {
   }
 
   updateTask(updatedTask: Task): void {
-    const campaign = this.getCurrentCampaign();
-    if (!campaign) return;
+    const campaignId = this.getCurrentCampaignId();
+    if (!campaignId) return;
 
     this.http.put<Task>(`${this.apiUrl}/${updatedTask.id}`, { 
       ...updatedTask, 
-      campaign 
+      campaignId 
     }, {
       withCredentials: true // Important pour envoyer les cookies
     }).subscribe(task => {

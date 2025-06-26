@@ -68,8 +68,8 @@ export class GoalsComponent implements OnInit, OnDestroy {
    * Charge les objectifs de la campagne courante
    */
   loadGoals(): void {
-    const currentCampaign = localStorage.getItem('currentCampaign');
-    if (!currentCampaign) {
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
+    if (!currentCampaignId) {
       this.cards.set([]);
       this.error.set('Aucune campagne sélectionnée');
       return;
@@ -78,7 +78,7 @@ export class GoalsComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    this.goalsService.getGoalsByCampaign(currentCampaign)
+    this.goalsService.getGoalsByCampaignId(currentCampaignId)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.loading.set(false))
@@ -151,13 +151,13 @@ export class GoalsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentCampaign = localStorage.getItem('currentCampaign');
-    if (!currentCampaign) {
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
+    if (!currentCampaignId) {
       this.error.set('Aucune campagne sélectionnée');
       return;
     }
 
-    const formData = this.createFormData(this.addForm.value, currentCampaign);
+    const formData = this.createFormData(this.addForm.value, currentCampaignId);
     this.loading.set(true);
 
     this.goalsService.uploadGoalImage(formData)
@@ -330,9 +330,9 @@ export class GoalsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private createFormData(formValue: any, campaignName: string): FormData {
+  private createFormData(formValue: any, campaignId: string): FormData {
     const formData = new FormData();
-    formData.append('campaignName', campaignName);
+    formData.append('campaignId', campaignId); // Changé de 'campaignName' à 'campaignId'
     formData.append('title', formValue.title);
     formData.append('description', formValue.description || '');
     

@@ -52,15 +52,15 @@ export class ActionsComponent {
 
   // --- Chargement des événements depuis la base ---
   loadEvents(): void {
-    const currentCampaign = localStorage.getItem('currentCampaign') || undefined;
+    const currentCampaignId = localStorage.getItem('currentCampaignId') || undefined;
 
     // 🔧 Arrêter si pas de campagne sélectionnée
-    if (!currentCampaign) {
+    if (!currentCampaignId) {
       this.events.set([]);
       return;
     }
 
-    this.actionsService.getEvents(currentCampaign).subscribe({
+    this.actionsService.getEvents(currentCampaignId).subscribe({
       next: (dbEvents) => {
         this.events.set(dbEvents.map(e => ({ ...e, date: new Date(e.date) })));
         // Optionnel : sauvegarder en local pour cache
@@ -100,7 +100,7 @@ export class ActionsComponent {
       eventDate.setHours(0, 0, 0, 0);
     }
 
-    const currentCampaign = localStorage.getItem('currentCampaign');
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
 
     if (title && eventDate) {
       const newEvent: CalendarEvent = {
@@ -108,7 +108,7 @@ export class ActionsComponent {
         title,
         date: eventDate,
         startTime: this.newEventTime() || undefined,
-        currentCampaign: currentCampaign || undefined
+        campaignId: currentCampaignId || undefined
         // userId sera automatiquement récupéré depuis le cookie côté serveur
       };
       
@@ -193,13 +193,13 @@ export class ActionsComponent {
     const event = this.editEvent();
     if (!event) return;
 
-    const currentCampaign = localStorage.getItem('currentCampaign');
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
     const updatedEvent: CalendarEvent = {
       ...event,
       title: this.editEventTitle(),
       date: this.editEventDate()!,
       startTime: this.editEventTime() || undefined,
-      currentCampaign: currentCampaign || undefined
+      campaignId: currentCampaignId || undefined
       // userId sera automatiquement récupéré depuis le cookie côté serveur
     };
 

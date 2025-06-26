@@ -11,44 +11,16 @@ const campaignService = {
     try {
       await client.query('BEGIN');
       
-      // Vérification d'accès
-      const campaignCheck = await client.query(
-        'SELECT id, name FROM campaign WHERE id = $1 AND user_id = $2 AND name = $3',
-        [campaignId, userId, campaignName]
-      );
-      
-      if (campaignCheck.rows.length === 0) {
-        await client.query('ROLLBACK');
-        const error = new Error('Campagne non trouvée ou accès non autorisé.');
-        error.status = 403;
-        throw error;
-      }
-      
-      // Suppression en cascade
-      const deleteTasksResult = await client.query(
-        'DELETE FROM tasks WHERE user_id = $1 AND currentcampaign = $2',
-        [userId, campaignName]
-      );
-      
-      const deleteActionsResult = await client.query(
-        'DELETE FROM actions WHERE user_id = $1 AND currentcampaign = $2',
-        [userId, campaignName]
-      );
-      
-      const deleteGoalsResult = await client.query(
-        'DELETE FROM goals WHERE user_id = $1 AND currentcampaign = $2',
-        [userId, campaignName]
-      );
-      
+      // Vérification d'accès et suppression en une seule requête
       const deleteCampaignResult = await client.query(
-        'DELETE FROM campaign WHERE id = $1 AND user_id = $2 RETURNING id, name',
-        [campaignId, userId]
+        'DELETE FROM campaign WHERE id = $1 AND user_id = $2 AND name = $3 RETURNING id, name',
+        [campaignId, userId, campaignName]
       );
       
       if (deleteCampaignResult.rows.length === 0) {
         await client.query('ROLLBACK');
-        const error = new Error('Campagne non trouvée.');
-        error.status = 404;
+        const error = new Error('Campagne non trouvée ou accès non autorisé.');
+        error.status = 403;
         throw error;
       }
       
@@ -57,12 +29,7 @@ const campaignService = {
       return {
         message: `Campagne "${campaignName}" et toutes ses données associées ont été supprimées avec succès.`,
         success: true,
-        deletedData: {
-          tasks: deleteTasksResult.rowCount,
-          actions: deleteActionsResult.rowCount,
-          goals: deleteGoalsResult.rowCount,
-          shares: 'auto-deleted by CASCADE'
-        }
+        note: 'Les données associées (tasks, actions, goals, shares) ont été supprimées automatiquement par CASCADE.'
       };
       
     } catch (err) {

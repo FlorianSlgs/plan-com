@@ -23,28 +23,28 @@ module.exports = (pool) => {
   router.post('/upload-image', authenticateToken, upload.single('image'), async (req, res) => {
     try {
       const filePath = req.file ? req.file.filename : null;
-      const { campaignName, title, description, subgoals } = req.body;
+      const { campaignId, title, description, subgoals } = req.body; // Changé campaignName en campaignId
       const userId = req.user.id; // Récupéré depuis le token JWT
       
-      if (!filePath || !campaignName || !title) {
+      if (!filePath || !campaignId || !title) {
         return res.status(400).json({ message: 'Champs requis manquants.' });
       }
 
       // Vérifie que la campagne existe pour cet utilisateur
       const campaignResult = await pool.query(
-        'SELECT id FROM campaign WHERE name = $1 AND user_id = $2 LIMIT 1',
-        [campaignName, userId]
+        'SELECT id FROM campaign WHERE id = $1 AND user_id = $2 LIMIT 1',
+        [campaignId, userId]
       );
       
       if (campaignResult.rows.length === 0) {
         return res.status(404).json({ message: 'Campagne non trouvée.' });
       }
 
-      // Stocke directement le campaignName au lieu du campaignId
+      // Stocke le campaignId dans la colonne campaign_id
       await pool.query(
-        `INSERT INTO goals (user_id, currentCampaign, goals_name, goals_description, subgoals, goals_imageurl)
+        `INSERT INTO goals (user_id, campaign_id, goals_name, goals_description, subgoals, goals_imageurl)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [userId, campaignName, title, description, subgoals, filePath]
+        [userId, campaignId, title, description, subgoals, filePath]
       );
 
       res.status(201).json({ message: 'Objectif enregistré.', filePath });
@@ -54,28 +54,61 @@ module.exports = (pool) => {
     }
   });
 
-  // Route protégée pour récupérer les goals d'une campagne
-  router.get('/campaign/:campaignName', authenticateToken, async (req, res) => {
-    const { campaignName } = req.params;
+  // Route protégée pour récupérer les goals d'une campagne par ID
+  router.get('/campaign-id/:campaignId', authenticateToken, async (req, res) => {
+    const { campaignId } = req.params;
     const userId = req.user.id; // Récupéré depuis le token JWT
     
     try {
       // Vérifie que la campagne existe pour cet utilisateur
       const campaignResult = await pool.query(
-        'SELECT id FROM campaign WHERE name = $1 AND user_id = $2 LIMIT 1',
-        [campaignName, userId]
+        'SELECT id FROM campaign WHERE id = $1 AND user_id = $2 LIMIT 1',
+        [campaignId, userId]
       );
       
       if (campaignResult.rows.length === 0) {
         return res.json([]); // Pas de campagne trouvée, retourne un tableau vide
       }
 
-      // Récupère les goals en filtrant directement par campaignName
+      // Récupère les goals en filtrant par campaign_id
       const result = await pool.query(
-        `SELECT id, goals_name, goals_description, subgoals, goals_imageurl
-         FROM goals WHERE user_id = $1 AND currentCampaign = $2
+        `SELECT id, goals_name, goals_description, subgoals, goals_imageurl, campaign_id
+         FROM goals WHERE user_id = $1 AND campaign_id = $2
          ORDER BY goals_name`,
-        [userId, campaignName]
+        [userId, campaignId]
+      );
+      
+      res.json(result.rows);
+    } catch (err) {
+      console.error('Erreur lors de la récupération des goals:', err);
+      res.status(500).json({ message: 'Erreur serveur.' });
+    }
+  });
+
+  // Garde l'ancienne route pour compatibilité descendante (optionnel)
+  router.get('/campaign/:campaignName', authenticateToken, async (req, res) => {
+    const { campaignName } = req.params;
+    const userId = req.user.id;
+    
+    try {
+      // Récupère l'ID de la campagne à partir du nom
+      const campaignResult = await pool.query(
+        'SELECT id FROM campaign WHERE name = $1 AND user_id = $2 LIMIT 1',
+        [campaignName, userId]
+      );
+      
+      if (campaignResult.rows.length === 0) {
+        return res.json([]);
+      }
+
+      const campaignId = campaignResult.rows[0].id;
+
+      // Récupère les goals en utilisant campaign_id
+      const result = await pool.query(
+        `SELECT id, goals_name, goals_description, subgoals, goals_imageurl, campaign_id
+         FROM goals WHERE user_id = $1 AND campaign_id = $2
+         ORDER BY goals_name`,
+        [userId, campaignId]
       );
       
       res.json(result.rows);
