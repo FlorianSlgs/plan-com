@@ -94,20 +94,19 @@ const inviteService = {
       true,  // wait
       false, // accept
       false, // refuse
-      role === 'editor', // edit
-      role === 'reader'  // read
+      role === 'reader' // read: true pour lecteur, false pour éditeur
     ];
 
     let query;
     if (isUpdate) {
       query = `UPDATE share_campaigns 
-        SET wait = $3, accept = $4, refuse = $5, edit = $6, read = $7, updated_at = CURRENT_TIMESTAMP
+        SET wait = $3, accept = $4, refuse = $5, read = $6, updated_at = CURRENT_TIMESTAMP
         WHERE user_id = $1 AND campaign_id = $2 
         RETURNING id`;
     } else {
       query = `INSERT INTO share_campaigns 
-        (user_id, campaign_id, wait, accept, refuse, edit, read) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        (user_id, campaign_id, wait, accept, refuse, read) 
+        VALUES ($1, $2, $3, $4, $5, $6) 
         RETURNING id`;
     }
 

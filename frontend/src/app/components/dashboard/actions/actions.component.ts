@@ -1,7 +1,7 @@
 import { Component, signal, computed, WritableSignal, effect } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CalendarEvent } from './event.model';
+import { CalendarEvent, CampaignAccess } from './event.model';
 import { ActionsService } from '../../../services/actions/actions.service';
 
 @Component({
@@ -17,6 +17,13 @@ export class ActionsComponent {
   newEventTitle: WritableSignal<string> = signal('');
   newEventTime: WritableSignal<string> = signal('');
   showAddEventModal: WritableSignal<boolean> = signal(false);
+  
+  // Nouveau signal pour gérer les permissions
+  campaignAccess: WritableSignal<CampaignAccess> = signal({
+    hasAccess: true,
+    isReadOnly: false,
+    isOwner: true
+  });
 
   currentMonth: WritableSignal<Date> = signal(new Date());
   daysInMonth = computed(() => {
@@ -41,10 +48,14 @@ export class ActionsComponent {
 
   displayedEvents = computed(() => this.events().sort((a, b) => a.date.getTime() - b.date.getTime()));
 
+  // Computed pour vérifier si l'utilisateur peut modifier
+  canModify = computed(() => !this.campaignAccess().isReadOnly);
+
   constructor(private actionsService: ActionsService) {
     effect(() => {
       console.log('Events changed:', this.events());
       console.log('Selected date:', this.selectedDate());
+      console.log('Campaign access:', this.campaignAccess());
     });
 
     this.loadEvents();
@@ -57,19 +68,30 @@ export class ActionsComponent {
     // 🔧 Arrêter si pas de campagne sélectionnée
     if (!currentCampaignId) {
       this.events.set([]);
+      this.campaignAccess.set({
+        hasAccess: true,
+        isReadOnly: false,
+        isOwner: true
+      });
       return;
     }
 
-    this.actionsService.getEvents(currentCampaignId).subscribe({
-      next: (dbEvents) => {
-        this.events.set(dbEvents.map(e => ({ ...e, date: new Date(e.date) })));
+    // Charger les événements ET les permissions de la campagne
+    this.actionsService.getEventsWithAccess(currentCampaignId).subscribe({
+      next: (response) => {
+        this.events.set(response.events.map(e => ({ ...e, date: new Date(e.date) })));
+        this.campaignAccess.set(response.access);
+        
         // Optionnel : sauvegarder en local pour cache
-        localStorage.setItem('events', JSON.stringify(dbEvents));
+        localStorage.setItem('events', JSON.stringify(response.events));
+        localStorage.setItem('campaignAccess', JSON.stringify(response.access));
       },
       error: (err) => {
         console.error('Erreur lors du chargement des événements:', err);
         // Fallback sur localStorage si disponible
         const localEventsStr = localStorage.getItem('events');
+        const localAccessStr = localStorage.getItem('campaignAccess');
+        
         if (localEventsStr) {
           try {
             const localEvents = JSON.parse(localEventsStr).map((e: any) => ({
@@ -83,12 +105,30 @@ export class ActionsComponent {
         } else {
           this.events.set([]);
         }
+
+        if (localAccessStr) {
+          try {
+            this.campaignAccess.set(JSON.parse(localAccessStr));
+          } catch {
+            this.campaignAccess.set({
+              hasAccess: true,
+              isReadOnly: false,
+              isOwner: true
+            });
+          }
+        }
       }
     });
   }
 
   // --- Ajout d'un événement ---
   addEvent(): void {
+    // Vérifier les permissions avant d'ajouter
+    if (this.campaignAccess().isReadOnly) {
+      alert('Vous n\'avez pas les permissions pour ajouter des événements dans cette campagne.');
+      return;
+    }
+
     const title = this.newEventTitle().trim();
     const eventDate = new Date(this.selectedDate());
 
@@ -109,24 +149,26 @@ export class ActionsComponent {
         date: eventDate,
         startTime: this.newEventTime() || undefined,
         campaignId: currentCampaignId || undefined
-        // userId sera automatiquement récupéré depuis le cookie côté serveur
       };
       
       this.actionsService.addEvent(newEvent).subscribe({
         next: (savedEvent) => {
-          // Recharge depuis la base pour garantir la cohérence
           this.loadEvents();
           this.newEventTitle.set('');
           this.newEventTime.set('');
         },
         error: (err) => {
           console.error('Erreur lors de l\'ajout de l\'événement', err);
-          // Si erreur, ajoute localement et sauvegarde dans localStorage
-          const updatedEvents = [...this.events(), newEvent];
-          this.events.set(updatedEvents);
-          localStorage.setItem('events', JSON.stringify(updatedEvents));
-          this.newEventTitle.set('');
-          this.newEventTime.set('');
+          if (err.status === 403) {
+            alert('Vous n\'avez pas les permissions pour ajouter des événements dans cette campagne.');
+          } else {
+            // Fallback local seulement si ce n'est pas un problème de permissions
+            const updatedEvents = [...this.events(), newEvent];
+            this.events.set(updatedEvents);
+            localStorage.setItem('events', JSON.stringify(updatedEvents));
+            this.newEventTitle.set('');
+            this.newEventTime.set('');
+          }
         }
       });
     }
@@ -182,6 +224,12 @@ export class ActionsComponent {
   }
 
   openEditEventModal(event: CalendarEvent) {
+    // Vérifier les permissions avant d'ouvrir la modal d'édition
+    if (this.campaignAccess().isReadOnly) {
+      alert('Vous n\'avez pas les permissions pour modifier des événements dans cette campagne.');
+      return;
+    }
+
     this.editEvent.set(event);
     this.editEventTitle.set(event.title);
     this.editEventTime.set(event.startTime || '');
@@ -193,6 +241,12 @@ export class ActionsComponent {
     const event = this.editEvent();
     if (!event) return;
 
+    // Vérifier les permissions avant de modifier
+    if (this.campaignAccess().isReadOnly) {
+      alert('Vous n\'avez pas les permissions pour modifier des événements dans cette campagne.');
+      return;
+    }
+
     const currentCampaignId = localStorage.getItem('currentCampaignId');
     const updatedEvent: CalendarEvent = {
       ...event,
@@ -200,7 +254,6 @@ export class ActionsComponent {
       date: this.editEventDate()!,
       startTime: this.editEventTime() || undefined,
       campaignId: currentCampaignId || undefined
-      // userId sera automatiquement récupéré depuis le cookie côté serveur
     };
 
     this.actionsService.updateEvent(updatedEvent).subscribe({
@@ -210,7 +263,11 @@ export class ActionsComponent {
         this.loadEvents();
       },
       error: (err) => {
-        alert('Erreur lors de la modification');
+        if (err.status === 403) {
+          alert('Vous n\'avez pas les permissions pour modifier cet événement.');
+        } else {
+          alert('Erreur lors de la modification');
+        }
         console.error(err);
       }
     });
@@ -223,6 +280,13 @@ export class ActionsComponent {
   deleteEvent() {
     const event = this.editEvent();
     if (!event || !event.id) return;
+
+    // Vérifier les permissions avant de supprimer
+    if (this.campaignAccess().isReadOnly) {
+      alert('Vous n\'avez pas les permissions pour supprimer des événements dans cette campagne.');
+      return;
+    }
+
     this.actionsService.deleteEvent(event.id).subscribe({
       next: () => {
         this.showEditEventModal.set(false);
@@ -230,7 +294,11 @@ export class ActionsComponent {
         this.loadEvents();
       },
       error: (err) => {
-        alert('Erreur lors de la suppression');
+        if (err.status === 403) {
+          alert('Vous n\'avez pas les permissions pour supprimer cet événement.');
+        } else {
+          alert('Erreur lors de la suppression');
+        }
         console.error(err);
       }
     });

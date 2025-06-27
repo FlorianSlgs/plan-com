@@ -8,7 +8,6 @@ const invitationService = {
         SELECT 
           sc.id,
           sc.campaign_id,
-          sc.edit,
           sc.read,
           c.name as campaign_name,
           u.first_name as inviter_first_name,
@@ -27,7 +26,7 @@ const invitationService = {
         campaignId: row.campaign_id,
         campaignName: row.campaign_name,
         inviterName: `${row.inviter_first_name} ${row.inviter_last_name}`,
-        role: row.edit ? 'editor' : 'reader'
+        role: row.read ? 'reader' : 'editor'
       }));
       
     } finally {

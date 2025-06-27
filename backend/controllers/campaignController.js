@@ -45,7 +45,7 @@ const campaignController = {
       const sharedCampaignsResult = await pool.query(
         `SELECT c.id, c.name, u.first_name, u.last_name, 
                 CASE 
-                  WHEN sc.edit = true THEN 'editor'
+                  WHEN sc.read = false THEN 'editor'
                   ELSE 'reader'
                 END as user_role
          FROM share_campaigns sc

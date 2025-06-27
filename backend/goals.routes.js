@@ -32,24 +32,95 @@ module.exports = (pool) => {
       );
 
       if (ownerCheck.rows.length > 0) {
-        return { hasAccess: true, isOwner: true };
+        return { hasAccess: true, isOwner: true, isReadOnly: false };
       }
 
       // Si pas propriétaire, vérifie dans share_campaigns
       const shareCheck = await pool.query(
-        'SELECT id FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
+        'SELECT id, read FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
         [campaignId, userId]
       );
 
-      return { 
-        hasAccess: shareCheck.rows.length > 0, 
-        isOwner: false 
-      };
+      if (shareCheck.rows.length > 0) {
+        const shareData = shareCheck.rows[0];
+        return { 
+          hasAccess: true, 
+          isOwner: false,
+          isReadOnly: shareData.read === true // Si read est true, alors c'est en lecture seule
+        };
+      }
+
+      return { hasAccess: false, isOwner: false, isReadOnly: true };
     } catch (error) {
       console.error('Erreur lors de la vérification d\'accès:', error);
-      return { hasAccess: false, isOwner: false };
+      return { hasAccess: false, isOwner: false, isReadOnly: true };
     }
   }
+
+  // Nouvelle route à ajouter dans goals.routes.js après la fonction checkCampaignAccess
+
+  /**
+   * Route pour vérifier les permissions d'un utilisateur sur une campagne
+   */
+  router.get('/campaign-permissions/:campaignId', authenticateToken, async (req, res) => {
+    const { campaignId } = req.params;
+    const userId = req.user.id;
+    
+    try {
+      // Vérifie d'abord si l'utilisateur est propriétaire de la campagne
+      const ownerCheck = await pool.query(
+        'SELECT id FROM campaign WHERE id = $1 AND user_id = $2',
+        [campaignId, userId]
+      );
+
+      if (ownerCheck.rows.length > 0) {
+        return res.json({ 
+          hasAccess: true, 
+          isOwner: true, 
+          isReadOnly: false 
+        });
+      }
+
+      // Si pas propriétaire, vérifie dans share_campaigns
+      const shareCheck = await pool.query(
+        'SELECT read FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
+        [campaignId, userId]
+      );
+
+      if (shareCheck.rows.length > 0) {
+        const isReadOnly = shareCheck.rows[0].read === true;
+        return res.json({ 
+          hasAccess: true, 
+          isOwner: false, 
+          isReadOnly 
+        });
+      }
+
+      // Aucun accès
+      res.json({ 
+        hasAccess: false, 
+        isOwner: false, 
+        isReadOnly: false 
+      });
+    } catch (err) {
+      console.error('Erreur lors de la vérification des permissions:', err);
+      res.status(500).json({ message: 'Erreur serveur.' });
+    }
+  });
+
+  // Route pour récupérer les permissions d'une campagne
+  router.get('/permissions/:campaignId', authenticateToken, async (req, res) => {
+    const { campaignId } = req.params;
+    const userId = req.user.id;
+    
+    try {
+      const permissions = await checkCampaignAccess(campaignId, userId);
+      res.json(permissions);
+    } catch (err) {
+      console.error('Erreur lors de la récupération des permissions:', err);
+      res.status(500).json({ message: 'Erreur serveur.' });
+    }
+  });
 
   // Route protégée pour créer un goal
   router.post('/upload-image', authenticateToken, upload.single('image'), async (req, res) => {
@@ -62,11 +133,15 @@ module.exports = (pool) => {
         return res.status(400).json({ message: 'Champs requis manquants.' });
       }
 
-      // Vérifie l'accès à la campagne (propriétaire ou partagée)
+      // Vérifie l'accès à la campagne et les permissions d'écriture
       const accessCheck = await checkCampaignAccess(campaignId, userId);
       
       if (!accessCheck.hasAccess) {
         return res.status(404).json({ message: 'Campagne non trouvée ou accès non autorisé.' });
+      }
+
+      if (accessCheck.isReadOnly) {
+        return res.status(403).json({ message: 'Accès en lecture seule. Modification non autorisée.' });
       }
 
       // Insère le goal avec l'userId de l'utilisateur connecté
@@ -175,11 +250,15 @@ module.exports = (pool) => {
 
       const goal = goalCheck.rows[0];
 
-      // Vérifie l'accès à la campagne
+      // Vérifie l'accès à la campagne et les permissions d'écriture
       const accessCheck = await checkCampaignAccess(goal.campaign_id, userId);
 
       if (!accessCheck.hasAccess) {
         return res.status(403).json({ message: 'Non autorisé à modifier cet objectif.' });
+      }
+
+      if (accessCheck.isReadOnly) {
+        return res.status(403).json({ message: 'Accès en lecture seule. Modification non autorisée.' });
       }
 
       // Mets à jour les champs
@@ -228,11 +307,15 @@ module.exports = (pool) => {
 
       const goal = goalCheck.rows[0];
 
-      // Vérifie l'accès à la campagne
+      // Vérifie l'accès à la campagne et les permissions d'écriture
       const accessCheck = await checkCampaignAccess(goal.campaign_id, userId);
 
       if (!accessCheck.hasAccess) {
         return res.status(403).json({ message: 'Non autorisé à supprimer cet objectif.' });
+      }
+
+      if (accessCheck.isReadOnly) {
+        return res.status(403).json({ message: 'Accès en lecture seule. Suppression non autorisée.' });
       }
 
       // Supprime le goal

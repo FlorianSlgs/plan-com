@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil, finalize } from 'rxjs';
+import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 
 import { GoalsCardsComponent } from '../goals-cards/goals-cards.component';
-import { GoalsService, Goal } from '../../../../services/goals/goals.service';
+import { GoalsService, Goal, CampaignPermissions } from '../../../../services/goals/goals.service';
 
 export interface GoalCard {
   id: string;
@@ -34,10 +34,19 @@ export class GoalsComponent implements OnInit, OnDestroy {
   readonly showAddCardModal = signal(false);
   readonly editIndex = signal<number | null>(null);
   readonly editGoalId = signal<string | null>(null);
+  
+  // Nouveau signal pour les permissions
+  readonly permissions = signal<CampaignPermissions>({
+    hasAccess: false,
+    isOwner: false,
+    isReadOnly: true
+  });
 
   // Computed signals
   readonly hasCards = computed(() => this.cards().length > 0);
   readonly isEditing = computed(() => this.editIndex() !== null);
+  readonly canEdit = computed(() => this.permissions().hasAccess && !this.permissions().isReadOnly);
+  readonly canAdd = computed(() => this.permissions().hasAccess && !this.permissions().isReadOnly);
 
   // Formulaires réactifs
   readonly addForm: FormGroup;
@@ -53,7 +62,7 @@ export class GoalsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadGoals();
+    this.loadGoalsAndPermissions();
   }
 
   ngOnDestroy(): void {
@@ -65,7 +74,54 @@ export class GoalsComponent implements OnInit, OnDestroy {
   trackByGoalId = (index: number, goal: GoalCard): string => goal.id;
 
   /**
-   * Charge les objectifs de la campagne courante
+   * Charge les objectifs et les permissions de la campagne courante
+   */
+  loadGoalsAndPermissions(): void {
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
+    if (!currentCampaignId) {
+      this.cards.set([]);
+      this.error.set('Aucune campagne sélectionnée');
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    // Charge en parallèle les goals et les permissions
+    forkJoin({
+      goals: this.goalsService.getGoalsByCampaignId(currentCampaignId),
+      permissions: this.goalsService.getCampaignPermissions(currentCampaignId)
+    })
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false))
+    )
+    .subscribe({
+      next: ({ goals, permissions }) => {
+        this.permissions.set(permissions);
+        
+        if (permissions.hasAccess) {
+          const mappedCards = goals.map(goal => this.mapGoalToCard(goal));
+          this.cards.set(mappedCards);
+        } else {
+          this.cards.set([]);
+          this.error.set('Vous n\'avez pas accès à cette campagne');
+        }
+      },
+      error: (error) => {
+        this.error.set(error.message);
+        this.cards.set([]);
+        this.permissions.set({
+          hasAccess: false,
+          isOwner: false,
+          isReadOnly: true
+        });
+      }
+    });
+  }
+
+  /**
+   * Charge seulement les objectifs (utilisé après les modifications)
    */
   loadGoals(): void {
     const currentCampaignId = localStorage.getItem('currentCampaignId');
@@ -96,9 +152,14 @@ export class GoalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Ouvre le modal d'ajout
+   * Ouvre le modal d'ajout (seulement si autorisé)
    */
   openAddCardModal(): void {
+    if (!this.canAdd()) {
+      this.error.set('Vous n\'êtes pas autorisé à ajouter des objectifs');
+      return;
+    }
+    
     this.showAddCardModal.set(true);
     this.addForm.reset();
     this.imagePreview.set(null);
@@ -116,6 +177,8 @@ export class GoalsComponent implements OnInit, OnDestroy {
    * Gestion de sélection de fichier pour l'ajout
    */
   onFileSelected(event: Event): void {
+    if (!this.canAdd()) return;
+    
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     
@@ -129,10 +192,13 @@ export class GoalsComponent implements OnInit, OnDestroy {
    * Gestion du drag & drop pour l'ajout
    */
   onDragOver(event: DragEvent): void {
+    if (!this.canAdd()) return;
     event.preventDefault();
   }
 
   onDrop(event: DragEvent): void {
+    if (!this.canAdd()) return;
+    
     event.preventDefault();
     const file = event.dataTransfer?.files[0];
     
@@ -143,9 +209,14 @@ export class GoalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Ajoute une nouvelle carte
+   * Ajoute une nouvelle carte (seulement si autorisé)
    */
   addCard(): void {
+    if (!this.canAdd()) {
+      this.error.set('Vous n\'êtes pas autorisé à ajouter des objectifs');
+      return;
+    }
+    
     if (this.addForm.invalid) {
       this.markFormGroupTouched(this.addForm);
       return;
@@ -177,9 +248,14 @@ export class GoalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Ouvre le modal d'édition
+   * Ouvre le modal d'édition (seulement si autorisé)
    */
   onEditCard(index: number): void {
+    if (!this.canEdit()) {
+      this.error.set('Vous n\'êtes pas autorisé à modifier des objectifs');
+      return;
+    }
+    
     const card = this.cards()[index];
     if (!card) return;
 
@@ -199,6 +275,8 @@ export class GoalsComponent implements OnInit, OnDestroy {
    * Gestion de sélection de fichier pour l'édition
    */
   onEditFileSelected(event: Event): void {
+    if (!this.canEdit()) return;
+    
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     
@@ -212,6 +290,8 @@ export class GoalsComponent implements OnInit, OnDestroy {
    * Gestion du drag & drop pour l'édition
    */
   onEditDrop(event: DragEvent): void {
+    if (!this.canEdit()) return;
+    
     event.preventDefault();
     const file = event.dataTransfer?.files[0];
     
@@ -222,9 +302,14 @@ export class GoalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Met à jour une carte
+   * Met à jour une carte (seulement si autorisé)
    */
   updateCard(): void {
+    if (!this.canEdit()) {
+      this.error.set('Vous n\'êtes pas autorisé à modifier des objectifs');
+      return;
+    }
+    
     if (this.editForm.invalid) {
       this.markFormGroupTouched(this.editForm);
       return;
@@ -263,9 +348,14 @@ export class GoalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Supprime un objectif
+   * Supprime un objectif (seulement si autorisé)
    */
   deleteGoal(): void {
+    if (!this.canEdit()) {
+      this.error.set('Vous n\'êtes pas autorisé à supprimer des objectifs');
+      return;
+    }
+    
     const goalId = this.editGoalId();
     if (!goalId) return;
 
@@ -294,7 +384,7 @@ export class GoalsComponent implements OnInit, OnDestroy {
     this.error.set(null);
   }
 
-  // Méthodes privées utilitaires
+  // Méthodes privées utilitaires (inchangées)
 
   private createAddForm(): FormGroup {
     return this.fb.group({
@@ -332,7 +422,7 @@ export class GoalsComponent implements OnInit, OnDestroy {
 
   private createFormData(formValue: any, campaignId: string): FormData {
     const formData = new FormData();
-    formData.append('campaignId', campaignId); // Changé de 'campaignName' à 'campaignId'
+    formData.append('campaignId', campaignId);
     formData.append('title', formValue.title);
     formData.append('description', formValue.description || '');
     

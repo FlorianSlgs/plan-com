@@ -8,19 +8,22 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GoalsCardsComponent {
-  // Nouveaux input signals
+  // Input signals
   title = input<string>("Titre de l'objectif");
   imageUrl = input<string>('https://via.placeholder.com/120x80');
   description = input<string>("Description de l'objectif.");
   items = input<string[]>([]);
+  canEdit = input<boolean>(false); // Nouveau input pour les permissions
 
-  // Nouveau output
+  // Output
   edit = output<void>();
 
   // TrackBy function pour optimiser le rendu des listes
   trackByItem = (index: number, item: string): string => item;
 
   onEditClick(): void {
-    this.edit.emit();
+    if (this.canEdit()) {
+      this.edit.emit();
+    }
   }
 }

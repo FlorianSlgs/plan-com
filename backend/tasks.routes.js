@@ -7,7 +7,7 @@ module.exports = function(pool) {
   // Appliquer le middleware d'authentification à toutes les routes
   router.use(authenticateToken);
 
-  // Fonction pour vérifier l'accès à une campagne
+  // Fonction pour vérifier l'accès à une campagne et retourner les permissions
   async function checkCampaignAccess(userId, campaignId) {
     // Vérifier si l'utilisateur est propriétaire de la campagne
     const ownerCheck = await pool.query(
@@ -16,29 +16,36 @@ module.exports = function(pool) {
     );
     
     if (ownerCheck.rows.length > 0) {
-      return true;
+      return { hasAccess: true, isReadOnly: false };
     }
 
     // Vérifier si la campagne est partagée avec l'utilisateur
     const shareCheck = await pool.query(
-      'SELECT * FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
+      'SELECT read FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
       [campaignId, userId]
     );
     
-    return shareCheck.rows.length > 0;
+    if (shareCheck.rows.length > 0) {
+      return { 
+        hasAccess: true, 
+        isReadOnly: shareCheck.rows[0].read === true 
+      };
+    }
+
+    return { hasAccess: false, isReadOnly: false };
   }
 
   // Récupérer les tâches pour un user et une campagne par ID
   router.get('/', async (req, res) => {
     const { campaignId } = req.query;
-    const userId = req.user.id; // Récupéré depuis le token JWT décodé
+    const userId = req.user.id;
     
     if (!campaignId) {
       return res.status(400).json({ error: 'CampaignId parameter is required' });
     }
 
     try {
-      const hasAccess = await checkCampaignAccess(userId, campaignId);
+      const { hasAccess, isReadOnly } = await checkCampaignAccess(userId, campaignId);
       
       if (!hasAccess) {
         return res.status(403).json({ error: 'Access denied to this campaign' });
@@ -48,7 +55,12 @@ module.exports = function(pool) {
         'SELECT * FROM tasks WHERE campaign_id = $1',
         [campaignId]
       );
-      res.json(result.rows);
+      
+      // Retourner les tâches avec les permissions
+      res.json({
+        tasks: result.rows,
+        permissions: { isReadOnly }
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -57,17 +69,21 @@ module.exports = function(pool) {
   // Ajouter une tâche
   router.post('/', async (req, res) => {
     const { title, description, status, assignee, priority, campaignId } = req.body;
-    const userId = req.user.id; // Récupéré depuis le token JWT décodé
+    const userId = req.user.id;
     
     if (!campaignId) {
       return res.status(400).json({ error: 'CampaignId is required' });
     }
 
     try {
-      const hasAccess = await checkCampaignAccess(userId, campaignId);
+      const { hasAccess, isReadOnly } = await checkCampaignAccess(userId, campaignId);
       
       if (!hasAccess) {
         return res.status(403).json({ error: 'Access denied to this campaign' });
+      }
+
+      if (isReadOnly) {
+        return res.status(403).json({ error: 'Read-only access: cannot create tasks' });
       }
 
       const result = await pool.query(
@@ -86,10 +102,9 @@ module.exports = function(pool) {
   router.patch('/:id', async (req, res) => {
     const { id } = req.params;
     const { status, campaignId } = req.body;
-    const userId = req.user.id; // Récupéré depuis le token JWT décodé
+    const userId = req.user.id;
     
     try {
-      // Récupérer la tâche pour obtenir son campaign_id
       const taskResult = await pool.query('SELECT * FROM tasks WHERE id = $1', [id]);
       
       if (taskResult.rows.length === 0) {
@@ -97,10 +112,14 @@ module.exports = function(pool) {
       }
 
       const task = taskResult.rows[0];
-      const hasAccess = await checkCampaignAccess(userId, task.campaign_id);
+      const { hasAccess, isReadOnly } = await checkCampaignAccess(userId, task.campaign_id);
       
       if (!hasAccess) {
         return res.status(403).json({ error: 'Access denied to this campaign' });
+      }
+
+      if (isReadOnly) {
+        return res.status(403).json({ error: 'Read-only access: cannot update tasks' });
       }
 
       const result = await pool.query(
@@ -117,10 +136,9 @@ module.exports = function(pool) {
   router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { title, description, status, assignee, priority } = req.body;
-    const userId = req.user.id; // Récupéré depuis le token JWT décodé
+    const userId = req.user.id;
     
     try {
-      // Récupérer la tâche pour obtenir son campaign_id
       const taskResult = await pool.query('SELECT * FROM tasks WHERE id = $1', [id]);
       
       if (taskResult.rows.length === 0) {
@@ -128,10 +146,14 @@ module.exports = function(pool) {
       }
 
       const task = taskResult.rows[0];
-      const hasAccess = await checkCampaignAccess(userId, task.campaign_id);
+      const { hasAccess, isReadOnly } = await checkCampaignAccess(userId, task.campaign_id);
       
       if (!hasAccess) {
         return res.status(403).json({ error: 'Access denied to this campaign' });
+      }
+
+      if (isReadOnly) {
+        return res.status(403).json({ error: 'Read-only access: cannot update tasks' });
       }
 
       const result = await pool.query(
@@ -148,10 +170,9 @@ module.exports = function(pool) {
   // Supprimer une tâche
   router.delete('/:id', async (req, res) => {
     const { id } = req.params;
-    const userId = req.user.id; // Récupéré depuis le token JWT décodé
+    const userId = req.user.id;
     
     try {
-      // Récupérer la tâche pour obtenir son campaign_id
       const taskResult = await pool.query('SELECT * FROM tasks WHERE id = $1', [id]);
       
       if (taskResult.rows.length === 0) {
@@ -159,10 +180,14 @@ module.exports = function(pool) {
       }
 
       const task = taskResult.rows[0];
-      const hasAccess = await checkCampaignAccess(userId, task.campaign_id);
+      const { hasAccess, isReadOnly } = await checkCampaignAccess(userId, task.campaign_id);
       
       if (!hasAccess) {
         return res.status(403).json({ error: 'Access denied to this campaign' });
+      }
+
+      if (isReadOnly) {
+        return res.status(403).json({ error: 'Read-only access: cannot delete tasks' });
       }
 
       await pool.query('DELETE FROM tasks WHERE id = $1', [id]);

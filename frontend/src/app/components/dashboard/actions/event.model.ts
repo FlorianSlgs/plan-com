@@ -6,3 +6,9 @@ export interface CalendarEvent {
   campaignId?: string; // ID de la campagne
   userId?: string; // ID de l'utilisateur
 }
+
+export interface CampaignAccess {
+  hasAccess: boolean;
+  isReadOnly: boolean;
+  isOwner: boolean;
+}

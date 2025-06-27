@@ -9,12 +9,19 @@ export interface Goal {
   goals_description: string;
   subgoals: string | string[];
   goals_imageurl: string;
-  campaign_id?: string; // Ajout du campaign_id
+  campaign_id?: string;
 }
 
 export interface UploadResponse {
   filePath: string;
   message?: string;
+}
+
+// Nouvelle interface pour les permissions
+export interface CampaignPermissions {
+  hasAccess: boolean;
+  isOwner: boolean;
+  isReadOnly: boolean;
 }
 
 @Injectable({
@@ -24,8 +31,23 @@ export class GoalsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:3000/api/goals';
   private readonly httpOptions = {
-    withCredentials: true // Important pour envoyer les cookies
+    withCredentials: true
   };
+
+  /**
+   * Vérifie les permissions de l'utilisateur pour une campagne
+   */
+  getCampaignPermissions(campaignId: string): Observable<CampaignPermissions> {
+    if (!campaignId?.trim()) {
+      return throwError(() => new Error('L\'ID de campagne est requis'));
+    }
+
+    return this.http.get<CampaignPermissions>(`${this.apiUrl}/campaign-permissions/${encodeURIComponent(campaignId)}`, this.httpOptions)
+      .pipe(
+        retry(1),
+        catchError(this.handleError)
+      );
+  }
 
   /**
    * Upload d'image avec authentification par cookie
@@ -39,7 +61,7 @@ export class GoalsService {
   }
 
   /**
-   * Récupère les goals par ID de campagne (l'utilisateur est identifié par le cookie)
+   * Récupère les goals par ID de campagne
    */
   getGoalsByCampaignId(campaignId: string): Observable<Goal[]> {
     if (!campaignId?.trim()) {
@@ -90,10 +112,8 @@ export class GoalsService {
     let errorMessage = 'Une erreur inattendue s\'est produite';
 
     if (error.error instanceof ErrorEvent) {
-      // Erreur côté client
       errorMessage = `Erreur client: ${error.error.message}`;
     } else {
-      // Erreur côté serveur
       switch (error.status) {
         case 400:
           errorMessage = 'Données invalides';

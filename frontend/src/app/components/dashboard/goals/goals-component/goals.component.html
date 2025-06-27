@@ -14,17 +14,27 @@
     </div>
   }
 
+  <!-- Message d'information pour lecture seule -->
+  @if (permissions().hasAccess && permissions().isReadOnly) {
+    <div class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg" role="alert">
+      <span>📖 Vous consultez cette campagne en lecture seule. Vous ne pouvez pas modifier les objectifs.</span>
+    </div>
+  }
+
   <header class="mb-8">
     <div class="flex items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-blue-700">Objectifs</h1>
-      <button
-        class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        (click)="openAddCardModal()"
-        [disabled]="loading()"
-        title="Ajouter un objectif"
-        type="button"
-        [attr.aria-label]="'Ajouter un nouvel objectif'"
-      >+</button>
+      <!-- Bouton d'ajout conditionnel -->
+      @if (canAdd()) {
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          (click)="openAddCardModal()"
+          [disabled]="loading()"
+          title="Ajouter un objectif"
+          type="button"
+          [attr.aria-label]="'Ajouter un nouvel objectif'"
+        >+</button>
+      }
     </div>
     <span class="block h-px bg-gray-300 w-9/10 mt-2"></span>
   </header>
@@ -47,13 +57,16 @@
             [imageUrl]="card.imageUrl"
             [description]="card.description"
             [items]="card.items"
+            [canEdit]="canEdit()"
             (edit)="onEditCard($index)">
           </app-goals-cards>
         }
         @empty {
           <div class="col-span-full text-center py-12 text-gray-500">
             <p class="text-lg mb-2">Aucun objectif défini</p>
-            <p class="text-sm">Cliquez sur le bouton + pour ajouter votre premier objectif</p>
+            @if (canAdd()) {
+              <p class="text-sm">Cliquez sur le bouton + pour ajouter votre premier objectif</p>
+            }
           </div>
         }
       </div>
@@ -61,8 +74,8 @@
   </main>
 </div>
 
-<!-- Modal d'ajout -->
-@if (showAddCardModal()) {
+<!-- Modal d'ajout (conditionnel) -->
+@if (showAddCardModal() && canAdd()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
     <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
       <button
@@ -168,8 +181,8 @@
   </div>
 }
 
-<!-- Modal d'édition -->
-@if (isEditing()) {
+<!-- Modal d'édition (conditionnel) -->
+@if (isEditing() && canEdit()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
     <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
       <button

@@ -19,6 +19,7 @@ export class TasksComponent implements OnInit {
   todo = this.taskService.todoTasks;
   inProgress = this.taskService.inProgressTasks;
   done = this.taskService.doneTasks;
+  isReadOnly = this.taskService.isReadOnly;
 
   showAddTaskModal = false;
   newTaskTitle = '';
@@ -28,20 +29,22 @@ export class TasksComponent implements OnInit {
 
   constructor() {
     // Recharge si currentCampaignId change dans le localStorage
-    // (le userId est maintenant géré par les cookies HTTP-only)
     effect(() => {
       const campaignId = localStorage.getItem('currentCampaignId');
-      // On relance fetchTasks si l'ID de la campagne change
       this.taskService.fetchTasks();
     });
   }
 
   ngOnInit(): void {
-    // Charge les tâches à l'initialisation selon le cookie userId et currentCampaignId
     this.taskService.fetchTasks();
   }
 
   openAddTaskModal(status: 'todo' | 'inProgress' | 'done') {
+    if (this.isReadOnly()) {
+      alert('Vous n\'avez accès qu\'en lecture seule à cette campagne.');
+      return;
+    }
+    
     this.addTaskStatus = status;
     this.showAddTaskModal = true;
     this.newTaskTitle = '';
@@ -54,10 +57,16 @@ export class TasksComponent implements OnInit {
   }
 
   addTask() {
+    if (this.isReadOnly()) {
+      alert('Vous n\'avez accès qu\'en lecture seule à cette campagne.');
+      return;
+    }
+
     if (!this.newTaskTitle.trim()) {
       alert('Le titre de la tâche est requis.');
       return;
     }
+    
     this.taskService.addTask({
       title: this.newTaskTitle,
       description: this.newTaskDescription,
@@ -65,20 +74,27 @@ export class TasksComponent implements OnInit {
       status: this.addTaskStatus
     });
     this.closeAddTaskModal();
-    // L'ajout est fluide car le service met à jour le signal local dès la réponse du backend
   }
 
   drop(event: CdkDragDrop<Task[]>, newStatus: 'todo' | 'inProgress' | 'done'): void {
+    if (this.isReadOnly()) {
+      // Ne pas permettre le déplacement en mode lecture seule
+      return;
+    }
+
     if (event.previousContainer === event.container) {
       // Optionnel : réorganisation locale
     } else {
       const taskToMove = event.previousContainer.data[event.previousIndex];
       this.taskService.updateTaskStatus(taskToMove.id, newStatus);
-      // Les signaux sont mis à jour automatiquement après la réponse backend
     }
   }
 
   getConnectedLists(): string[] {
+    // En mode lecture seule, ne pas connecter les listes pour empêcher le drag & drop
+    if (this.isReadOnly()) {
+      return [];
+    }
     return ['todoList', 'inProgressList', 'doneList'];
   }
 
@@ -90,6 +106,11 @@ export class TasksComponent implements OnInit {
   showEditTaskModal = false;
 
   openEditTaskModal(task: Task) {
+    if (this.isReadOnly()) {
+      alert('Vous n\'avez accès qu\'en lecture seule à cette campagne.');
+      return;
+    }
+
     this.editTaskId = task.id;
     this.editTaskTitle = task.title;
     this.editTaskDescription = task.description || '';
@@ -104,7 +125,13 @@ export class TasksComponent implements OnInit {
   }
 
   updateTask() {
+    if (this.isReadOnly()) {
+      alert('Vous n\'avez accès qu\'en lecture seule à cette campagne.');
+      return;
+    }
+
     if (!this.editTaskId) return;
+    
     this.taskService.updateTask({
       id: this.editTaskId,
       title: this.editTaskTitle,
@@ -116,7 +143,13 @@ export class TasksComponent implements OnInit {
   }
 
   deleteTask() {
+    if (this.isReadOnly()) {
+      alert('Vous n\'avez accès qu\'en lecture seule à cette campagne.');
+      return;
+    }
+
     if (!this.editTaskId) return;
+    
     this.taskService.deleteTask(this.editTaskId);
     this.closeEditTaskModal();
   }
