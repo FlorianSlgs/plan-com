@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment.baseUrl + environment.endpoints.auth;
 
   private http = inject(HttpClient);
   private router = inject(Router);

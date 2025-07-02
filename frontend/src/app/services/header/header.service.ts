@@ -1,79 +1,21 @@
+// import modules et classes
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry, map } from 'rxjs/operators';
 
-interface User {
-  first_name: string;
-  last_name: string;
-}
-
-interface Campaign {
-  id: number;
-  name: string;
-  first_name?: string;
-  last_name?: string;
-  user_role: 'owner' | 'reader' | 'editor';
-}
-
-interface CreateCampaignResponse {
-  message: string;
-  campaign?: Campaign;
-}
-
-interface DeleteAccountResponse {
-  message: string;
-}
-
-interface DeleteCampaignResponse {
-  message: string;
-  success: boolean;
-}
-
-interface LeaveSharedCampaignResponse {
-  message: string;
-  success: boolean;
-}
-
-interface InviteUserRequest {
-  email: string;
-  campaignId: number;
-  role: 'reader' | 'editor';
-}
-
-interface InviteUserResponse {
-  message: string;
-  success: boolean;
-}
-
-interface PendingInvitation {
-  id: number;
-  campaignId: number;
-  campaignName: string;
-  inviterName: string;
-  role: 'reader' | 'editor';
-}
-
-interface PendingInvitationsResponse {
-  invitations: PendingInvitation[];
-  success: boolean;
-}
-
-interface InvitationActionResponse {
-  message: string;
-  success: boolean;
-  campaignId?: number;
-}
+// Importations de fichiers de configuration et modèles de données
+import { environment } from '../../../environments/environment';
+import { User } from '../../models/user.model';
+import { Campaign,CreateCampaignResponse,DeleteAccountResponse,DeleteCampaignResponse,LeaveSharedCampaignResponse,InvitationActionResponse,InviteUserRequest,InviteUserResponse,PendingInvitation,PendingInvitationsResponse } from '../../models/campaign.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HeaderService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/header';
-  private readonly httpOptions = {
-    withCredentials: true // Important pour envoyer les cookies
-  };
+  private readonly apiUrl = environment.baseUrl + environment.endpoints.header;
+  private readonly httpOptions = { ...environment.defaultOptions };
 
   /**
    * Récupère le nom de l'utilisateur connecté (utilise le cookie userId automatiquement)

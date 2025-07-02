@@ -31,3 +31,6 @@ coverage/
 # Build output
 dist/
 build/
+
+#backup de la base de données
+backup_pg/
