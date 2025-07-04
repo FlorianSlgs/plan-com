@@ -5,15 +5,7 @@ import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 
 import { GoalsCardsComponent } from '../goals-cards/goals-cards.component';
 import { GoalsService } from '../../../../services/dashboard/goals/goals.service';
-import { Goal, CampaignPermissions } from '../../../../models/goals.model';
-
-export interface GoalCard {
-  id: string;
-  title: string;
-  imageUrl: string;
-  description: string;
-  items: string[];
-}
+import { Goal, CampaignPermissions,GoalCard } from '../../../../models/goals.model';
 
 @Component({
   selector: 'app-goals',

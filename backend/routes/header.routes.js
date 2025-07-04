@@ -1,13 +1,13 @@
 // header.routes.js - Version modulaire avec gestion des invitations
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('./middlewares/auth');
+const authenticateToken = require('../middlewares/auth');
 
 // Import des contrôleurs
-const userController = require('./controllers/userController');
-const campaignController = require('./controllers/campaignController');
-const inviteController = require('./controllers/inviteController');
-const invitationController = require('./controllers/invitationController');
+const userController = require('../controllers/userController');
+const campaignController = require('../controllers/campaignController');
+const inviteController = require('../controllers/inviteController');
+const invitationController = require('../controllers/invitationController');
 
 module.exports = (pool) => {
   // Routes utilisateur

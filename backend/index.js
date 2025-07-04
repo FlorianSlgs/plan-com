@@ -4,12 +4,13 @@ const { Pool } = require('pg');
 const app = express();
 const cookieParser = require('cookie-parser');
 
-const PORT = 3000;
+require('dotenv').config();
+
+const PORT = process.env.PORT;
 
 app.use('/uploads/goals_images', express.static(__dirname + '/uploads/goals_images'));
 
 // PostgreSQL connection
-require('dotenv').config();
 const pool = new Pool({
   user: process.env.PGUSER,
   host: process.env.PGHOST,
@@ -29,16 +30,16 @@ app.use(cookieParser());
 const authRoutes = require('./auth.routes')(pool);
 app.use('/api/auth', authRoutes);
 
-const header = require('./header.routes')(pool);
+const header = require('./routes/header.routes')(pool);
 app.use('/api/header', header);
 
-const goals = require('./goals.routes')(pool);
+const goals = require('./routes/goals.routes')(pool);
 app.use('/api/goals', goals);
 
-const actionsRoutes = require('./actions.routes')(pool);
+const actionsRoutes = require('./routes/actions.routes')(pool);
 app.use('/api/actions', actionsRoutes);
 
-const tasksRoutes = require('./tasks.routes')(pool);
+const tasksRoutes = require('./routes/tasks.routes')(pool);
 app.use('/api/tasks', tasksRoutes);
 
 // Start the server

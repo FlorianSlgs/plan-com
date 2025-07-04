@@ -18,3 +18,11 @@ export interface CampaignPermissions {
   isOwner: boolean;
   isReadOnly: boolean;
 }
+
+export interface GoalCard {
+  id: string;
+  title: string;
+  imageUrl: string;
+  description: string;
+  items: string[];
+}
