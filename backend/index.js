@@ -19,13 +19,13 @@ const pool = new Pool({
 });
 
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: process.env.CORS,
   credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Import and use the auth routes
+// Importer et utiliser les routes
 const authRoutes = require('./auth.routes')(pool);
 app.use('/api/auth', authRoutes);
 

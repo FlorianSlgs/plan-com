@@ -1,30 +1,40 @@
-// import modules et classes
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { catchError, retry, map } from 'rxjs/operators';
 
-// Importations de fichiers de configuration et modèles de données
+import { HttpService } from '../http/http.service';
+import { ErrorsService } from '../errors/errors.service';
 import { environment } from '../../../environments/environment';
 import { User } from '../../models/user.model';
-import { Campaign,CreateCampaignResponse,DeleteAccountResponse,DeleteCampaignResponse,LeaveSharedCampaignResponse,InvitationActionResponse,InviteUserRequest,InviteUserResponse,PendingInvitation,PendingInvitationsResponse } from '../../models/campaign.model';
+import { 
+  Campaign,
+  CreateCampaignResponse,
+  DeleteAccountResponse,
+  DeleteCampaignResponse,
+  LeaveSharedCampaignResponse,
+  InvitationActionResponse,
+  InviteUserRequest,
+  InviteUserResponse,
+  PendingInvitation,
+  PendingInvitationsResponse 
+} from '../../models/campaign.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HeaderService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = environment.baseUrl + environment.endpoints.header;
-  private readonly httpOptions = { ...environment.defaultOptions };
+  private readonly httpService = inject(HttpService);
+  private readonly errorHandler = inject(ErrorsService);
+  private readonly apiUrl = this.httpService.buildUrl(environment.endpoints.header);
 
   /**
    * Récupère le nom de l'utilisateur connecté (utilise le cookie userId automatiquement)
    */
   getUserName(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/user`, this.httpOptions)
+    return this.httpService.get<User>(`${this.apiUrl}/user`)
       .pipe(
         retry(1), // Retry une fois en cas d'échec
-        catchError(this.handleError)
+        catchError(this.errorHandler.handleError)
       );
   }
 
@@ -33,15 +43,14 @@ export class HeaderService {
    */
   createCampaign(name: string): Observable<CreateCampaignResponse> {
     if (!name?.trim()) {
-      return throwError(() => new Error('Le nom de la campagne est requis'));
+      return this.errorHandler.handleValidationError('Le nom de la campagne est requis');
     }
 
-    return this.http.post<CreateCampaignResponse>(
+    return this.httpService.post<CreateCampaignResponse>(
       `${this.apiUrl}/campaign`, 
-      { name: name.trim() }, 
-      this.httpOptions
+      { name: name.trim() }
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.errorHandler.handleError)
     );
   }
 
@@ -49,10 +58,10 @@ export class HeaderService {
    * Récupère les campagnes de l'utilisateur connecté (propres et partagées)
    */
   getCampaigns(): Observable<Campaign[]> {
-    return this.http.get<Campaign[]>(`${this.apiUrl}/campaigns`, this.httpOptions)
+    return this.httpService.get<Campaign[]>(`${this.apiUrl}/campaigns`)
       .pipe(
         retry(1), // Retry une fois en cas d'échec
-        catchError(this.handleError)
+        catchError(this.errorHandler.handleError)
       );
   }
 
@@ -61,17 +70,16 @@ export class HeaderService {
    */
   deleteCampaign(campaignId: number, campaignName: string): Observable<DeleteCampaignResponse> {
     if (!campaignId || !campaignName?.trim()) {
-      return throwError(() => new Error('L\'ID et le nom de la campagne sont requis'));
+      return this.errorHandler.handleValidationError('L\'ID et le nom de la campagne sont requis');
     }
 
-    return this.http.delete<DeleteCampaignResponse>(
+    return this.httpService.delete<DeleteCampaignResponse>(
       `${this.apiUrl}/campaign/${campaignId}`, 
       {
-        ...this.httpOptions,
         body: { campaignName: campaignName.trim() }
       }
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.errorHandler.handleError)
     );
   }
 
@@ -80,24 +88,22 @@ export class HeaderService {
    */
   leaveSharedCampaign(campaignId: number): Observable<LeaveSharedCampaignResponse> {
     if (!campaignId) {
-      return throwError(() => new Error('L\'ID de campagne est requis'));
+      return this.errorHandler.handleValidationError('L\'ID de campagne est requis');
     }
 
-    return this.http.delete<LeaveSharedCampaignResponse>(
-      `${this.apiUrl}/shared-campaign/${campaignId}`, 
-      this.httpOptions
-    ).pipe(
-      catchError(this.handleError)
-    );
+    return this.httpService.delete<LeaveSharedCampaignResponse>(`${this.apiUrl}/shared-campaign/${campaignId}`)
+      .pipe(
+        catchError(this.errorHandler.handleError)
+      );
   }
 
   /**
    * Supprime le compte de l'utilisateur connecté
    */
   deleteAccount(): Observable<DeleteAccountResponse> {
-    return this.http.delete<DeleteAccountResponse>(`${this.apiUrl}/account`, this.httpOptions)
+    return this.httpService.delete<DeleteAccountResponse>(`${this.apiUrl}/account`)
       .pipe(
-        catchError(this.handleError)
+        catchError(this.errorHandler.handleError)
       );
   }
 
@@ -106,11 +112,11 @@ export class HeaderService {
    */
   inviteUser(email: string, campaignId: number, role: 'reader' | 'editor'): Observable<InviteUserResponse> {
     if (!email?.trim()) {
-      return throwError(() => new Error('L\'email est requis'));
+      return this.errorHandler.handleValidationError('L\'email est requis');
     }
 
     if (!campaignId) {
-      return throwError(() => new Error('L\'ID de campagne est requis'));
+      return this.errorHandler.handleValidationError('L\'ID de campagne est requis');
     }
 
     const requestData: InviteUserRequest = {
@@ -119,23 +125,20 @@ export class HeaderService {
       role
     };
 
-    return this.http.post<InviteUserResponse>(
-      `${this.apiUrl}/invite`, 
-      requestData, 
-      this.httpOptions
-    ).pipe(
-      catchError(this.handleError)
-    );
+    return this.httpService.post<InviteUserResponse>(`${this.apiUrl}/invite`, requestData)
+      .pipe(
+        catchError(this.errorHandler.handleError)
+      );
   }
 
   /**
    * Récupère les invitations en attente pour l'utilisateur connecté
    */
   getPendingInvitations(): Observable<PendingInvitation[]> {
-    return this.http.get<PendingInvitationsResponse>(`${this.apiUrl}/invitations`, this.httpOptions)
+    return this.httpService.get<PendingInvitationsResponse>(`${this.apiUrl}/invitations`)
       .pipe(
         retry(1),
-        catchError(this.handleError),
+        catchError(this.errorHandler.handleError),
         // Extraire seulement le tableau d'invitations
         map(response => response.invitations || [])
       );
@@ -146,15 +149,14 @@ export class HeaderService {
    */
   acceptInvitation(invitationId: number): Observable<InvitationActionResponse> {
     if (!invitationId) {
-      return throwError(() => new Error('L\'ID de l\'invitation est requis'));
+      return this.errorHandler.handleValidationError('L\'ID de l\'invitation est requis');
     }
 
-    return this.http.put<InvitationActionResponse>(
+    return this.httpService.put<InvitationActionResponse>(
       `${this.apiUrl}/invitation/${invitationId}/accept`, 
-      {}, 
-      this.httpOptions
+      {}
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.errorHandler.handleError)
     );
   }
 
@@ -163,59 +165,12 @@ export class HeaderService {
    */
   rejectInvitation(invitationId: number): Observable<InvitationActionResponse> {
     if (!invitationId) {
-      return throwError(() => new Error('L\'ID de l\'invitation est requis'));
+      return this.errorHandler.handleValidationError('L\'ID de l\'invitation est requis');
     }
 
-    return this.http.delete<InvitationActionResponse>(
-      `${this.apiUrl}/invitation/${invitationId}/reject`, 
-      this.httpOptions
-    ).pipe(
-      catchError(this.handleError)
-    );
+    return this.httpService.delete<InvitationActionResponse>(`${this.apiUrl}/invitation/${invitationId}/reject`)
+      .pipe(
+        catchError(this.errorHandler.handleError)
+      );
   }
-
-  /**
-   * Gestion centralisée des erreurs HTTP
-   */
-  private handleError = (error: HttpErrorResponse): Observable<never> => {
-    let errorMessage = 'Une erreur est survenue';
-
-    if (error.error instanceof ErrorEvent) {
-      // Erreur côté client
-      errorMessage = `Erreur client: ${error.error.message}`;
-    } else {
-      // Erreur côté serveur
-      switch (error.status) {
-        case 0:
-          errorMessage = 'Impossible de contacter le serveur';
-          break;
-        case 401:
-          errorMessage = 'Session expirée, veuillez vous reconnecter';
-          break;
-        case 403:
-          errorMessage = 'Accès non autorisé';
-          break;
-        case 404:
-          errorMessage = 'Ressource non trouvée';
-          break;
-        case 422:
-          // Code spécifique pour email non enregistré
-          errorMessage = error.error?.message || 'Email non enregistré dans le système';
-          break;
-        case 500:
-          errorMessage = 'Erreur serveur interne';
-          break;
-        default:
-          errorMessage = error.error?.message || `Erreur ${error.status}: ${error.statusText}`;
-      }
-    }
-
-    console.error('Erreur HeaderService:', {
-      status: error.status,
-      message: errorMessage,
-      url: error.url
-    });
-
-    return throwError(() => new Error(errorMessage));
-  };
 }

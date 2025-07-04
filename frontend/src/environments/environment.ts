@@ -10,7 +10,6 @@ export const environment = {
   defaultOptions: {
     withCredentials: true,
         headers: {
-      'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
   }

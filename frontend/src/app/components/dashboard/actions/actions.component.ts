@@ -1,8 +1,8 @@
 import { Component, signal, computed, WritableSignal, effect } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CalendarEvent, CampaignAccess } from './event.model';
-import { ActionsService } from '../../../services/actions/actions.service';
+import { CalendarEvent, CampaignAccess } from '../../../models/event.model';
+import { ActionsService } from '../../../services/dashboard/actions/actions.service';
 
 @Component({
   selector: 'app-calendar',

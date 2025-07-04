@@ -1,27 +1,8 @@
 import { Component, input, output, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-interface Campaign {
-  id: number;
-  name: string;
-  first_name?: string;
-  last_name?: string;
-  user_role: 'owner' | 'reader' | 'editor';
-}
-
-interface InviteUserData {
-  email: string;
-  campaignId: number;
-  role: 'reader' | 'editor';
-}
-
-interface PendingInvitation {
-  id: number;
-  campaignId: number;
-  campaignName: string;
-  inviterName: string;
-  role: 'reader' | 'editor';
-}
+//Modèles
+import { Campaign,InviteUserData,PendingInvitation } from '../../../../../models/campaign.model';
 
 @Component({
   selector: 'app-settings-modal',

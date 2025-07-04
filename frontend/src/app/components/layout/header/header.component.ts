@@ -11,32 +11,8 @@ import { CampaignModalComponent } from './modals/campaign-modal/campaign-modal.c
 import { SettingsModalComponent } from './modals/settings-modal/settings-modal.component';
 import { DeleteConfirmationModalComponent } from './modals/delete-confirmation-modal/delete-confirmation-modal.component';
 
-interface Campaign {
-  id: number;
-  name: string;
-  first_name?: string;
-  last_name?: string;
-  user_role: 'owner' | 'reader' | 'editor';
-}
-
-interface User {
-  first_name: string;
-  last_name: string;
-}
-
-interface InviteUserData {
-  email: string;
-  campaignId: number;
-  role: 'reader' | 'editor';
-}
-
-interface PendingInvitation {
-  id: number;
-  campaignId: number;
-  campaignName: string;
-  inviterName: string;
-  role: 'reader' | 'editor';
-}
+//Modèles
+import { Campaign,InviteUserData,PendingInvitation } from '../../../models/campaign.model';
 
 @Component({
   selector: 'app-header',

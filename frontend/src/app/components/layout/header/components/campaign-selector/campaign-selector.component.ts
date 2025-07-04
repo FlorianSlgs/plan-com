@@ -1,9 +1,6 @@
 import { Component, input, output } from '@angular/core';
 
-interface Campaign {
-  id: number;
-  name: string;
-}
+import { Campaign } from '../../../../../models/campaign.model';
 
 @Component({
   selector: 'app-campaign-selector',

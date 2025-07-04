@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { TaskService } from '../../../services/tasks/task-service.service';
-import { Task } from './task.model';
+import { TaskService } from '../../../services/dashboard/tasks/task-service.service';
+import { Task } from '../../../models/tasks.model';
 import { FormsModule } from '@angular/forms';
 
 @Component({

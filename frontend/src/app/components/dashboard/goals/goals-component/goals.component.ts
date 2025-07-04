@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 
 import { GoalsCardsComponent } from '../goals-cards/goals-cards.component';
-import { GoalsService, Goal, CampaignPermissions } from '../../../../services/goals/goals.service';
+import { GoalsService } from '../../../../services/dashboard/goals/goals.service';
+import { Goal, CampaignPermissions } from '../../../../models/goals.model';
 
 export interface GoalCard {
   id: string;

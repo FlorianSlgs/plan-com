@@ -6,5 +6,9 @@ export interface Task {
   startDate?: Date;
   endDate?: Date;
   assignee?: string;
-  priority?: 'low' | 'medium' | 'high';
+}
+
+export interface TasksResponse {
+  tasks: Task[];
+  permissions: { isReadOnly: boolean };
 }

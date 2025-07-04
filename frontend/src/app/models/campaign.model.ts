@@ -54,3 +54,9 @@ export interface InvitationActionResponse {
   success: boolean;
   campaignId?: number;
 }
+
+export interface InviteUserData {
+  email: string;
+  campaignId: number;
+  role: 'reader' | 'editor';
+}
