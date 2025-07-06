@@ -11,17 +11,10 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 
-// Interface pour le typage fort du formulaire
-interface RegisterFormData {
-  lastName: string;
-  firstName: string;
-  birthDate: string;
-  email: string;
-  password: string;
-}
+import { AuthService } from '../../services/auth.service';
+import { RegisterFormData } from '../../models/user.model';
 
 @Component({
   selector: 'app-register',
@@ -35,13 +28,14 @@ interface RegisterFormData {
   styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent implements OnInit, OnDestroy {
-  // Formulaire avec typage fort
+  // Formulaire avec typage fort incluant la confirmation du mot de passe
   registerForm: FormGroup<{
     lastName: FormControl<string>;
     firstName: FormControl<string>;
     birthDate: FormControl<string>;
     email: FormControl<string>;
     password: FormControl<string>;
+    confirmPassword: FormControl<string>;
   }>;
 
   errorMessage: string | null = null;
@@ -77,7 +71,14 @@ export class RegisterComponent implements OnInit, OnDestroy {
           Validators.minLength(8),
           this.strongPasswordValidator()
         ]
+      }),
+      confirmPassword: this.fb.control('', { 
+        nonNullable: true, 
+        validators: [Validators.required]
       })
+    }, { 
+      // Validation au niveau du formulaire pour vérifier la correspondance des mots de passe
+      validators: [this.passwordMatchValidator()]
     });
   }
 
@@ -96,7 +97,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   /**
    * Vérifie si un champ est invalide et a été touché/modifié
    */
-  isFieldInvalid(fieldName: keyof RegisterFormData): boolean {
+  isFieldInvalid(fieldName: keyof typeof this.registerForm.controls): boolean {
     const field = this.registerForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
@@ -104,17 +105,18 @@ export class RegisterComponent implements OnInit, OnDestroy {
   /**
    * Récupère le message d'erreur pour un champ donné
    */
-  getFieldError(fieldName: keyof RegisterFormData): string | null {
+  getFieldError(fieldName: keyof typeof this.registerForm.controls): string | null {
     const field = this.registerForm.get(fieldName);
     if (!field || !field.errors) return null;
 
     const errors = field.errors;
-    const fieldLabels: Record<keyof RegisterFormData, string> = {
+    const fieldLabels: Record<string, string> = {
       lastName: 'nom',
       firstName: 'prénom',
       birthDate: 'date de naissance',
       email: 'email',
-      password: 'mot de passe'
+      password: 'mot de passe',
+      confirmPassword: 'confirmation du mot de passe'
     };
 
     const label = fieldLabels[fieldName];
@@ -136,6 +138,17 @@ export class RegisterComponent implements OnInit, OnDestroy {
     }
 
     return 'Champ invalide.';
+  }
+
+  /**
+   * Récupère le message d'erreur pour la validation des mots de passe
+   */
+  getPasswordMatchError(): string | null {
+    if (this.registerForm.errors?.['passwordMismatch'] && 
+        this.registerForm.get('confirmPassword')?.touched) {
+      return 'Les mots de passe ne correspondent pas.';
+    }
+    return null;
   }
 
   /**
@@ -197,6 +210,24 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Validator pour vérifier que les mots de passe correspondent
+   */
+  private passwordMatchValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control) return null;
+
+      const password = control.get('password')?.value;
+      const confirmPassword = control.get('confirmPassword')?.value;
+
+      if (!password || !confirmPassword) {
+        return null;
+      }
+
+      return password === confirmPassword ? null : { passwordMismatch: true };
+    };
+  }
+
+  /**
    * Soumission du formulaire
    */
   onSubmit(): void {
@@ -204,9 +235,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
     if (this.registerForm.valid && !this.isLoading) {
       this.isLoading = true;
-      const formData: RegisterFormData = this.registerForm.value as RegisterFormData;
+      
+      // Extraire les données sans le champ confirmPassword
+      const { confirmPassword, ...formData } = this.registerForm.value;
+      const registerData: RegisterFormData = formData as RegisterFormData;
 
-      this.authService.register(formData)
+      this.authService.register(registerData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
@@ -231,6 +265,19 @@ export class RegisterComponent implements OnInit, OnDestroy {
   onFieldChange(): void {
     if (this.errorMessage) {
       this.errorMessage = null;
+    }
+  }
+
+  /**
+   * Gestion spécifique du changement de mot de passe pour re-valider la confirmation
+   */
+  onPasswordChange(): void {
+    this.onFieldChange();
+    
+    // Re-valider le champ de confirmation si il a été touché
+    const confirmPasswordControl = this.registerForm.get('confirmPassword');
+    if (confirmPasswordControl?.touched) {
+      confirmPasswordControl.updateValueAndValidity();
     }
   }
 }

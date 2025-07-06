@@ -42,6 +42,9 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials, { withCredentials: true })
       .pipe(
         tap(() => {
+          // Réinitialiser le localStorage avant de définir le nouvel état
+          this.clearLocalStorage();
+
           this.loggedInState.set(true);
           this.router.navigate(['/home']);
         }),
@@ -113,5 +116,23 @@ export class AuthService {
   // Getter pour savoir si la vérification initiale est terminée
   isAuthChecked(): boolean {
     return this.authChecked();
+  }
+
+  // Méthode privée pour nettoyer le localStorage
+  private clearLocalStorage(): void {
+    const keysToRemove = [
+      'currentCampaign',
+      'currentCampaignId',
+      'events',
+      'campaignAccess',
+    ];
+    
+    keysToRemove.forEach(key => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    console.log('localStorage réinitialisé lors de la nouvelle connexion');
   }
 }
