@@ -1,4 +1,4 @@
-// header.routes.js - Version modulaire avec gestion des invitations
+// header.routes.js - Version modulaire avec gestion des invitations et mise à jour profil
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middlewares/auth');
@@ -12,6 +12,7 @@ const invitationController = require('../controllers/invitationController');
 module.exports = (pool) => {
   // Routes utilisateur
   router.get('/user', authenticateToken, userController.getUser(pool));
+  router.put('/user/profile', authenticateToken, userController.updateProfile(pool));
   
   // Routes campagnes
   router.post('/campaign', authenticateToken, campaignController.createCampaign(pool));

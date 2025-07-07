@@ -1,71 +1,78 @@
+const CampaignAccessService = require('./campaignAccess.service');
+
 class TasksService {
   constructor(pool) {
     this.pool = pool;
+    this.campaignAccessService = new CampaignAccessService(pool);
   }
 
-  // Vérifier l'accès à une campagne et retourner les permissions
-  async checkCampaignAccess(userId, campaignId) {
+  // Récupérer les tâches pour une campagne avec vérification d'accès
+  async getTasksByCampaign(userId, campaignId) {
     try {
-      // Vérifier si l'utilisateur est propriétaire de la campagne
-      const ownerCheck = await this.pool.query(
-        'SELECT * FROM campaign WHERE id = $1 AND user_id = $2',
-        [campaignId, userId]
-      );
+      // Vérifier l'accès à la campagne
+      const access = await this.campaignAccessService.getCampaignAccess(userId, campaignId);
       
-      if (ownerCheck.rows.length > 0) {
-        return { hasAccess: true, isReadOnly: false };
+      if (!access.hasAccess) {
+        throw new Error('CAMPAIGN_NOT_FOUND');
       }
 
-      // Vérifier si la campagne est partagée avec l'utilisateur
-      const shareCheck = await this.pool.query(
-        'SELECT read FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
-        [campaignId, userId]
-      );
-      
-      if (shareCheck.rows.length > 0) {
-        return { 
-          hasAccess: true, 
-          isReadOnly: shareCheck.rows[0].read === true 
-        };
-      }
-
-      return { hasAccess: false, isReadOnly: false };
-    } catch (error) {
-      throw new Error(`Error checking campaign access: ${error.message}`);
-    }
-  }
-
-  // Récupérer les tâches pour une campagne
-  async getTasksByCampaign(campaignId) {
-    try {
       const result = await this.pool.query(
         'SELECT * FROM tasks WHERE campaign_id = $1',
         [campaignId]
       );
-      return result.rows;
+
+      return {
+        tasks: result.rows,
+        permissions: {
+          isReadOnly: access.isReadOnly,
+          isOwner: access.isOwner
+        }
+      };
     } catch (error) {
       throw new Error(`Error fetching tasks: ${error.message}`);
     }
   }
 
-  // Récupérer une tâche par ID
-  async getTaskById(taskId) {
+  // Récupérer une tâche par ID avec vérification d'accès
+  async getTaskById(userId, taskId) {
     try {
       const result = await this.pool.query(
         'SELECT * FROM tasks WHERE id = $1',
         [taskId]
       );
-      return result.rows[0] || null;
+
+      const task = result.rows[0];
+      if (!task) {
+        return null;
+      }
+
+      // Vérifier l'accès à la campagne de la tâche
+      const access = await this.campaignAccessService.getCampaignAccess(userId, task.campaign_id);
+      
+      if (!access.hasAccess) {
+        throw new Error('CAMPAIGN_NOT_FOUND');
+      }
+
+      return {
+        task,
+        permissions: {
+          isReadOnly: access.isReadOnly,
+          isOwner: access.isOwner
+        }
+      };
     } catch (error) {
       throw new Error(`Error fetching task: ${error.message}`);
     }
   }
 
   // Créer une nouvelle tâche
-  async createTask(taskData) {
-    const { title, description, status, assignee, priority, userId, campaignId } = taskData;
+  async createTask(userId, taskData) {
+    const { title, description, status, assignee, priority, campaignId } = taskData;
     
     try {
+      // Vérifier l'accès en écriture à la campagne
+      await this.campaignAccessService.validateCampaignAccess(userId, campaignId, true);
+
       const result = await this.pool.query(
         `INSERT INTO tasks (id, title, description, status, assignee, priority, "user_id", campaign_id)
         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
@@ -79,8 +86,23 @@ class TasksService {
   }
 
   // Mettre à jour le statut d'une tâche
-  async updateTaskStatus(taskId, status) {
+  async updateTaskStatus(userId, taskId, status) {
     try {
+      // Récupérer la tâche pour obtenir son campaign_id
+      const taskResult = await this.pool.query(
+        'SELECT campaign_id FROM tasks WHERE id = $1',
+        [taskId]
+      );
+
+      if (taskResult.rows.length === 0) {
+        throw new Error('Task not found');
+      }
+
+      const task = taskResult.rows[0];
+      
+      // Vérifier l'accès en écriture à la campagne
+      await this.campaignAccessService.validateCampaignAccess(userId, task.campaign_id, true);
+
       const result = await this.pool.query(
         'UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *',
         [status, taskId]
@@ -92,10 +114,25 @@ class TasksService {
   }
 
   // Mettre à jour une tâche complète
-  async updateTask(taskId, taskData) {
+  async updateTask(userId, taskId, taskData) {
     const { title, description, status, assignee, priority } = taskData;
     
     try {
+      // Récupérer la tâche pour obtenir son campaign_id
+      const taskResult = await this.pool.query(
+        'SELECT campaign_id FROM tasks WHERE id = $1',
+        [taskId]
+      );
+
+      if (taskResult.rows.length === 0) {
+        throw new Error('Task not found');
+      }
+
+      const task = taskResult.rows[0];
+      
+      // Vérifier l'accès en écriture à la campagne
+      await this.campaignAccessService.validateCampaignAccess(userId, task.campaign_id, true);
+
       const result = await this.pool.query(
         `UPDATE tasks SET title=$1, description=$2, status=$3, assignee=$4, priority=$5 
          WHERE id=$6 RETURNING *`,
@@ -108,13 +145,39 @@ class TasksService {
   }
 
   // Supprimer une tâche
-  async deleteTask(taskId) {
+  async deleteTask(userId, taskId) {
     try {
+      // Récupérer la tâche pour obtenir son campaign_id
+      const taskResult = await this.pool.query(
+        'SELECT campaign_id FROM tasks WHERE id = $1',
+        [taskId]
+      );
+
+      if (taskResult.rows.length === 0) {
+        throw new Error('Task not found');
+      }
+
+      const task = taskResult.rows[0];
+      
+      // Vérifier l'accès en écriture à la campagne
+      await this.campaignAccessService.validateCampaignAccess(userId, task.campaign_id, true);
+
       await this.pool.query('DELETE FROM tasks WHERE id = $1', [taskId]);
       return { message: 'Tâche supprimée' };
     } catch (error) {
       throw new Error(`Error deleting task: ${error.message}`);
     }
+  }
+
+  // Méthodes utilitaires pour maintenir la compatibilité (optionnel)
+  
+  // Ancienne méthode pour vérification d'accès (deprecated)
+  async checkCampaignAccess(userId, campaignId) {
+    const access = await this.campaignAccessService.getCampaignAccess(userId, campaignId);
+    return {
+      hasAccess: access.hasAccess,
+      isReadOnly: access.isReadOnly
+    };
   }
 }
 

@@ -5,7 +5,7 @@ import { catchError, retry, map } from 'rxjs/operators';
 import { HttpService } from '../http/http.service';
 import { ErrorsService } from '../errors/errors.service';
 import { environment } from '../../../environments/environment';
-import { User } from '../../models/user.model';
+import { User, UpdateProfileData, UpdateProfileResponse } from '../../models/user.model';
 import { 
   Campaign,
   CreateCampaignResponse,
@@ -34,6 +34,25 @@ export class HeaderService {
     return this.httpService.get<User>(`${this.apiUrl}/user`)
       .pipe(
         retry(1), // Retry une fois en cas d'échec
+        catchError(this.errorHandler.handleError)
+      );
+  }
+
+  /**
+   * Met à jour le profil de l'utilisateur connecté
+   */
+  updateProfile(profileData: UpdateProfileData): Observable<UpdateProfileResponse> {
+    if (!profileData.firstName?.trim() || !profileData.lastName?.trim()) {
+      return this.errorHandler.handleValidationError('Le prénom et le nom sont requis');
+    }
+
+    const requestData = {
+      first_name: profileData.firstName.trim(),
+      last_name: profileData.lastName.trim()
+    };
+
+    return this.httpService.put<UpdateProfileResponse>(`${this.apiUrl}/user/profile`, requestData)
+      .pipe(
         catchError(this.errorHandler.handleError)
       );
   }

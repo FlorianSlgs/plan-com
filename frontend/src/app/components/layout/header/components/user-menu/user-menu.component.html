@@ -9,11 +9,14 @@
     />
   </div>
   
-  <!-- Nom de l'utilisateur -->
-  <span class="text-gray-700 font-medium text-sm md:text-base truncate max-w-32 md:max-w-none" 
-        [title]="userFullName()">
+  <!-- Nom de l'utilisateur - cliquable pour ouvrir le profil -->
+  <button
+    class="user-name-btn text-gray-700 font-medium text-sm md:text-base truncate max-w-32 md:max-w-none hover:text-blue-600 transition-colors cursor-pointer underline-offset-2 hover:underline"
+    [title]="'Cliquez pour modifier votre profil - ' + userFullName()"
+    (click)="onProfileClick()"
+    type="button">
     {{ userFullName() }}
-  </span>
+  </button>
   
   <!-- Bouton Paramètres avec indicateur d'invitations -->
   <button 

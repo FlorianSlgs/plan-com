@@ -17,6 +17,35 @@ const userController = {
     }
   },
 
+  updateProfile: (pool) => async (req, res) => {
+    try {
+      const { first_name, last_name } = req.body;
+      
+      // Validation des données
+      if (!first_name || !last_name) {
+        return res.status(400).json({ message: 'Le prénom et le nom sont requis.' });
+      }
+      
+      const result = await pool.query(
+        'UPDATE users SET first_name = $1, last_name = $2 WHERE id = $3 RETURNING first_name, last_name',
+        [first_name, last_name, req.user.id]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+      }
+      
+      res.json({
+        message: 'Profil mis à jour avec succès.',
+        user: result.rows[0]
+      });
+      
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour du profil:', err);
+      res.status(500).json({ message: 'Erreur serveur lors de la mise à jour du profil.' });
+    }
+  },
+
   deleteAccount: (pool) => async (req, res) => {
     const client = await pool.connect();
     

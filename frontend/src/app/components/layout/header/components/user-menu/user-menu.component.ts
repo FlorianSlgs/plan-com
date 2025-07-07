@@ -14,11 +14,16 @@ export class UserMenuComponent {
 
   // Outputs - événements émis vers le composant parent
   openSettings = output<void>();
+  openProfile = output<void>();
   logout = output<void>();
 
   // Méthodes pour gérer les événements
   onSettingsClick() {
     this.openSettings.emit();
+  }
+
+  onProfileClick() {
+    this.openProfile.emit();
   }
 
   onLogoutClick() {

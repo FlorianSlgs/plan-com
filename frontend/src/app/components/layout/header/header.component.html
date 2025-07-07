@@ -15,6 +15,7 @@
     [userFullName]="userFullName()"
     [pendingInvitationsCount]="pendingInvitations().length"
     (openSettings)="onOpenSettingsModal()"
+    (openProfile)="onOpenProfileModal()"
     (logout)="onLogout()"
   />
 </header>
@@ -26,6 +27,18 @@
   [error]="error()"
   (close)="onCloseCampaignModal()"
   (createCampaign)="onCreateCampaign($event)"
+/>
+
+<!-- Modal de profil utilisateur -->
+<app-profile-modal
+  [isOpen]="showProfileModal()"
+  [userFirstName]="userFirstName()"
+  [userLastName]="userLastName()"
+  [loadingState]="loadingState()"
+  [error]="error()"
+  [successMessage]="successMessage()"
+  (close)="onCloseProfileModal()"
+  (updateProfile)="onUpdateProfile($event)"
 />
 
 <!-- Modal des paramètres -->

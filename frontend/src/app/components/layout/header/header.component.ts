@@ -9,10 +9,12 @@ import { CampaignSelectorComponent } from './components/campaign-selector/campai
 import { UserMenuComponent } from './components/user-menu/user-menu.component';
 import { CampaignModalComponent } from './modals/campaign-modal/campaign-modal.component';
 import { SettingsModalComponent } from './modals/settings-modal/settings-modal.component';
+import { ProfileModalComponent } from './modals/profile-modal/profile-modal.component';
 import { DeleteConfirmationModalComponent } from './modals/delete-confirmation-modal/delete-confirmation-modal.component';
 
 //Modèles
 import { Campaign,InviteUserData,PendingInvitation } from '../../../models/campaign.model';
+import { UpdateProfileData } from '../../../models/user.model';
 
 @Component({
   selector: 'app-header',
@@ -22,6 +24,7 @@ import { Campaign,InviteUserData,PendingInvitation } from '../../../models/campa
     UserMenuComponent,
     CampaignModalComponent,
     SettingsModalComponent,
+    ProfileModalComponent,
     DeleteConfirmationModalComponent
   ],
   templateUrl: './header.component.html',
@@ -38,6 +41,8 @@ export class HeaderComponent implements OnInit {
   
   // État principal
   userFullName = signal<string>('');
+  userFirstName = signal<string>('');
+  userLastName = signal<string>('');
   campaigns = signal<Campaign[]>([]);
   currentCampaign = signal<string>('');
   loadingState = signal<'idle' | 'loading' | 'error'>('idle');
@@ -50,6 +55,7 @@ export class HeaderComponent implements OnInit {
   // États des modals
   showCampaignModal = signal<boolean>(false);
   showSettingsModal = signal<boolean>(false);
+  showProfileModal = signal<boolean>(false);
   showDeleteConfirmModal = signal<boolean>(false);
   showDeleteCampaignModal = signal<boolean>(false);
   campaignToDelete = signal<Campaign | null>(null);
@@ -72,6 +78,8 @@ export class HeaderComponent implements OnInit {
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe({
       next: ({ user, campaigns, invitations }) => {
+        this.userFirstName.set(user.first_name);
+        this.userLastName.set(user.last_name);
         this.userFullName.set(`${user.first_name} ${user.last_name}`);
         this.campaigns.set(campaigns);
         this.pendingInvitations.set(invitations);
@@ -80,6 +88,8 @@ export class HeaderComponent implements OnInit {
       },
       error: (err) => {
         this.userFullName.set('Utilisateur');
+        this.userFirstName.set('');
+        this.userLastName.set('');
         this.campaigns.set([]);
         this.pendingInvitations.set([]);
         this.loadingState.set('error');
@@ -125,6 +135,22 @@ export class HeaderComponent implements OnInit {
     this.showSettingsModal.set(false);
     this.error.set(null);
     this.successMessage.set('');
+  }
+
+  onOpenProfileModal() {
+    this.showProfileModal.set(true);
+    this.error.set(null);
+    this.successMessage.set('');
+  }
+
+  onCloseProfileModal() {
+    this.showProfileModal.set(false);
+    this.error.set(null);
+    this.successMessage.set('');
+  }
+
+  onUpdateProfile(profileData: UpdateProfileData) {
+    this.updateProfile(profileData);
   }
 
   onConfirmDeleteAccount() {
@@ -223,6 +249,37 @@ export class HeaderComponent implements OnInit {
           this.loadingState.set('error');
           this.error.set('Erreur lors de la création de la campagne');
           console.error('Erreur création campagne:', err);
+        }
+      });
+  }
+
+  private updateProfile(profileData: UpdateProfileData) {
+    this.loadingState.set('loading');
+    this.error.set(null);
+    
+    this.headerService.updateProfile(profileData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.loadingState.set('idle');
+          
+          if (response.success) {
+            // Mettre à jour les données locales
+            this.userFirstName.set(profileData.firstName);
+            this.userLastName.set(profileData.lastName);
+            this.userFullName.set(`${profileData.firstName} ${profileData.lastName}`);
+            
+            this.showProfileModal.set(false);
+            this.successMessage.set(response.message || 'Profil mis à jour avec succès');
+            this.clearSuccessMessage();
+          } else {
+            this.error.set(response.message || 'Erreur lors de la mise à jour du profil');
+          }
+        },
+        error: (err) => {
+          this.loadingState.set('idle');
+          this.error.set(err.message || 'Erreur lors de la mise à jour du profil');
+          console.error('Erreur mise à jour profil:', err);
         }
       });
   }

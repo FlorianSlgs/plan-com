@@ -1,54 +1,26 @@
+/**
+ * Service pour la gestion des actions/événements
+ * Utilise le CampaignAccessService pour la gestion des permissions
+ */
+
+const CampaignAccessService = require('./campaignAccess.service');
+
 class ActionsService {
   constructor(pool) {
     this.pool = pool;
+    this.accessService = new CampaignAccessService(pool);
   }
 
-  // Fonction utilitaire pour vérifier l'accès et les permissions d'une campagne
-  async getCampaignAccess(userId, campaignId) {
-    if (!campaignId) {
-      return { hasAccess: true, isReadOnly: false, isOwner: true };
-    }
-
-    try {
-      // Vérifier si l'utilisateur est propriétaire de la campagne
-      const ownerCheck = await this.pool.query(
-        'SELECT user_id FROM campaign WHERE id = $1 AND user_id = $2',
-        [campaignId, userId]
-      );
-      
-      if (ownerCheck.rows.length > 0) {
-        return { hasAccess: true, isReadOnly: false, isOwner: true };
-      }
-      
-      // Vérifier si la campagne est partagée avec l'utilisateur
-      const shareCheck = await this.pool.query(
-        'SELECT read FROM share_campaigns WHERE campaign_id = $1 AND user_id = $2',
-        [campaignId, userId]
-      );
-      
-      if (shareCheck.rows.length > 0) {
-        const isReadOnly = shareCheck.rows[0].read === true;
-        return { hasAccess: true, isReadOnly, isOwner: false };
-      }
-      
-      return { hasAccess: false, isReadOnly: true, isOwner: false };
-    } catch (error) {
-      console.error('Erreur lors de la vérification de l\'accès à la campagne:', error);
-      throw error;
-    }
-  }
-
-  // Fonction utilitaire de compatibilité pour les anciennes vérifications
-  async checkCampaignAccess(userId, campaignId) {
-    const access = await this.getCampaignAccess(userId, campaignId);
-    return access.hasAccess;
-  }
-
-  // Récupérer les événements avec les permissions
+  /**
+   * Récupérer les événements avec les permissions
+   * @param {number} userId - ID de l'utilisateur
+   * @param {number|null} currentCampaignId - ID de la campagne actuelle
+   * @returns {Object} - Événements et permissions
+   */
   async getEventsWithAccess(userId, currentCampaignId) {
     try {
       // Récupérer les permissions d'accès
-      const access = await this.getCampaignAccess(userId, currentCampaignId);
+      const access = await this.accessService.getCampaignAccess(userId, currentCampaignId);
       
       if (!access.hasAccess) {
         return { 
@@ -104,16 +76,21 @@ class ActionsService {
     }
   }
 
-  // Récupérer tous les événements (pour compatibilité)
+  /**
+   * Récupérer tous les événements (pour compatibilité)
+   * @param {number} userId - ID de l'utilisateur
+   * @param {number|null} currentCampaignId - ID de la campagne actuelle
+   * @returns {Array} - Liste des événements
+   */
   async getEvents(userId, currentCampaignId) {
     try {
       let query, params;
       
       if (currentCampaignId) {
         // Vérifier l'accès à la campagne
-        const hasAccess = await this.checkCampaignAccess(userId, currentCampaignId);
+        const hasAccess = await this.accessService.checkCampaignAccess(userId, currentCampaignId);
         if (!hasAccess) {
-          throw new Error('Accès non autorisé à cette campagne');
+          throw new Error('CAMPAIGN_NOT_FOUND');
         }
         
         // Récupérer les événements de la campagne (peu importe qui les a créés)
@@ -160,21 +137,18 @@ class ActionsService {
     }
   }
 
-  // Ajouter un événement
+  /**
+   * Ajouter un événement
+   * @param {number} userId - ID de l'utilisateur
+   * @param {Object} eventData - Données de l'événement
+   * @returns {Object} - Événement créé
+   */
   async createEvent(userId, eventData) {
     try {
       const { id, title, date, startTime, campaignId } = eventData;
       
-      // Vérifier l'accès et les permissions à la campagne si elle est spécifiée
-      if (campaignId) {
-        const access = await this.getCampaignAccess(userId, campaignId);
-        if (!access.hasAccess) {
-          throw new Error('Accès non autorisé à cette campagne');
-        }
-        if (access.isReadOnly) {
-          throw new Error('Vous n\'avez pas les permissions pour ajouter des événements dans cette campagne (accès en lecture seule)');
-        }
-      }
+      // Utilise le service centralisé pour valider l'accès en écriture
+      await this.accessService.validateCampaignAccess(userId, campaignId, true);
       
       const result = await this.pool.query(
         `INSERT INTO actions (id, title, event_date, start_time, campaign_id, user_id)
@@ -202,7 +176,13 @@ class ActionsService {
     }
   }
 
-  // Modifier un événement
+  /**
+   * Modifier un événement
+   * @param {number} userId - ID de l'utilisateur
+   * @param {string} eventId - ID de l'événement
+   * @param {Object} eventData - Nouvelles données
+   * @returns {Object} - Événement modifié
+   */
   async updateEvent(userId, eventId, eventData) {
     try {
       const { title, date, startTime, campaignId } = eventData;
@@ -214,7 +194,7 @@ class ActionsService {
       );
       
       if (eventCheck.rows.length === 0) {
-        throw new Error('Événement non trouvé');
+        throw new Error('EVENT_NOT_FOUND');
       }
       
       const existingEvent = eventCheck.rows[0];
@@ -226,27 +206,27 @@ class ActionsService {
       if (existingEvent.user_id === userId) {
         // Vérifier les permissions de la campagne actuelle
         if (existingEvent.campaign_id) {
-          const access = await this.getCampaignAccess(userId, existingEvent.campaign_id);
-          canModify = access.hasAccess && !access.isReadOnly;
+          const canWrite = await this.accessService.canWriteToCampaign(userId, existingEvent.campaign_id);
+          canModify = canWrite;
         } else {
           canModify = true; // Événement personnel, l'utilisateur peut le modifier
         }
       }
       // Si l'événement appartient à une campagne partagée
       else if (existingEvent.campaign_id) {
-        const access = await this.getCampaignAccess(userId, existingEvent.campaign_id);
-        canModify = access.hasAccess && !access.isReadOnly;
+        const canWrite = await this.accessService.canWriteToCampaign(userId, existingEvent.campaign_id);
+        canModify = canWrite;
       }
       
       if (!canModify) {
-        throw new Error('Accès non autorisé à cet événement ou permissions insuffisantes');
+        throw new Error('UNAUTHORIZED');
       }
       
       // Vérifier l'accès à la nouvelle campagne si elle change
       if (campaignId && campaignId !== existingEvent.campaign_id) {
-        const access = await this.getCampaignAccess(userId, campaignId);
-        if (!access.hasAccess || access.isReadOnly) {
-          throw new Error('Accès non autorisé à la nouvelle campagne ou permissions insuffisantes');
+        const canWrite = await this.accessService.canWriteToCampaign(userId, campaignId);
+        if (!canWrite) {
+          throw new Error('UNAUTHORIZED');
         }
       }
 
@@ -279,7 +259,12 @@ class ActionsService {
     }
   }
 
-  // Supprimer un événement
+  /**
+   * Supprimer un événement
+   * @param {number} userId - ID de l'utilisateur
+   * @param {string} eventId - ID de l'événement
+   * @returns {Object} - Message de confirmation
+   */
   async deleteEvent(userId, eventId) {
     try {
       // Récupérer l'événement existant
@@ -289,7 +274,7 @@ class ActionsService {
       );
       
       if (eventCheck.rows.length === 0) {
-        throw new Error('Événement non trouvé');
+        throw new Error('EVENT_NOT_FOUND');
       }
       
       const existingEvent = eventCheck.rows[0];
@@ -301,26 +286,41 @@ class ActionsService {
       if (existingEvent.user_id === userId) {
         // Vérifier les permissions de la campagne actuelle
         if (existingEvent.campaign_id) {
-          const access = await this.getCampaignAccess(userId, existingEvent.campaign_id);
-          canDelete = access.hasAccess && !access.isReadOnly;
+          const canWrite = await this.accessService.canWriteToCampaign(userId, existingEvent.campaign_id);
+          canDelete = canWrite;
         } else {
           canDelete = true; // Événement personnel, l'utilisateur peut le supprimer
         }
       }
       // Si l'événement appartient à une campagne partagée
       else if (existingEvent.campaign_id) {
-        const access = await this.getCampaignAccess(userId, existingEvent.campaign_id);
-        canDelete = access.hasAccess && !access.isReadOnly;
+        const canWrite = await this.accessService.canWriteToCampaign(userId, existingEvent.campaign_id);
+        canDelete = canWrite;
       }
       
       if (!canDelete) {
-        throw new Error('Accès non autorisé à cet événement ou permissions insuffisantes');
+        throw new Error('UNAUTHORIZED');
       }
 
       await this.pool.query('DELETE FROM actions WHERE id = $1', [eventId]);
       return { message: 'Événement supprimé' };
     } catch (error) {
       console.error('Erreur lors de la suppression de l\'événement :', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère les permissions d'un utilisateur sur une campagne
+   * @param {number} userId - ID de l'utilisateur
+   * @param {number} campaignId - ID de la campagne
+   * @returns {Object} - Permissions de l'utilisateur
+   */
+  async getCampaignPermissions(userId, campaignId) {
+    try {
+      return await this.accessService.getCampaignPermissions(userId, campaignId);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des permissions:', error);
       throw error;
     }
   }

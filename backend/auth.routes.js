@@ -125,14 +125,6 @@ module.exports = (pool, generateToken) => {
       maxAge: 2 * 60 * 60 * 1000 // 2h
     });
 
-    // Ajoute aussi le userId si besoin (optionnel)
-    res.cookie('userId', user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 2 * 60 * 60 * 1000
-    });
-
     return res.status(200).json({ message: 'Connexion réussie.' });
   } catch (err) {
     console.error(err);
@@ -142,11 +134,6 @@ module.exports = (pool, generateToken) => {
 
   router.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
-    res.clearCookie('userId', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict'

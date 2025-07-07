@@ -14,7 +14,7 @@ const GoalsController = require('../controllers/goals.controller');
 // Configuration multer pour l'upload d'images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '/uploads/goals_images');
+    const dir = path.join(__dirname, '../uploads/goals_images');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
