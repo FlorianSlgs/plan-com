@@ -16,6 +16,10 @@ export interface RegisterFormData {
 export interface UpdateProfileData {
   firstName: string;
   lastName: string;
+  // Nouveaux champs optionnels pour le changement de mot de passe
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
 }
 
 // Interface pour la réponse de mise à jour du profil
@@ -23,4 +27,11 @@ export interface UpdateProfileResponse {
   success: boolean;
   message: string;
   user?: User;
+}
+
+// Interface spécifique pour le changement de mot de passe
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }

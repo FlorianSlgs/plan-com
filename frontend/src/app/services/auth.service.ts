@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ChangePasswordData } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -106,6 +107,22 @@ export class AuthService {
         return throwError(() => new Error('Non authentifié'));
       })
     );
+  }
+
+  // Nouvelle méthode pour changer le mot de passe
+  changePassword(passwordData: ChangePasswordData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/change-password`, passwordData, { withCredentials: true })
+      .pipe(
+        tap(response => {
+          console.log('Password changed successfully:', response);
+        }),
+        catchError(error => {
+          console.error('Password change failed:', error);
+          // Récupère le message du backend s'il existe, sinon message par défaut
+          const backendMsg = error?.error?.message || 'Erreur lors du changement de mot de passe.';
+          return throwError(() => new Error(backendMsg));
+        })
+      );
   }
 
   // Méthode simple pour vérifier l'état de connexion (utilisée par le Guard et les composants)

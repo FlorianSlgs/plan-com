@@ -8,7 +8,7 @@
     (keydown)="onKeydown($event)"
     tabindex="-1">
     
-    <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative animate-modal-in">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto relative animate-modal-in">
       <!-- Header avec bouton fermer -->
       <div class="modal-header flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
         <div>
@@ -30,7 +30,7 @@
         </button>
       </div>
       
-      <!-- Messages -->
+      <!-- Messages pour le profil -->
       @if (error()) {
         <div class="error-message mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-start" role="alert">
           <span class="material-icons text-red-500 mr-3 text-lg">error</span>
@@ -45,8 +45,13 @@
         </div>
       }
       
-      <!-- Formulaire -->
+      <!-- Formulaire des informations personnelles -->
       <form (ngSubmit)="onSubmit()" class="space-y-6">
+        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+          <span class="material-icons mr-2 text-blue-600">badge</span>
+          Informations personnelles
+        </h3>
+
         <!-- Prénom -->
         <div class="form-group">
           <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
@@ -101,7 +106,7 @@
           }
         </div>
 
-        <!-- Actions -->
+        <!-- Actions pour le profil -->
         <div class="form-actions flex gap-3 pt-4">
           <button
             type="submit"
@@ -115,18 +120,185 @@
               Enregistrer
             }
           </button>
-          
-          <button
-            type="button"
-            (click)="onClose()"
-            [disabled]="loadingState() === 'loading'"
-            class="cancel-btn px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50">
-            Annuler
-          </button>
         </div>
       </form>
+
+      <!-- Séparateur -->
+      <div class="border-t border-gray-200 my-6"></div>
+
+      <!-- Section changement de mot de passe -->
+      <div class="password-section">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+            <span class="material-icons mr-2 text-blue-600">lock</span>
+            Mot de passe
+          </h3>
+          <button
+            type="button"
+            (click)="togglePasswordSection()"
+            class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+            @if (showPasswordSection()) {
+              <span class="material-icons text-sm">expand_less</span>
+              Masquer
+            } @else {
+              <span class="material-icons text-sm">expand_more</span>
+              Modifier
+            }
+          </button>
+        </div>
+
+        @if (showPasswordSection()) {
+          <!-- Messages pour le changement de mot de passe -->
+          @if (passwordError()) {
+            <div class="error-message mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-start" role="alert">
+              <span class="material-icons text-red-500 mr-3 text-lg">error</span>
+              <span>{{ passwordError() }}</span>
+            </div>
+          }
+
+          @if (passwordSuccessMessage()) {
+            <div class="success-message mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-start" role="alert">
+              <span class="material-icons text-green-500 mr-3 text-lg">check_circle</span>
+              <span>{{ passwordSuccessMessage() }}</span>
+            </div>
+          }
+
+          <!-- Formulaire de changement de mot de passe -->
+          <form (ngSubmit)="onSubmitPasswordChange()" class="space-y-4">
+            <!-- Mot de passe actuel -->
+            <div class="form-group">
+              <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                Mot de passe actuel <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="currentPassword"
+                type="password"
+                [value]="currentPassword()"
+                (input)="onCurrentPasswordChange($event)"
+                name="currentPassword"
+                required
+                [disabled]="passwordLoadingState() === 'loading'"
+                class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
+                [class.border-red-500]="getCurrentPasswordError()"
+                placeholder="Entrez votre mot de passe actuel"
+                autocomplete="current-password"
+              />
+              @if (getCurrentPasswordError()) {
+                <p class="text-red-500 text-xs mt-1 flex items-center">
+                  <span class="material-icons text-xs mr-1">error</span>
+                  {{ getCurrentPasswordError() }}
+                </p>
+              }
+            </div>
+
+            <!-- Nouveau mot de passe -->
+            <div class="form-group">
+              <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                Nouveau mot de passe <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="newPassword"
+                type="password"
+                [value]="newPassword()"
+                (input)="onNewPasswordChange($event)"
+                name="newPassword"
+                required
+                minlength="8"
+                [disabled]="passwordLoadingState() === 'loading'"
+                class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
+                [class.border-red-500]="getNewPasswordError()"
+                placeholder="Entrez votre nouveau mot de passe"
+                autocomplete="new-password"
+              />
+              @if (getNewPasswordError()) {
+                <p class="text-red-500 text-xs mt-1 flex items-center">
+                  <span class="material-icons text-xs mr-1">error</span>
+                  {{ getNewPasswordError() }}
+                </p>
+              }
+            </div>
+
+            <!-- Confirmation nouveau mot de passe -->
+            <div class="form-group">
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                Confirmer le nouveau mot de passe <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                [value]="confirmPassword()"
+                (input)="onConfirmPasswordChange($event)"
+                name="confirmPassword"
+                required
+                [disabled]="passwordLoadingState() === 'loading'"
+                class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
+                [class.border-red-500]="getConfirmPasswordError()"
+                placeholder="Confirmez votre nouveau mot de passe"
+                autocomplete="new-password"
+              />
+              @if (getConfirmPasswordError()) {
+                <p class="text-red-500 text-xs mt-1 flex items-center">
+                  <span class="material-icons text-xs mr-1">error</span>
+                  {{ getConfirmPasswordError() }}
+                </p>
+              }
+            </div>
+
+            <!-- Actions pour le changement de mot de passe -->
+            <div class="form-actions flex gap-3 pt-4">
+              <button
+                type="submit"
+                [disabled]="passwordLoadingState() === 'loading' || !isPasswordFormValid()"
+                class="submit-btn flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (passwordLoadingState() === 'loading') {
+                  <div class="loading-spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Modification...
+                } @else {
+                  <span class="material-icons text-lg">lock_reset</span>
+                  Changer le mot de passe
+                }
+              </button>
+              
+              <button
+                type="button"
+                (click)="togglePasswordSection()"
+                [disabled]="passwordLoadingState() === 'loading'"
+                class="cancel-btn px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50">
+                Annuler
+              </button>
+            </div>
+          </form>
+
+          <!-- Informations d'aide pour le mot de passe -->
+          <div class="help-info mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div class="flex items-start">
+              <span class="material-icons text-yellow-600 mr-2 text-lg">info</span>
+              <div class="text-sm text-yellow-700">
+                <p class="font-medium mb-1">Exigences du mot de passe :</p>
+                <ul class="text-xs space-y-1">
+                  <li>• Minimum 8 caractères</li>
+                  <li>• Au moins une lettre majuscule</li>
+                  <li>• Au moins une lettre minuscule</li>
+                  <li>• Au moins un chiffre</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Bouton fermer en bas -->
+      <div class="form-actions flex justify-end mt-6 pt-4 border-t border-gray-200">
+        <button
+          type="button"
+          (click)="onClose()"
+          [disabled]="loadingState() === 'loading' || passwordLoadingState() === 'loading'"
+          class="cancel-btn px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50">
+          Fermer
+        </button>
+      </div>
       
-      <!-- Informations d'aide -->
+      <!-- Informations d'aide générales -->
       <div class="help-info mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div class="flex items-start">
           <span class="material-icons text-blue-600 mr-2 text-lg">info</span>
