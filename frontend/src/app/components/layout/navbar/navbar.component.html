@@ -33,15 +33,7 @@
     
     <!-- Header avec bouton fermer sur mobile -->
     <div class="flex items-center justify-between mb-10">
-      <h2 class="text-xl font-medium ml-2">PLAN DE COM'</h2>
-      <button 
-        class="lg:hidden p-1 hover:bg-gray-200 rounded transition-colors"
-        (click)="closeMobileMenu()"
-        aria-label="Fermer le menu">
-        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
+      <h2 class="text-xl font-medium ml-10">PLAN DE COM'</h2>
     </div>
 
     <!-- Navigation principale -->
@@ -114,47 +106,61 @@
       </li>
     </ul>
 
-    <!-- Séparateur -->
-    <div class="border-t border-gray-300 mb-6"></div>
+    <!-- Section utilisateur et actions -->
+    <div class="lg:hidden">
 
-    <!-- Section des raccourcis pour les modals -->
-    <div class="mt-auto">
-      <ul class="flex flex-col gap-2">
-        
-        <!-- Paramètres -->
+      <!-- Séparateur -->
+      <div class="border-t border-gray-300 mb-6"></div>
+
+      <div class="mt-auto">
+        <!-- Informations utilisateur -->
+        <div class="mb-6 px-4">
+          <!-- Nom de l'utilisateur cliquable -->
+          <button
+            type="button"
+            (click)="openProfileModal()"
+            class="w-full text-center text-gray-700 font-medium mb-2 hover:text-blue-600 transition-colors cursor-pointer underline-offset-2 hover:underline truncate"
+            [title]="'Cliquez pour modifier votre profil - ' + userFullName()"
+            [disabled]="loadingUserData()">
+            {{ loadingUserData() ? 'Chargement...' : userFullName() }}
+          </button>
+        </div>
+
+        <!-- Actions -->
+        <ul class="flex flex-row gap-4 justify-center"> <!-- Changer flex-col en flex-row si souhaité -->
+        <!-- Paramètres avec badge de notification -->
         <li>
           <button
             type="button"
             (click)="openSettingsModal()"
-            class="w-full text-left relative text-gray-500 px-4 py-2 rounded transition flex items-center gap-2 before:content-[''] before:absolute before:inset-0 before:bg-white before:rounded-lg before:opacity-0 hover:before:opacity-100 before:transition-opacity before:-z-10 hover:text-black"
-            title="Ouvrir les paramètres (Ctrl+,)">
-            
-            <svg class="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            
-            <span class="relative z-10 text-sm">Paramètres</span>
+            class="relative text-gray-500 hover:text-black transition-colors p-1 rounded-full focus:outline-none"
+            title="Ouvrir les paramètres">
+            <div class="relative">
+              <span class="material-icons text-lg">settings</span>
+              @if (pendingInvitations().length > 0) {
+                <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center border border-white shadow-md animate-pulse"
+                    [title]="pendingInvitations().length + ' invitation(s) en attente'"
+                    role="status"
+                    [attr.aria-label]="pendingInvitations().length + ' invitations en attente'">
+                  {{ pendingInvitations().length > 9 ? '9+' : pendingInvitations().length }}
+                </div>
+              }
+            </div>
           </button>
         </li>
-        
-        <!-- Profil -->
+        <!-- Déconnexion -->
         <li>
           <button
             type="button"
-            (click)="openProfileModal()"
-            class="w-full text-left relative text-gray-500 px-4 py-2 rounded transition flex items-center gap-2 before:content-[''] before:absolute before:inset-0 before:bg-white before:rounded-lg before:opacity-0 hover:before:opacity-100 before:transition-opacity before:-z-10 hover:text-black"
-            title="Modifier le profil (Ctrl+P)">
-            
-            <svg class="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            
-            <span class="relative z-10 text-sm">Profil</span>
+            (click)="onLogout()"
+            class="relative text-gray-500 hover:text-black transition-colors p-1 rounded-full focus:outline-none"
+            title="Se déconnecter">
+            <span class="material-icons text-lg">logout</span>
           </button>
         </li>
       </ul>
-      
+      </div>
     </div>
+
   </div>
 </nav>

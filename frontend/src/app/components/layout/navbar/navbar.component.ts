@@ -1,8 +1,13 @@
 // navbar.component.ts
-import { Component, OnInit, HostListener, inject } from '@angular/core';
+import { Component, OnInit, HostListener, inject, DestroyRef, signal, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin } from 'rxjs';
+
 import { ModalService } from '../../../services/modal/modal.service';
+import { HeaderService } from '../../../services/header/header.service';
+import { PendingInvitation } from '../../../models/campaign.model';
 
 @Component({
   selector: 'app-navbar',
@@ -12,17 +17,51 @@ import { ModalService } from '../../../services/modal/modal.service';
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private modalService = inject(ModalService);
+  private headerService = inject(HeaderService);
+  
+  // Outputs pour communiquer avec le composant parent
+  logout = output<void>();
+  
+  // État des données utilisateur
+  userFullName = signal<string>('');
+  pendingInvitations = signal<PendingInvitation[]>([]);
+  loadingUserData = signal<boolean>(false);
   
   hasCampaign = false;
   isMobileMenuOpen = false;
 
   ngOnInit() {
     this.checkCampaign();
+    this.loadUserData();
   }
 
   private checkCampaign() {
     this.hasCampaign = !!localStorage.getItem('currentCampaign');
+  }
+
+  private loadUserData() {
+    this.loadingUserData.set(true);
+    
+    forkJoin({
+      user: this.headerService.getUserName(),
+      invitations: this.headerService.getPendingInvitations()
+    })
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: ({ user, invitations }) => {
+        this.userFullName.set(`${user.first_name} ${user.last_name}`);
+        this.pendingInvitations.set(invitations);
+        this.loadingUserData.set(false);
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des données utilisateur:', err);
+        this.userFullName.set('Utilisateur');
+        this.pendingInvitations.set([]);
+        this.loadingUserData.set(false);
+      }
+    });
   }
 
   // Méthode pour empêcher la navigation
@@ -50,24 +89,40 @@ export class NavbarComponent implements OnInit {
     }
   }
 
-  // === Nouvelles méthodes pour les raccourcis modals ===
-
-  // Ouvrir la modal de création de campagne
-  openCampaignModal() {
-    this.modalService.openCampaignModal();
-    this.closeMobileMenu(); // Fermer le menu mobile si ouvert
-  }
+  // === Méthodes pour les raccourcis modals ===
 
   // Ouvrir la modal des paramètres
   openSettingsModal() {
     this.modalService.openSettingsModal();
     this.closeMobileMenu();
+    // Recharger les invitations quand on ouvre les paramètres
+    this.loadPendingInvitations();
   }
 
   // Ouvrir la modal de profil
   openProfileModal() {
     this.modalService.openProfileModal();
     this.closeMobileMenu();
+  }
+
+  // Gérer la déconnexion
+  onLogout() {
+    this.logout.emit();
+  }
+
+  // Recharger les invitations en attente
+  private loadPendingInvitations() {
+    this.headerService.getPendingInvitations()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (invitations) => {
+          this.pendingInvitations.set(invitations);
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des invitations:', err);
+          this.pendingInvitations.set([]);
+        }
+      });
   }
 
   // Fermer le menu mobile lors du redimensionnement vers desktop
