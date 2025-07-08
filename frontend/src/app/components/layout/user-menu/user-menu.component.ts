@@ -1,77 +1,195 @@
-// header.component.ts
-import { Component, OnInit, signal, inject, DestroyRef, output, HostListener } from '@angular/core';
-import { HeaderService } from '../../../services/header/header.service';
-import { ModalService } from '../../../services/modal/modal.service';
+/* import { Component, input, output, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 
-// Composants enfants
-import { CampaignSelectorComponent } from './components/campaign-selector/campaign-selector.component';
-import { UserMenuComponent } from './components/user-menu/user-menu.component';
-import { CampaignModalComponent } from './modals/campaign-modal/campaign-modal.component';
-import { SettingsModalComponent } from './modals/settings-modal/settings-modal.component';
-import { ProfileModalComponent } from './modals/profile-modal/profile-modal.component';
-import { DeleteConfirmationModalComponent } from './modals/delete-confirmation-modal/delete-confirmation-modal.component';
+// Services
+import { HeaderService } from '../../../../services/header/header.service';
 
-//Modèles
-import { Campaign, InviteUserData, PendingInvitation } from '../../../models/campaign.model';
-import { UpdateProfileData } from '../../../models/user.model';
+// Composants modals
+import { ProfileModalComponent } from '../modals/profile-modal/profile-modal.component';
+import { SettingsModalComponent } from '../modals/settings-modal/settings-modal.component';
+import { DeleteConfirmationModalComponent } from '../modals/delete-confirmation-modal/delete-confirmation-modal.component';
+
+// Modèles
+import { Campaign, InviteUserData, PendingInvitation } from '../../../../models/campaign.model';
+import { UpdateProfileData } from '../../../../models/user.model';
 
 @Component({
-  selector: 'app-header',
+  selector: 'app-user-menu',
   standalone: true,
   imports: [
-    CampaignSelectorComponent,
-    UserMenuComponent,
-    CampaignModalComponent,
-    SettingsModalComponent,
     ProfileModalComponent,
+    SettingsModalComponent,
     DeleteConfirmationModalComponent
   ],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+  template: `
+    <div class="flex items-center gap-3">
+      <!-- Photo de profil utilisateur -->
+      <div class="relative">
+        <img 
+          class="w-10 h-10 rounded-full object-cover border border-gray-300 shadow-sm" 
+          src="assets/images/users-01.png" 
+          alt="Photo de profil de {{ userFullName() }}"
+          loading="lazy" 
+        />
+      </div>
+      
+      <!-- Nom de l'utilisateur - cliquable pour ouvrir le profil -->
+      <button
+        class="user-name-btn text-gray-700 font-medium text-sm md:text-base truncate max-w-32 md:max-w-none hover:text-blue-600 transition-colors cursor-pointer underline-offset-2 hover:underline"
+        [title]="'Cliquez pour modifier votre profil - ' + userFullName()"
+        (click)="onProfileClick()"
+        type="button">
+        {{ userFullName() }}
+      </button>
+      
+      <!-- Bouton Paramètres avec indicateur d'invitations -->
+      <button 
+        class="user-menu-btn settings-btn relative" 
+        title="Paramètres du compte"
+        aria-label="Ouvrir les paramètres du compte"
+        (click)="onSettingsClick()"
+        type="button">
+        <span class="material-icons text-xl">settings</span>
+        
+        <!-- Badge de notification pour les invitations -->
+        @if (pendingInvitations().length > 0) {
+          <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-md animate-pulse"
+               [title]="pendingInvitations().length + ' invitation(s) en attente'"
+               role="status"
+               [attr.aria-label]="pendingInvitations().length + ' invitations en attente'">
+            {{ pendingInvitations().length > 9 ? '9+' : pendingInvitations().length }}
+          </div>
+        }
+      </button>
+      
+      <!-- Bouton Déconnexion -->
+      <button 
+        class="user-menu-btn logout-btn" 
+        title="Se déconnecter"
+        aria-label="Se déconnecter du compte"
+        (click)="onLogoutClick()"
+        type="button">
+        <span class="material-icons text-xl">logout</span>
+      </button>
+    </div>
+
+    <!-- Modal de profil utilisateur -->
+    <app-profile-modal
+      [isOpen]="showProfileModal()"
+      [userFirstName]="userFirstName()"
+      [userLastName]="userLastName()"
+      [loadingState]="loadingState()"
+      [error]="error()"
+      [successMessage]="successMessage()"
+      (close)="onCloseProfileModal()"
+      (updateProfile)="onUpdateProfile($event)"
+    />
+
+    <!-- Modal des paramètres -->
+    <app-settings-modal
+      [isOpen]="showSettingsModal()"
+      [campaigns]="campaigns()"
+      [currentCampaign]="currentCampaign()"
+      [userFullName]="userFullName()"
+      [loadingState]="loadingState()"
+      [error]="error()"
+      [successMessage]="successMessage()"
+      [canDeleteCampaign]="canDeleteCampaignFn"
+      [pendingInvitations]="pendingInvitations()"
+      (close)="onCloseSettingsModal()"
+      (deleteAccount)="onConfirmDeleteAccount()"
+      (deleteCampaign)="onDeleteCampaign($event)"
+      (inviteUser)="onInviteUser($event)"
+      (acceptInvitation)="onAcceptInvitation($event)"
+      (rejectInvitation)="onRejectInvitation($event)"
+    />
+
+    <!-- Modal de confirmation de suppression -->
+    <app-delete-confirmation-modal
+      [isOpen]="showDeleteConfirmModal() || showDeleteCampaignModal()"
+      [loadingState]="loadingState()"
+      [title]="getDeleteModalTitle()"
+      [message]="getDeleteModalMessage()"
+      [confirmButtonText]="'Supprimer'"
+      [confirmButtonClass]="'bg-red-600 hover:bg-red-700'"
+      [showWarningIcon]="true"
+      (close)="onCloseDeleteModal()"
+      (confirm)="onConfirmDelete()"
+    />
+  `,
+  styleUrl: './user-menu.component.scss'
 })
-export class HeaderComponent implements OnInit {
+export class UserMenuComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private document = inject(DOCUMENT);
-  private modalService = inject(ModalService);
+  private headerService = inject(HeaderService);
+
+  // Inputs optionnels - si non fournis, le composant charge les données lui-même
+  userFullName = input<string>('');
+  campaigns = input<Campaign[]>([]);
+  currentCampaign = input<string>('');
+  pendingInvitations = input<PendingInvitation[]>([]);
 
   // Outputs
   logout = output<void>();
   campaignSelected = output<string>();
   accountDeleted = output<void>();
+
+  // État interne
+  private _userFullName = signal<string>('');
+  private _userFirstName = signal<string>('');
+  private _userLastName = signal<string>('');
+  private _campaigns = signal<Campaign[]>([]);
+  private _currentCampaign = signal<string>('');
+  private _pendingInvitations = signal<PendingInvitation[]>([]);
   
-  // État principal
-  userFullName = signal<string>('');
-  userFirstName = signal<string>('');
-  userLastName = signal<string>('');
-  campaigns = signal<Campaign[]>([]);
-  currentCampaign = signal<string>('');
   loadingState = signal<'idle' | 'loading' | 'error'>('idle');
   error = signal<string | null>(null);
   successMessage = signal<string>('');
   
-  // État des invitations
-  pendingInvitations = signal<PendingInvitation[]>([]);
-  
-  // État des modals (maintenant géré par le service)
+  // États des modals
+  showProfileModal = signal<boolean>(false);
+  showSettingsModal = signal<boolean>(false);
+  showDeleteConfirmModal = signal<boolean>(false);
+  showDeleteCampaignModal = signal<boolean>(false);
   campaignToDelete = signal<Campaign | null>(null);
 
-  constructor(private headerService: HeaderService) {}
+  // Getters pour utiliser soit les inputs soit l'état interne
+  get finalUserFullName() {
+    return this.userFullName() || this._userFullName();
+  }
+
+  get finalUserFirstName() {
+    return this._userFirstName();
+  }
+
+  get finalUserLastName() {
+    return this._userLastName();
+  }
+
+  get finalCampaigns() {
+    return this.campaigns().length > 0 ? this.campaigns() : this._campaigns();
+  }
+
+  get finalCurrentCampaign() {
+    return this.currentCampaign() || this._currentCampaign();
+  }
+
+  get finalPendingInvitations() {
+    return this.pendingInvitations().length > 0 ? this.pendingInvitations() : this._pendingInvitations();
+  }
 
   ngOnInit() {
-    this.loadInitialData();
+    // Charger les données seulement si elles ne sont pas fournies par les inputs
+    if (!this.userFullName() || this.campaigns().length === 0) {
+      this.loadUserData();
+    }
     this.loadCurrentCampaign();
   }
 
-  // Gestionnaire global pour les raccourcis clavier
-  @HostListener('document:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    this.modalService.handleKeyboardShortcuts(event);
-  }
-
-  private loadInitialData() {
+  private loadUserData() {
     this.loadingState.set('loading');
     
     forkJoin({
@@ -82,20 +200,20 @@ export class HeaderComponent implements OnInit {
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe({
       next: ({ user, campaigns, invitations }) => {
-        this.userFirstName.set(user.first_name);
-        this.userLastName.set(user.last_name);
-        this.userFullName.set(`${user.first_name} ${user.last_name}`);
-        this.campaigns.set(campaigns);
-        this.pendingInvitations.set(invitations);
+        this._userFirstName.set(user.first_name);
+        this._userLastName.set(user.last_name);
+        this._userFullName.set(`${user.first_name} ${user.last_name}`);
+        this._campaigns.set(campaigns);
+        this._pendingInvitations.set(invitations);
         this.loadingState.set('idle');
         this.error.set(null);
       },
       error: (err) => {
-        this.userFullName.set('Utilisateur');
-        this.userFirstName.set('');
-        this.userLastName.set('');
-        this.campaigns.set([]);
-        this.pendingInvitations.set([]);
+        this._userFullName.set('Utilisateur');
+        this._userFirstName.set('');
+        this._userLastName.set('');
+        this._campaigns.set([]);
+        this._pendingInvitations.set([]);
         this.loadingState.set('error');
         this.error.set('Erreur lors du chargement des données');
         console.error('Erreur lors du chargement:', err);
@@ -105,50 +223,36 @@ export class HeaderComponent implements OnInit {
 
   private loadCurrentCampaign() {
     const savedCampaign = localStorage.getItem('currentCampaign') || '';
-    this.currentCampaign.set(savedCampaign);
+    this._currentCampaign.set(savedCampaign);
   }
 
-  // === Handlers pour les événements des composants enfants ===
+  // === Handlers pour les événements ===
 
-  onCampaignSelected(name: string) {
-    this.selectCampaign(name);
-  }
-
-  onCreateCampaign(name: string) {
-    this.createCampaign(name);
-  }
-
-  onOpenCampaignModal() {
-    this.modalService.openCampaignModal();
-  }
-
-  onCloseCampaignModal() {
-    this.modalService.closeCampaignModal();
-    this.error.set(null);
-  }
-
-  onOpenSettingsModal() {
-    this.modalService.openSettingsModal();
+  onProfileClick() {
+    this.showProfileModal.set(true);
     this.error.set(null);
     this.successMessage.set('');
-    // Recharger les invitations quand on ouvre les paramètres
+  }
+
+  onSettingsClick() {
+    this.showSettingsModal.set(true);
+    this.error.set(null);
+    this.successMessage.set('');
     this.loadPendingInvitations();
   }
 
-  onCloseSettingsModal() {
-    this.modalService.closeSettingsModal();
-    this.error.set(null);
-    this.successMessage.set('');
-  }
-
-  onOpenProfileModal() {
-    this.modalService.openProfileModal();
-    this.error.set(null);
-    this.successMessage.set('');
+  onLogoutClick() {
+    this.logout.emit();
   }
 
   onCloseProfileModal() {
-    this.modalService.closeProfileModal();
+    this.showProfileModal.set(false);
+    this.error.set(null);
+    this.successMessage.set('');
+  }
+
+  onCloseSettingsModal() {
+    this.showSettingsModal.set(false);
     this.error.set(null);
     this.successMessage.set('');
   }
@@ -158,29 +262,11 @@ export class HeaderComponent implements OnInit {
   }
 
   onConfirmDeleteAccount() {
-    this.modalService.openDeleteConfirmationModal();
-  }
-
-  onCloseDeleteConfirmModal() {
-    this.modalService.closeDeleteConfirmationModal();
-  }
-
-  onDeleteAccount() {
-    this.deleteAccount();
+    this.showDeleteConfirmModal.set(true);
   }
 
   onDeleteCampaign(campaign: Campaign) {
     this.confirmDeleteCampaign(campaign);
-  }
-
-  onConfirmDeleteCampaign() {
-    this.deleteCampaign();
-  }
-
-  onCloseDeleteCampaignModal() {
-    this.modalService.closeDeleteCampaignModal();
-    this.campaignToDelete.set(null);
-    this.error.set(null);
   }
 
   onInviteUser(data: InviteUserData) {
@@ -195,67 +281,7 @@ export class HeaderComponent implements OnInit {
     this.rejectInvitation(invitationId);
   }
 
-  onLogout() {
-    this.logout.emit();
-  }
-
-  // === Méthodes de logique métier (inchangées) ===
-
-  private selectCampaign(name: string) {
-    const campaign = this.campaigns().find(c => c.name === name);
-    
-    localStorage.setItem('currentCampaign', name);
-    
-    if (campaign) {
-      localStorage.setItem('currentCampaignId', campaign.id.toString());
-    }
-    
-    this.currentCampaign.set(name);
-    this.campaignSelected.emit(name);
-    
-    this.document.defaultView?.location.reload();
-  }
-
-  private createCampaign(name: string) {
-    if (!name.trim()) return;
-    
-    this.loadingState.set('loading');
-    this.error.set(null);
-    
-    this.headerService.createCampaign(name)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (response) => {
-          if (response.campaign) {
-            const newCampaign: Campaign = response.campaign;
-            this.campaigns.update(campaigns => [...campaigns, newCampaign]);
-            this.selectCampaign(newCampaign.name);
-          } else {
-            this.headerService.getCampaigns()
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: (campaigns) => {
-                  this.campaigns.set(campaigns);
-                  const createdCampaign = campaigns.find(c => c.name === name);
-                  if (createdCampaign) {
-                    this.selectCampaign(createdCampaign.name);
-                  }
-                }
-              });
-          }
-          
-          this.modalService.closeCampaignModal();
-          this.loadingState.set('idle');
-          this.successMessage.set('Campagne créée avec succès');
-          this.clearSuccessMessage();
-        },
-        error: (err) => {
-          this.loadingState.set('error');
-          this.error.set('Erreur lors de la création de la campagne');
-          console.error('Erreur création campagne:', err);
-        }
-      });
-  }
+  // === Méthodes de logique métier ===
 
   private updateProfile(profileData: UpdateProfileData) {
     this.loadingState.set('loading');
@@ -268,12 +294,11 @@ export class HeaderComponent implements OnInit {
           this.loadingState.set('idle');
           
           if (response.success) {
-            // Mettre à jour les données locales
-            this.userFirstName.set(profileData.firstName);
-            this.userLastName.set(profileData.lastName);
-            this.userFullName.set(`${profileData.firstName} ${profileData.lastName}`);
+            this._userFirstName.set(profileData.firstName);
+            this._userLastName.set(profileData.lastName);
+            this._userFullName.set(`${profileData.firstName} ${profileData.lastName}`);
             
-            this.modalService.closeProfileModal();
+            this.showProfileModal.set(false);
             this.successMessage.set(response.message || 'Profil mis à jour avec succès');
             this.clearSuccessMessage();
           } else {
@@ -288,40 +313,6 @@ export class HeaderComponent implements OnInit {
       });
   }
 
-  private deleteAccount() {
-    this.loadingState.set('loading');
-    this.error.set(null);
-    
-    this.headerService.deleteAccount()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          localStorage.removeItem('currentCampaign');
-          localStorage.removeItem('currentCampaignId');
-          
-          this.modalService.closeDeleteConfirmationModal();
-          this.modalService.closeSettingsModal();
-          
-          this.accountDeleted.emit();
-          
-          this.document.defaultView?.location.assign('/login');
-        },
-        error: (err) => {
-          this.loadingState.set('error');
-          this.error.set('Erreur lors de la suppression du compte');
-          console.error('Erreur suppression compte:', err);
-        }
-      });
-  }
-
-  private canDeleteCampaign(campaign: Campaign): boolean {
-    // Ne peut pas supprimer/quitter la campagne actuellement sélectionnée
-    if (campaign.name === this.currentCampaign()) {
-      return false;
-    }
-    return true;
-  }
-
   private confirmDeleteCampaign(campaign: Campaign) {
     if (!this.canDeleteCampaign(campaign)) {
       this.error.set('Impossible de supprimer la campagne actuellement sélectionnée. Veuillez d\'abord sélectionner une autre campagne.');
@@ -329,7 +320,7 @@ export class HeaderComponent implements OnInit {
     }
 
     this.campaignToDelete.set(campaign);
-    this.modalService.openDeleteCampaignModal();
+    this.showDeleteCampaignModal.set(true);
     this.error.set(null);
   }
 
@@ -339,7 +330,7 @@ export class HeaderComponent implements OnInit {
 
     if (!this.canDeleteCampaign(campaign)) {
       this.error.set('Impossible de supprimer la campagne actuellement sélectionnée.');
-      this.modalService.closeDeleteCampaignModal();
+      this.showDeleteCampaignModal.set(false);
       this.campaignToDelete.set(null);
       return;
     }
@@ -347,18 +338,15 @@ export class HeaderComponent implements OnInit {
     this.loadingState.set('loading');
     this.error.set(null);
 
-    // Vérifier si c'est une campagne partagée ou une campagne propre
     if (campaign.user_role === 'owner') {
-      // Supprimer une campagne propre
       this.headerService.deleteCampaign(campaign.id, campaign.name)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
-            this.campaigns.update(campaigns => 
+            this._campaigns.update(campaigns => 
               campaigns.filter(c => c.id !== campaign.id)
             );
-
-            this.modalService.closeDeleteCampaignModal();
+            this.showDeleteCampaignModal.set(false);
             this.campaignToDelete.set(null);
             this.loadingState.set('idle');
             this.successMessage.set(`Campagne "${campaign.name}" supprimée avec succès`);
@@ -371,16 +359,14 @@ export class HeaderComponent implements OnInit {
           }
         });
     } else {
-      // Quitter une campagne partagée
       this.headerService.leaveSharedCampaign(campaign.id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
-            this.campaigns.update(campaigns => 
+            this._campaigns.update(campaigns => 
               campaigns.filter(c => c.id !== campaign.id)
             );
-
-            this.modalService.closeDeleteCampaignModal();
+            this.showDeleteCampaignModal.set(false);
             this.campaignToDelete.set(null);
             this.loadingState.set('idle');
             this.successMessage.set(`Vous avez quitté la campagne "${campaign.name}" avec succès`);
@@ -393,6 +379,32 @@ export class HeaderComponent implements OnInit {
           }
         });
     }
+  }
+
+  private deleteAccount() {
+    this.loadingState.set('loading');
+    this.error.set(null);
+    
+    this.headerService.deleteAccount()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          localStorage.removeItem('currentCampaign');
+          localStorage.removeItem('currentCampaignId');
+          
+          this.showDeleteConfirmModal.set(false);
+          this.showSettingsModal.set(false);
+          
+          this.accountDeleted.emit();
+          
+          this.document.defaultView?.location.assign('/login');
+        },
+        error: (err) => {
+          this.loadingState.set('error');
+          this.error.set('Erreur lors de la suppression du compte');
+          console.error('Erreur suppression compte:', err);
+        }
+      });
   }
 
   private inviteUser(data: InviteUserData) {
@@ -439,11 +451,11 @@ export class HeaderComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (invitations) => {
-          this.pendingInvitations.set(invitations);
+          this._pendingInvitations.set(invitations);
         },
         error: (err) => {
           console.error('Erreur lors du chargement des invitations:', err);
-          this.pendingInvitations.set([]);
+          this._pendingInvitations.set([]);
         }
       });
   }
@@ -459,17 +471,15 @@ export class HeaderComponent implements OnInit {
           this.loadingState.set('idle');
           
           if (response.success) {
-            // Supprimer l'invitation de la liste
-            this.pendingInvitations.update(invitations => 
+            this._pendingInvitations.update(invitations => 
               invitations.filter(inv => inv.id !== invitationId)
             );
             
-            // Recharger les campagnes pour inclure la nouvelle campagne partagée
             this.headerService.getCampaigns()
               .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: (campaigns) => {
-                  this.campaigns.set(campaigns);
+                  this._campaigns.set(campaigns);
                 }
               });
             
@@ -498,8 +508,7 @@ export class HeaderComponent implements OnInit {
           this.loadingState.set('idle');
           
           if (response.success) {
-            // Supprimer l'invitation de la liste
-            this.pendingInvitations.update(invitations => 
+            this._pendingInvitations.update(invitations => 
               invitations.filter(inv => inv.id !== invitationId)
             );
             
@@ -523,44 +532,22 @@ export class HeaderComponent implements OnInit {
     }, 5000);
   }
 
+  private canDeleteCampaign(campaign: Campaign): boolean {
+    return campaign.name !== this.finalCurrentCampaign;
+  }
+
   // === Getters pour la compatibilité avec les composants enfants ===
 
   get canDeleteCampaignFn() {
     return (campaign: Campaign) => this.canDeleteCampaign(campaign);
   }
 
-  get campaignToDeleteValue() {
-    return this.campaignToDelete();
-  }
-
-  // === Getters pour l'état des modals (via le service) ===
-
-  get showCampaignModal() {
-    return () => this.modalService.states().campaign;
-  }
-
-  get showSettingsModal() {
-    return () => this.modalService.states().settings;
-  }
-
-  get showProfileModal() {
-    return () => this.modalService.states().profile;
-  }
-
-  get showDeleteConfirmModal() {
-    return () => this.modalService.states().deleteConfirmation;
-  }
-
-  get showDeleteCampaignModal() {
-    return () => this.modalService.states().deleteCampaign;
-  }
-
   // === Méthodes pour la modal de suppression unifiée ===
 
   getDeleteModalTitle(): string {
-    if (this.modalService.states().deleteConfirmation) {
+    if (this.showDeleteConfirmModal()) {
       return 'Confirmer la suppression';
-    } else if (this.modalService.states().deleteCampaign) {
+    } else if (this.showDeleteCampaignModal()) {
       const campaign = this.campaignToDelete();
       if (campaign?.user_role === 'owner') {
         return 'Supprimer la campagne';
@@ -572,9 +559,9 @@ export class HeaderComponent implements OnInit {
   }
 
   getDeleteModalMessage(): string {
-    if (this.modalService.states().deleteConfirmation) {
+    if (this.showDeleteConfirmModal()) {
       return 'Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action ne peut pas être annulée.';
-    } else if (this.modalService.states().deleteCampaign) {
+    } else if (this.showDeleteCampaignModal()) {
       const campaign = this.campaignToDelete();
       if (campaign) {
         if (campaign.user_role === 'owner') {
@@ -588,18 +575,45 @@ export class HeaderComponent implements OnInit {
   }
 
   onCloseDeleteModal() {
-    if (this.modalService.states().deleteConfirmation) {
-      this.onCloseDeleteConfirmModal();
-    } else if (this.modalService.states().deleteCampaign) {
-      this.onCloseDeleteCampaignModal();
+    if (this.showDeleteConfirmModal()) {
+      this.showDeleteConfirmModal.set(false);
+    } else if (this.showDeleteCampaignModal()) {
+      this.showDeleteCampaignModal.set(false);
+      this.campaignToDelete.set(null);
+      this.error.set(null);
     }
   }
 
   onConfirmDelete() {
-    if (this.modalService.states().deleteConfirmation) {
-      this.onDeleteAccount();
-    } else if (this.modalService.states().deleteCampaign) {
-      this.onConfirmDeleteCampaign();
+    if (this.showDeleteConfirmModal()) {
+      this.deleteAccount();
+    } else if (this.showDeleteCampaignModal()) {
+      this.deleteCampaign();
     }
   }
-}
+
+  // Méthodes publiques pour exposer les signaux
+  userFullName() {
+    return this.finalUserFullName;
+  }
+
+  userFirstName() {
+    return this.finalUserFirstName;
+  }
+
+  userLastName() {
+    return this.finalUserLastName;
+  }
+
+  campaigns() {
+    return this.finalCampaigns;
+  }
+
+  currentCampaign() {
+    return this.finalCurrentCampaign;
+  }
+
+  pendingInvitations() {
+    return this.finalPendingInvitations;
+  }
+} */

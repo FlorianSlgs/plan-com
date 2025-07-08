@@ -1,3 +1,4 @@
+<!-- navbar.component.html -->
 <nav class="bg-gray-300">
   <!-- Bouton hamburger (visible uniquement sur mobile/tablette) -->
   <button 
@@ -17,7 +18,7 @@
 
   <!-- Overlay pour fermer le menu mobile -->
   <div 
-    class="lg:hidden fixed inset-0  backdrop-blur-sm bg-white/30 transition-opacity z-10"
+    class="lg:hidden fixed inset-0 backdrop-blur-sm bg-white/30 transition-opacity z-10"
     [class.opacity-0]="!isMobileMenuOpen"
     [class.pointer-events-none]="!isMobileMenuOpen"
     [class.opacity-100]="isMobileMenuOpen"
@@ -43,7 +44,8 @@
       </button>
     </div>
 
-    <ul class="flex flex-col gap-4">
+    <!-- Navigation principale -->
+    <ul class="flex flex-col gap-4 mb-8">
       <li>
         <a routerLink="/home/recap" 
           routerLinkActive="!text-black before:opacity-100"
@@ -111,5 +113,48 @@
         </a>
       </li>
     </ul>
+
+    <!-- Séparateur -->
+    <div class="border-t border-gray-300 mb-6"></div>
+
+    <!-- Section des raccourcis pour les modals -->
+    <div class="mt-auto">
+      <ul class="flex flex-col gap-2">
+        
+        <!-- Paramètres -->
+        <li>
+          <button
+            type="button"
+            (click)="openSettingsModal()"
+            class="w-full text-left relative text-gray-500 px-4 py-2 rounded transition flex items-center gap-2 before:content-[''] before:absolute before:inset-0 before:bg-white before:rounded-lg before:opacity-0 hover:before:opacity-100 before:transition-opacity before:-z-10 hover:text-black"
+            title="Ouvrir les paramètres (Ctrl+,)">
+            
+            <svg class="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            
+            <span class="relative z-10 text-sm">Paramètres</span>
+          </button>
+        </li>
+        
+        <!-- Profil -->
+        <li>
+          <button
+            type="button"
+            (click)="openProfileModal()"
+            class="w-full text-left relative text-gray-500 px-4 py-2 rounded transition flex items-center gap-2 before:content-[''] before:absolute before:inset-0 before:bg-white before:rounded-lg before:opacity-0 hover:before:opacity-100 before:transition-opacity before:-z-10 hover:text-black"
+            title="Modifier le profil (Ctrl+P)">
+            
+            <svg class="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            
+            <span class="relative z-10 text-sm">Profil</span>
+          </button>
+        </li>
+      </ul>
+      
+    </div>
   </div>
 </nav>

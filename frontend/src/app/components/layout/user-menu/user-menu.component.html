@@ -1,0 +1,50 @@
+<div class="flex items-center gap-3">
+  <!-- Photo de profil utilisateur -->
+  <div class="relative">
+    <img 
+      class="w-10 h-10 rounded-full object-cover border border-gray-300 shadow-sm" 
+      src="assets/images/users-01.png" 
+      alt="Photo de profil de {{ userFullName() }}"
+      loading="lazy" 
+    />
+  </div>
+  
+  <!-- Nom de l'utilisateur - cliquable pour ouvrir le profil -->
+  <button
+    class="user-name-btn text-gray-700 font-medium text-sm md:text-base truncate max-w-32 md:max-w-none hover:text-blue-600 transition-colors cursor-pointer underline-offset-2 hover:underline"
+    [title]="'Cliquez pour modifier votre profil - ' + userFullName()"
+    (click)="onProfileClick()"
+    type="button">
+    {{ userFullName() }}
+  </button>
+  
+  <!-- Bouton Paramètres avec indicateur d'invitations -->
+  <button 
+    class="user-menu-btn settings-btn relative" 
+    title="Paramètres du compte"
+    aria-label="Ouvrir les paramètres du compte"
+    (click)="onSettingsClick()"
+    type="button">
+    <span class="material-icons text-xl">settings</span>
+    
+    <!-- Badge de notification pour les invitations -->
+    @if (pendingInvitationsCount() > 0) {
+      <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-md animate-pulse"
+           [title]="pendingInvitationsCount() + ' invitation(s) en attente'"
+           role="status"
+           [attr.aria-label]="pendingInvitationsCount() + ' invitations en attente'">
+        {{ pendingInvitationsCount() > 9 ? '9+' : pendingInvitationsCount() }}
+      </div>
+    }
+  </button>
+  
+  <!-- Bouton Déconnexion -->
+  <button 
+    class="user-menu-btn logout-btn" 
+    title="Se déconnecter"
+    aria-label="Se déconnecter du compte"
+    (click)="onLogoutClick()"
+    type="button">
+    <span class="material-icons text-xl">logout</span>
+  </button>
+</div>

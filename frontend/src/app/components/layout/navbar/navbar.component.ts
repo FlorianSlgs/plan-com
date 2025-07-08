@@ -1,6 +1,8 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+// navbar.component.ts
+import { Component, OnInit, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ModalService } from '../../../services/modal/modal.service';
 
 @Component({
   selector: 'app-navbar',
@@ -10,6 +12,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent implements OnInit {
+  private modalService = inject(ModalService);
+  
   hasCampaign = false;
   isMobileMenuOpen = false;
 
@@ -44,6 +48,26 @@ export class NavbarComponent implements OnInit {
     if (this.hasCampaign) {
       this.closeMobileMenu();
     }
+  }
+
+  // === Nouvelles méthodes pour les raccourcis modals ===
+
+  // Ouvrir la modal de création de campagne
+  openCampaignModal() {
+    this.modalService.openCampaignModal();
+    this.closeMobileMenu(); // Fermer le menu mobile si ouvert
+  }
+
+  // Ouvrir la modal des paramètres
+  openSettingsModal() {
+    this.modalService.openSettingsModal();
+    this.closeMobileMenu();
+  }
+
+  // Ouvrir la modal de profil
+  openProfileModal() {
+    this.modalService.openProfileModal();
+    this.closeMobileMenu();
   }
 
   // Fermer le menu mobile lors du redimensionnement vers desktop
