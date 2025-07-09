@@ -1,6 +1,6 @@
 @if (isOpen()) {
   <div 
-    class="modal-overlay fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+    class="modal-overlay fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 p-4"
     role="dialog"
     aria-modal="true"
     aria-labelledby="settings-modal-title"
@@ -8,20 +8,20 @@
     (keydown)="onKeydown($event)"
     tabindex="-1">
     
-    <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-4xl relative max-h-[90vh] overflow-y-auto animate-modal-in">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl relative max-h-[90vh] overflow-y-auto animate-modal-in">
       <!-- Header avec bouton fermer -->
-      <div class="modal-header flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <div>
-          <h2 id="settings-modal-title" class="text-2xl font-bold text-gray-800 flex items-center">
-            <span class="material-icons mr-3 text-blue-600">settings</span>
-            Paramètres du compte
+      <div class="modal-header flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-200">
+        <div class="flex-1 min-w-0">
+          <h2 id="settings-modal-title" class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 flex items-center">
+            <span class="material-icons mr-2 sm:mr-3 text-blue-600 text-xl sm:text-2xl">settings</span>
+            <span class="truncate">Paramètres du compte</span>
           </h2>
-          <p class="text-sm text-gray-600 mt-1">
+          <p class="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
             Gérez vos campagnes et invitations
           </p>
         </div>
         <button
-          class="modal-close-btn text-gray-400 hover:text-red-500 text-3xl transition-colors duration-200"
+          class="modal-close-btn text-gray-400 hover:text-red-500 text-2xl sm:text-3xl transition-colors duration-200 flex-shrink-0 ml-2"
           (click)="onClose()"
           title="Fermer les paramètres"
           aria-label="Fermer la modal des paramètres"
@@ -32,46 +32,46 @@
       
       <!-- Messages -->
       @if (error()) {
-        <div class="error-message mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-start" role="alert">
-          <span class="material-icons text-red-500 mr-3 text-lg">error</span>
-          <span>{{ error() }}</span>
+        <div class="error-message mb-4 sm:mb-6 p-3 sm:p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-start" role="alert">
+          <span class="material-icons text-red-500 mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">error</span>
+          <span class="text-sm sm:text-base">{{ error() }}</span>
         </div>
       }
 
       @if (successMessage()) {
-        <div class="success-message mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-start" role="alert">
-          <span class="material-icons text-green-500 mr-3 text-lg">check_circle</span>
-          <span>{{ successMessage() }}</span>
+        <div class="success-message mb-4 sm:mb-6 p-3 sm:p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-start" role="alert">
+          <span class="material-icons text-green-500 mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">check_circle</span>
+          <span class="text-sm sm:text-base">{{ successMessage() }}</span>
         </div>
       }
       
-      <div class="modal-body space-y-8">
+      <div class="modal-body space-y-6 sm:space-y-8">
 
         <!-- Section des invitations en attente -->
         @if (pendingInvitations().length > 0) {
           <section class="invitations-section">
-            <div class="section-header flex items-center justify-between mb-4">
-              <div class="flex items-center">
-                <span class="material-icons text-orange-600 mr-2">mail</span>
-                <h3 class="text-lg font-semibold text-gray-800">Invitations en attente</h3>
+            <div class="section-header flex items-center justify-between mb-3 sm:mb-4">
+              <div class="flex items-center flex-1 min-w-0">
+                <span class="material-icons text-orange-600 mr-2 flex-shrink-0">mail</span>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Invitations en attente</h3>
               </div>
-              <span class="text-sm text-orange-600 bg-orange-100 px-2 py-1 rounded font-medium">
+              <span class="text-xs sm:text-sm text-orange-600 bg-orange-100 px-2 py-1 rounded font-medium flex-shrink-0 ml-2">
                 {{ pendingInvitations().length }} invitation(s)
               </span>
             </div>
             
-            <div class="invitations-list space-y-4">
+            <div class="invitations-list space-y-3 sm:space-y-4">
               @for (invitation of pendingInvitations(); track invitation.id) {
-                <div class="invitation-card bg-orange-50 rounded-lg p-4 border border-orange-200 hover:shadow-md transition-shadow">
-                  <div class="flex items-center justify-between">
+                <div class="invitation-card bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200 hover:shadow-md transition-shadow">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <!-- Infos invitation -->
-                    <div class="flex items-center gap-3">
-                      <div class="invitation-icon w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <span class="material-icons text-orange-600">mail_outline</span>
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <div class="invitation-icon w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-icons text-orange-600 text-lg sm:text-xl">mail_outline</span>
                       </div>
-                      <div>
-                        <h4 class="font-medium text-gray-800">{{ invitation.campaignName }}</h4>
-                        <p class="text-sm text-gray-600">
+                      <div class="flex-1 min-w-0">
+                        <h4 class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ invitation.campaignName }}</h4>
+                        <p class="text-xs sm:text-sm text-gray-600 truncate">
                           Invité par <span class="font-medium">{{ invitation.inviterName }}</span>
                         </p>
                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full mt-1"
@@ -82,25 +82,25 @@
                     </div>
                     
                     <!-- Actions -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-shrink-0">
                       <button
                         type="button"
                         (click)="onAcceptInvitation(invitation.id)"
-                        class="action-btn accept-btn flex items-center gap-1 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                        class="action-btn accept-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                         [disabled]="loadingState() === 'loading'"
                         title="Accepter cette invitation">
                         <span class="material-icons text-sm">check</span>
-                        Accepter
+                        <span class="hidden sm:inline">Accepter</span>
                       </button>
                       
                       <button
                         type="button"
                         (click)="onRejectInvitation(invitation.id)"
-                        class="action-btn reject-btn flex items-center gap-1 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                        class="action-btn reject-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                         [disabled]="loadingState() === 'loading'"
                         title="Refuser cette invitation">
                         <span class="material-icons text-sm">close</span>
-                        Refuser
+                        <span class="hidden sm:inline">Refuser</span>
                       </button>
                     </div>
                   </div>
@@ -112,75 +112,76 @@
         
         <!-- Section des campagnes -->
         <section class="campaigns-section">
-          <div class="section-header flex items-center justify-between mb-4">
-            <div class="flex items-center">
-              <span class="material-icons text-blue-600 mr-2">campaign</span>
-              <h3 class="text-lg font-semibold text-gray-800">Mes campagnes</h3>
+          <div class="section-header flex items-center justify-between mb-3 sm:mb-4">
+            <div class="flex items-center flex-1 min-w-0">
+              <span class="material-icons text-blue-600 mr-2 flex-shrink-0">campaign</span>
+              <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Mes campagnes</h3>
             </div>
-            <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            <span class="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0 ml-2">
               {{ campaigns().length }} campagne(s)
             </span>
           </div>
           
           @if (campaigns().length > 0) {
-            <div class="campaigns-list space-y-4">
+            <div class="campaigns-list space-y-3 sm:space-y-4">
               @for (campaign of campaigns(); track campaign.id) {
-                <div class="campaign-card bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
-                  <div class="flex items-center justify-between">
+                <div class="campaign-card bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <!-- Infos campagne -->
-                    <div class="flex items-center gap-3">
-                      <div class="campaign-icon w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <span class="material-icons text-blue-600">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <div class="campaign-icon w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-icons text-blue-600 text-lg sm:text-xl">
                           {{ campaign.user_role === 'owner' ? 'folder' : 'folder_shared' }}
                         </span>
                       </div>
-                      <div>
-                        <h4 class="font-medium text-gray-800">{{ campaign.name }}</h4>
-                        <p class="text-xs text-gray-600">{{ getCreatorDisplayText(campaign) }}</p>
+                      <div class="flex-1 min-w-0">
+                        <h4 class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ campaign.name }}</h4>
+                        <p class="text-xs text-gray-600 truncate">{{ getCreatorDisplayText(campaign) }}</p>
                         @if (campaign.name === currentCampaign()) {
                           <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full mt-1">
                             <span class="material-icons text-xs mr-1">star</span>
-                            Campagne actuelle
+                            <span class="hidden sm:inline">Campagne actuelle</span>
+                            <span class="sm:hidden">Actuelle</span>
                           </span>
                         }
                       </div>
                     </div>
                     
                     <!-- Actions -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-shrink-0">
                       @if (campaign.user_role === 'owner') {
                         <button
                           type="button"
                           (click)="toggleInviteForm(campaign.id)"
-                          class="action-btn invite-btn flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          class="action-btn invite-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                           [disabled]="loadingState() === 'loading'"
                           title="Inviter un utilisateur à cette campagne">
                           <span class="material-icons text-sm">person_add</span>
-                          Inviter
+                          <span class="hidden sm:inline">Inviter</span>
                         </button>
                       }
                       
                       <button
                         type="button"
                         (click)="onDeleteCampaign(campaign)"
-                        class="action-btn delete-btn flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                        class="action-btn delete-btn flex items-center gap-1 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors"
                         [class]="canDeleteCampaign()(campaign) ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                         [disabled]="loadingState() === 'loading' || !canDeleteCampaign()(campaign)"
                         [title]="getActionButtonTitle(campaign)">
                         <span class="material-icons text-sm">
                           {{ campaign.user_role === 'owner' ? 'delete' : 'exit_to_app' }}
                         </span>
-                        {{ getActionButtonText(campaign) }}
+                        <span class="hidden sm:inline">{{ getActionButtonText(campaign) }}</span>
                       </button>
                     </div>
                   </div>
                   
                   <!-- Formulaire d'invitation (seulement pour les campagnes dont l'utilisateur est propriétaire) -->
                   @if (inviteFormVisible() === campaign.id && campaign.user_role === 'owner') {
-                    <div class="invite-form mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 animate-slide-down">
+                    <div class="invite-form mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200 animate-slide-down">
                       <h4 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
-                        <span class="material-icons text-sm mr-1">mail</span>
-                        Inviter un utilisateur à "{{ campaign.name }}"
+                        <span class="material-icons text-sm mr-1 flex-shrink-0">mail</span>
+                        <span class="truncate">Inviter un utilisateur à "{{ campaign.name }}"</span>
                       </h4>
                       
                       <form (ngSubmit)="onSendInvitation(campaign.id)" class="space-y-3">
@@ -219,17 +220,18 @@
                           </select>
                         </div>
                         
-                        <div class="form-actions flex gap-2">
+                        <div class="form-actions flex flex-col sm:flex-row gap-2">
                           <button
                             type="submit"
                             [disabled]="loadingState() === 'loading' || !inviteEmail().trim() || !isValidEmail(inviteEmail())"
-                            class="submit-btn flex items-center gap-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="submit-btn flex items-center justify-center gap-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             @if (loadingState() === 'loading') {
                               <div class="loading-spinner w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Envoi...
+                              <span class="hidden sm:inline">Envoi...</span>
                             } @else {
                               <span class="material-icons text-sm">send</span>
-                              Envoyer l'invitation
+                              <span class="hidden sm:inline">Envoyer l'invitation</span>
+                              <span class="sm:hidden">Envoyer</span>
                             }
                           </button>
                           
@@ -248,22 +250,22 @@
               }
             </div>
           } @else {
-            <div class="empty-state text-center py-8">
-              <span class="material-icons text-6xl text-gray-300 mb-4 block">campaign</span>
-              <p class="text-gray-500">Aucune campagne créée</p>
-              <p class="text-sm text-gray-400">Créez votre première campagne pour commencer</p>
+            <div class="empty-state text-center py-6 sm:py-8">
+              <span class="material-icons text-4xl sm:text-6xl text-gray-300 mb-3 sm:mb-4 block">campaign</span>
+              <p class="text-gray-500 text-sm sm:text-base">Aucune campagne créée</p>
+              <p class="text-xs sm:text-sm text-gray-400">Créez votre première campagne pour commencer</p>
             </div>
           }
         </section>
         
         <!-- Section danger -->
         <section class="danger-section">          
-          <div class="danger-card bg-red-50 border border-red-200 rounded-lg p-6">
+          <div class="danger-card bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
             <div class="flex items-start">
-              <span class="material-icons text-red-500 mr-3 mt-1">delete_forever</span>
-              <div class="flex-1">
-                <h4 class="font-medium text-red-800 mb-2">Supprimer mon compte</h4>
-                <p class="text-sm text-red-700 mb-4">
+              <span class="material-icons text-red-500 mr-2 sm:mr-3 mt-1 flex-shrink-0">delete_forever</span>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-medium text-red-800 mb-2 text-sm sm:text-base">Supprimer mon compte</h4>
+                <p class="text-xs sm:text-sm text-red-700 mb-3 sm:mb-4">
                   Cette action supprimera définitivement votre compte et toutes vos campagnes. 
                   Cette action ne peut pas être annulée.
                 </p>
@@ -271,12 +273,14 @@
                   type="button"
                   (click)="onDeleteAccount()"
                   [disabled]="loadingState() === 'loading'"
-                  class="delete-account-btn bg-red-600 text-white font-medium px-6 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
-                  <span class="material-icons mr-2 text-lg">delete_forever</span>
+                  class="delete-account-btn bg-red-600 text-white font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                  <span class="material-icons mr-2 text-base sm:text-lg">delete_forever</span>
                   @if (loadingState() === 'loading') {
-                    Suppression en cours...
+                    <span class="hidden sm:inline">Suppression en cours...</span>
+                    <span class="sm:hidden">Suppression...</span>
                   } @else {
-                    Supprimer mon compte
+                    <span class="hidden sm:inline">Supprimer mon compte</span>
+                    <span class="sm:hidden">Supprimer</span>
                   }
                 </button>
               </div>
