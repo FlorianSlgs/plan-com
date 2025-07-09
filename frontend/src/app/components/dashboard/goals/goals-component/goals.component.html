@@ -14,16 +14,17 @@
     </div>
   }
 
-  <!-- Message d'information pour lecture seule -->
-  @if (permissions().hasAccess && permissions().isReadOnly) {
-    <div class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg" role="alert">
-      <span>📖 Vous consultez cette campagne en lecture seule. Vous ne pouvez pas modifier les objectifs.</span>
-    </div>
-  }
-
   <header class="mb-8">
     <div class="flex items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-blue-700">Objectifs</h1>
+
+      <!-- Message d'information pour lecture seule -->
+      @if (permissions().hasAccess && permissions().isReadOnly) {
+      <div class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-2 rounded">
+        <span class="text-sm font-medium">📖 Accès en lecture seule</span>
+      </div>
+  }
+
       <!-- Bouton d'ajout conditionnel -->
       @if (canAdd()) {
         <button
