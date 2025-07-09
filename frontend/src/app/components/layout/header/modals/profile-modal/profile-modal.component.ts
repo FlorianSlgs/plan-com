@@ -237,8 +237,8 @@ export class ProfileModalComponent {
     if (newPassword.length < 8) {
       return 'Le mot de passe doit contenir au moins 8 caractères';
     }
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
-      return 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre';
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(newPassword)) {
+      return 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial';
     }
     return null;
   }

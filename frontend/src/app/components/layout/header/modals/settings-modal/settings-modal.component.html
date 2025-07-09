@@ -17,7 +17,7 @@
             Paramètres du compte
           </h2>
           <p class="text-sm text-gray-600 mt-1">
-            Gérez vos informations personnelles, campagnes et invitations
+            Gérez vos campagnes et invitations
           </p>
         </div>
         <button
@@ -46,25 +46,6 @@
       }
       
       <div class="modal-body space-y-8">
-        <!-- Section informations utilisateur -->
-        <section class="user-info-section">
-          <div class="section-header flex items-center mb-4">
-            <span class="material-icons text-blue-600 mr-2">person</span>
-            <h3 class="text-lg font-semibold text-gray-800">Informations personnelles</h3>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div class="flex items-center">
-              <img 
-                class="w-12 h-12 rounded-full object-cover border-2 border-gray-300 mr-4" 
-                src="assets/images/users-01.png" 
-                alt="Photo de profil"
-              />
-              <div>
-                <p class="font-medium text-gray-800">{{ userFullName() }}</p>
-              </div>
-            </div>
-          </div>
-        </section>
 
         <!-- Section des invitations en attente -->
         @if (pendingInvitations().length > 0) {

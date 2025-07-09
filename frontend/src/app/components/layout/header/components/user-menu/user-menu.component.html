@@ -11,7 +11,7 @@
   
   <!-- Nom de l'utilisateur - cliquable pour ouvrir le profil -->
   <button
-    class="user-name-btn text-gray-700 font-medium text-sm md:text-base truncate max-w-32 md:max-w-none hover:text-blue-600 transition-colors cursor-pointer underline-offset-2 hover:underline"
+    class="user-name-btn text-gray-700 font-medium text-sm md:text-base truncate max-w-32 md:max-w-none hover:text-blue-600 transition-colors cursor-pointer underline-offset-2"
     [title]="'Cliquez pour modifier votre profil - ' + userFullName()"
     (click)="onProfileClick()"
     type="button">
@@ -20,7 +20,7 @@
   
   <!-- Bouton Paramètres avec indicateur d'invitations -->
   <button 
-    class="user-menu-btn settings-btn relative" 
+    class="user-menu-btn settings-btn relative hover:text-gray-600" 
     title="Paramètres du compte"
     aria-label="Ouvrir les paramètres du compte"
     (click)="onSettingsClick()"
@@ -40,7 +40,7 @@
   
   <!-- Bouton Déconnexion -->
   <button 
-    class="user-menu-btn logout-btn" 
+    class="user-menu-btn logout-btn hover:text-red-600" 
     title="Se déconnecter"
     aria-label="Se déconnecter du compte"
     (click)="onLogoutClick()"

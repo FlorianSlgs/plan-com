@@ -268,18 +268,15 @@ export class HeaderComponent implements OnInit {
         next: (response) => {
           this.loadingState.set('idle');
           
-          if (response.success) {
-            // Mettre à jour les données locales
-            this.userFirstName.set(profileData.firstName);
-            this.userLastName.set(profileData.lastName);
-            this.userFullName.set(`${profileData.firstName} ${profileData.lastName}`);
-            
-            this.modalService.closeProfileModal();
-            this.successMessage.set(response.message || 'Profil mis à jour avec succès');
-            this.clearSuccessMessage();
-          } else {
-            this.error.set(response.message || 'Erreur lors de la mise à jour du profil');
-          }
+          // Supprimer la vérification de response.success
+          // Mettre à jour les données locales
+          this.userFirstName.set(profileData.firstName);
+          this.userLastName.set(profileData.lastName);
+          this.userFullName.set(`${profileData.firstName} ${profileData.lastName}`);
+          
+          this.modalService.closeProfileModal();
+          this.successMessage.set(response.message || 'Profil mis à jour avec succès');
+          this.clearSuccessMessage();
         },
         error: (err) => {
           this.loadingState.set('idle');
