@@ -1,10 +1,11 @@
-// header.component.ts
 import { Component, OnInit, signal, inject, DestroyRef, output, HostListener } from '@angular/core';
-import { HeaderService } from '../../../services/header/header.service';
-import { ModalService } from '../../../services/modal/modal.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
+
+//Services
+import { HeaderService } from '../../../services/header/header.service';
+import { ModalService } from '../../../services/modal/modal.service';
 
 // Composants enfants
 import { CampaignSelectorComponent } from './components/campaign-selector/campaign-selector.component';

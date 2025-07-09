@@ -1,6 +1,7 @@
 <header class="flex items-center justify-between px-6 py-4">
   <!-- Sélecteur de campagne -->
   <app-campaign-selector
+    class="md:flex-none flex-1 flex justify-center md:justify-start"
     [campaigns]="campaigns()"
     [currentCampaign]="currentCampaign()"
     [loadingState]="loadingState()"
@@ -12,6 +13,7 @@
   
   <!-- Menu utilisateur avec indicateur d'invitations -->
   <app-user-menu
+    class="hidden md:block"
     [userFullName]="userFullName()"
     [pendingInvitationsCount]="pendingInvitations().length"
     (openSettings)="onOpenSettingsModal()"

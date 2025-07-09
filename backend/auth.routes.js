@@ -114,7 +114,7 @@ module.exports = (pool, generateToken) => {
       const token = jwt.sign(
         { id: user.id, email: user.email },
         JWT_SECRET,
-        { expiresIn: '2h' }
+        { expiresIn: '7d' }
       );
 
       // Ajoute le token dans un cookie HTTP Only
@@ -122,7 +122,7 @@ module.exports = (pool, generateToken) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // true en prod (HTTPS)
         sameSite: 'strict',
-        maxAge: 2 * 60 * 60 * 1000 // 2h
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 2h
       });
 
       return res.status(200).json({ message: 'Connexion réussie.' });

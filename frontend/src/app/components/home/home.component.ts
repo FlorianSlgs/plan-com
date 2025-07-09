@@ -6,8 +6,8 @@ import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  standalone: true, // Marquer comme standalone
-  imports: [RouterOutlet, NavbarComponent, HeaderComponent], // Pas d'imports spécifiques nécessaires ici pour le moment
+  standalone: true,
+  imports: [RouterOutlet, NavbarComponent, HeaderComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
