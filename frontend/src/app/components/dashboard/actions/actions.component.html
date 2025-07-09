@@ -146,9 +146,11 @@
 
     <div class="calendar bg-white rounded-lg shadow-md p-6">
       <div class="calendar-header flex items-center justify-between mb-4">
-        <button (click)="previousMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold">&lsaquo; Précédent</button>
+        <button (click)="previousMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold hidden sm:block">&lsaquo; Précédent</button>
+        <button (click)="previousMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold sm:hidden">&lsaquo;</button>
         <h2 class="text-lg font-bold text-blue-700">{{ currentMonth() | date:'MMMM yyyy' | titlecase }}</h2>
-        <button (click)="nextMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold">Suivant &rsaquo;</button>
+        <button (click)="nextMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold hidden sm:block">Suivant &rsaquo;</button>
+        <button (click)="nextMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold sm:hidden">&rsaquo;</button>
       </div>
 
       <div class="calendar-grid grid grid-cols-7 gap-2">
