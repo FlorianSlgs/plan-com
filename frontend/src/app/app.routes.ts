@@ -8,11 +8,13 @@ import { GoalsComponent } from './components/dashboard/goals/goals-component/goa
 import { TargetsComponent } from './components/dashboard/targets/targets-component/targets.component';
 import { ActionsComponent } from './components/dashboard/actions/actions.component';
 import { TasksComponent } from './components/dashboard/tasks/tasks.component';
+import { WelcomeComponent } from './components/website/welcome/welcome.component';
 
 export const routes: Routes = [
   // Charger les composants directement car ils sont standalone
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'welcome', component: WelcomeComponent },
   {
     path: 'home',
     component: HomeComponent,
@@ -26,6 +28,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'recap', pathMatch: 'full' }
     ]
   },
-  { path: '', redirectTo: '/login', pathMatch: 'full' }, // Redirection par défaut
-  { path: '**', redirectTo: '/login' } // Wildcard
+  { path: '', redirectTo: '/welcome', pathMatch: 'full' }, // Redirection par défaut
+  { path: '**', redirectTo: '/welcome' } // Wildcard
 ];
