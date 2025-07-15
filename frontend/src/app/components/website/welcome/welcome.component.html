@@ -6,7 +6,7 @@
   </video>
 </div>
 
-<div class="hero-section" #heroSection>
+<div class="hero-section relative z-10 min-h-screen w-full" #heroSection>
   <header class="bg-transparent relative z-10" #header>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
@@ -45,25 +45,32 @@
   </h2>
 </div>
 
-<section>
-  <!-- Conteneur blanc qui apparaît -->
-  <div class="white-container bg-white relative z-20 h-screen flex items-center justify-center overflow-hidden" #whiteContainer>
-          <img src="/assets/images/actions.png" class="absolute w-64 h-64 z-50" #img1>
-          <img src="/assets/images/modif_objectif.png" class="absolute w-64 h-64 z-50" #img2>
-          <img src="/assets/images/parametres.png" class="absolute w-64 h-64 z-50" #img3>
-          <img src="/assets/images/tasks.png" class="absolute w-64 h-64 z-50" #img4>
-          <img src="/assets/images/objectif.png" class="absolute w-64 h-64 z-50" #img5>
+<section class="bg-white">
+  <div>
+    <!-- Conteneur blanc qui apparaît -->
+    <div class=" bg-white relative z-20 h-screen flex items-center justify-center overflow-hidden" #whiteContainer>
+            <img src="/assets/images/actions.png" class="absolute w-64 h-64 z-50" #img1>
+            <img src="/assets/images/modif_objectif.png" class="absolute w-64 h-64 z-50" #img2>
+            <img src="/assets/images/parametres.png" class="absolute w-64 h-64 z-50" #img3>
+            <img src="/assets/images/tasks.png" class="absolute w-64 h-64 z-50" #img4>
+            <img src="/assets/images/objectif.png" class="absolute w-64 h-64 z-50" #img5>
 
-          <h3 class="p-8 text-6xl font-bold text-gray-800 text-center leading-tight">
-          Le travail d'équipe <br> simplifié.
-        </h3>
+            <h3 class="p-8 text-6xl font-bold text-gray-800 text-center leading-tight">
+              Le travail d'équipe <br> simplifié.
+            </h3>
+    </div>
+  </div>
+    
+  <div class="relative h-[400vh] bg-white" #container>
+    <h2 class="absolute text-green-500 w-full text-center text-7xl" #title1>Efficacité</h2>
+    <h2 class="absolute text-blue-500 w-full text-center text-7xl" #title>Cohésion</h2>
+    <h2 class="absolute text-red-500 w-full text-center text-7xl" #title>Centralisation</h2>
   </div>
 
-  <!-- Conteneur blanc qui apparaît -->
-  <div class="white-container bg-white relative z-20 h-screen y-auto">
-        
-        <h3 class=" p-8 text-4xl font-bold text-gray-800 text-center">
-          Découvrez notre plan
-        </h3>
+  <div>
+    <!-- Conteneur blanc qui apparaît -->
+    <div class="bg-white relative z-20 h-screen justify-center flex">
+        test potote
+    </div>
   </div>
 </section>
