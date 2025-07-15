@@ -150,7 +150,7 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
       y: window.innerHeight * 1.2,
     });
     gsap.set(title1, {
-      y: (window.innerHeight / 2) - 200,
+      y: (window.innerHeight / 2) - 260,
     });
 
     const tl = gsap.timeline({
@@ -160,12 +160,11 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
         end: '+=300%',
         scrub: true,
         pin: true,
-        markers: true,
       }
     });
 
     titleEls.forEach((el, i) => {
-      const offsetY = (i - 1) * 100;
+      const offsetY = (i - 1) * 130;
       tl.to(el, {
         y: window.innerHeight / 2 + offsetY,
         duration: 1
@@ -173,7 +172,7 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
     });
 
     // Pause
-    tl.to({}, { duration: 1 });
+    tl.to({}, { duration: 0.7 });
 
     // Départ
     tl.to([titleEls, title1], {

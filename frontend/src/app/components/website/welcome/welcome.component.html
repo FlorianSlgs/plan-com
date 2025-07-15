@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-0 w-full h-full overflow-hidden ">
+<div class="fixed inset-0 z-0 w-full h-full overflow-hidden">
   <video autoplay muted loop playsinline oncanplay="this.play()" onloadedmetadata="this.muted = true" class="object-cover w-full h-full" poster="assets/videos/bg_welcome_poster.webp">
     <source src="/assets/videos/bg_welcome.mp4" type="video/mp4" />
     <source src="/assets/videos/bg_welcome.webm" type="video/webm" />
@@ -29,7 +29,7 @@
           <div class="flex-shrink-0">
           <button 
               (click)="navigateToDashboard()"
-              class="bg-white hover:bg-gray-500 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm hover:shadow-md hover:text-white"
+              class="hover:bg-stone-800 text-white font-medium py-2 px-4 rounded-lg border border-white" 
           >
               Accéder aux plans de com'
           </button>
@@ -45,10 +45,10 @@
   </h2>
 </div>
 
-<section class="bg-white">
+<section class="bg-white relative z-10">
   <div>
     <!-- Conteneur blanc qui apparaît -->
-    <div class=" bg-white relative z-20 h-screen flex items-center justify-center overflow-hidden" #whiteContainer>
+    <div class="bg-white relative z-20 h-screen flex items-center justify-center overflow-hidden" #whiteContainer>
             <img src="/assets/images/actions.png" class="absolute w-64 h-64 z-50" #img1>
             <img src="/assets/images/modif_objectif.png" class="absolute w-64 h-64 z-50" #img2>
             <img src="/assets/images/parametres.png" class="absolute w-64 h-64 z-50" #img3>
@@ -61,15 +61,24 @@
     </div>
   </div>
     
-  <div class="relative h-[400vh] bg-white" #container>
-    <h2 class="absolute text-green-500 w-full text-center text-7xl" #title1>Efficacité</h2>
-    <h2 class="absolute text-blue-500 w-full text-center text-7xl" #title>Cohésion</h2>
-    <h2 class="absolute text-red-500 w-full text-center text-7xl" #title>Centralisation</h2>
+  <div class="relative bg-white" #container>
+    <h2 class="absolute text-green-500 w-full text-center text-8xl font-bold" #title1>
+      <span class="material-icons text-green-500" style="font-size: 60px;">bolt</span>
+      Efficacité
+    </h2>
+    <h2 class="absolute text-blue-500 w-full text-center text-8xl font-bold" #title>
+      <span class="material-icons text-blue-500" style="font-size: 60px;">group</span>
+      Cohésion
+    </h2>
+    <h2 class="absolute text-red-500 w-full text-center text-8xl font-bold" #title>
+      <span class="material-icons text-red-500" style="font-size: 60px;">hub</span>
+      Centralisation
+    </h2>
   </div>
 
   <div>
     <!-- Conteneur blanc qui apparaît -->
-    <div class="bg-white relative z-20 h-screen justify-center flex">
+    <div class="bg-white relative z-20 justify-center flex h-screen">
         test potote
     </div>
   </div>
