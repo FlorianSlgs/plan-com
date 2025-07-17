@@ -3,11 +3,13 @@ import { Router } from '@angular/router';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+import { FaqComponent } from '../faq/faq.component';
+
 gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'app-welcome',
-  imports: [],
+  imports: [FaqComponent],
   templateUrl: './welcome.component.html',
   styleUrl: './welcome.component.scss'
 })
@@ -154,11 +156,14 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
     });
 
     const tl = gsap.timeline({
+      defaults: {
+      ease: 'sine'
+      },
       scrollTrigger: {
         trigger: containerEl,
         start: 'top top',
         end: '+=300%',
-        scrub: true,
+        scrub: 0.5,
         pin: true,
       }
     });
