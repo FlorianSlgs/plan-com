@@ -1,15 +1,16 @@
 import { Component, ElementRef, ViewChild, ViewChildren, AfterViewInit, OnDestroy, QueryList } from '@angular/core';
-import { Router } from '@angular/router';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { FaqComponent } from '../faq/faq.component';
+import { HeaderComponent } from '../header/header.component';
+import { FooterComponent } from '../footer/footer.component';
 
 gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'app-welcome',
-  imports: [FaqComponent],
+  imports: [FaqComponent, HeaderComponent, FooterComponent],
   templateUrl: './welcome.component.html',
   styleUrl: './welcome.component.scss'
 })
@@ -30,7 +31,7 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
   @ViewChildren('title') titles!: QueryList<ElementRef<HTMLHeadingElement>>;
   @ViewChild('title1', { static: true }) title1!: ElementRef<HTMLElement>;
 
-  constructor(private router: Router) {}
+  constructor() {}
 
   ngAfterViewInit(): void {
     this.initScrollAnimations();
@@ -186,14 +187,5 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
       y: -window.innerHeight * 0.2,
       duration: 1
     });
-  }
-
-
-  navigateToHome(): void {
-    this.router.navigate(['/']);
-  }
-
-  navigateToDashboard(): void {
-    this.router.navigate(['/home']);
   }
 }

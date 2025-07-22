@@ -9,12 +9,18 @@ import { TargetsComponent } from './components/dashboard/targets/targets-compone
 import { ActionsComponent } from './components/dashboard/actions/actions.component';
 import { TasksComponent } from './components/dashboard/tasks/tasks.component';
 import { WelcomeComponent } from './components/website/welcome/welcome.component';
+import { MentionsLegalesComponent } from './components/website/mentions-legales/mentions-legales.component';
+import { PolitiqueConfidentialiteComponent } from './components/website/politique-confidentialite/politique-confidentialite.component';
+import { CguComponent } from './components/website/cgu/cgu.component';
 
 export const routes: Routes = [
   // Charger les composants directement car ils sont standalone
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'welcome', component: WelcomeComponent },
+  { path: 'mentions', component: MentionsLegalesComponent },
+  { path: 'confidentialite', component: PolitiqueConfidentialiteComponent },
+  { path: 'cgu', component: CguComponent },
   {
     path: 'home',
     component: HomeComponent,
