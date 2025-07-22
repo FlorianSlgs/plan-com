@@ -87,8 +87,8 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
 
     // Animation vers le centre
     gsap.to(imgs[0], {
-      x: window.innerWidth/2 - 650,
-      y: window.innerHeight/2 - 355,
+      x: 0,
+      y: 55,
       scrollTrigger: {
         trigger: this.whiteContainer.nativeElement,
         start: 'center center',
@@ -97,9 +97,11 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
       }
     });
 
+    console.log(window.innerWidth, window.innerHeight);
+
     gsap.to(imgs[1], {
-      x: window.innerWidth/2 - 690,
-      y: window.innerHeight/2 - 325,
+      x: 40,
+      y: -25,
       scrollTrigger: {
         trigger: this.whiteContainer.nativeElement,
         start: 'center center',
@@ -109,8 +111,8 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
     });
 
     gsap.to(imgs[2], {
-      x: window.innerWidth/2 -720,
-      y: window.innerHeight/2 - 355,
+      x: 70,
+      y: 5,
       scrollTrigger: {
         trigger: this.whiteContainer.nativeElement,
         start: 'center center',
@@ -120,8 +122,8 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
     });
 
     gsap.to(imgs[3], {
-      x: window.innerWidth/2 - 520,
-      y: window.innerHeight/2 - 355,
+      x: -130,
+      y: 5,
       scrollTrigger: {
         trigger: this.whiteContainer.nativeElement,
         start: 'center center',
@@ -131,8 +133,8 @@ export class WelcomeComponent implements AfterViewInit, OnDestroy {
     });
 
     gsap.to(imgs[4], {
-      x: window.innerWidth/2 - 650,
-      y: window.innerHeight/2 - 295,
+      x: 0,
+      y: -85,
       scrollTrigger: {
         trigger: this.whiteContainer.nativeElement,
         start: 'center center',
