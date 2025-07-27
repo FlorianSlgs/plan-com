@@ -112,7 +112,7 @@ module.exports = (pool, generateToken) => {
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email },
+        { id: user.id, email: user.email, isAdmin: user.admin || false },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -122,10 +122,13 @@ module.exports = (pool, generateToken) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // true en prod (HTTPS)
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 2h
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
       });
 
-      return res.status(200).json({ message: 'Connexion réussie.' });
+      return res.status(200).json({ 
+        message: 'Connexion réussie.',
+        isAdmin: user.admin || false
+      });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: 'Erreur serveur.' });
@@ -144,8 +147,26 @@ module.exports = (pool, generateToken) => {
 
   // Me route
   router.get('/me', authenticateToken, async (req, res) => {
-    // req.user contient les infos du token
-    res.status(200).json({ id: req.user.id, email: req.user.email });
+    try {
+      // Récupérer les informations complètes de l'utilisateur depuis la base de données
+      const userResult = await pool.query('SELECT id, email, admin FROM users WHERE id = $1', [req.user.id]);
+      
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+      }
+
+      const user = userResult.rows[0];
+      
+      // req.user contient les infos du token, mais on récupère les infos fraîches de la DB
+      res.status(200).json({ 
+        id: user.id, 
+        email: user.email,
+        isAdmin: user.admin || false
+      });
+    } catch (err) {
+      console.error('Erreur lors de la récupération des informations utilisateur:', err);
+      return res.status(500).json({ message: 'Erreur serveur.' });
+    }
   });
 
   // Change password route

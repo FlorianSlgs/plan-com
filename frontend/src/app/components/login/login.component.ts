@@ -31,10 +31,14 @@ export class LoginComponent implements OnInit {
       password: ['', [Validators.required]]
     });
 
-    // Effect pour gérer la redirection automatique
+    // Effect pour gérer la redirection automatique basée sur le rôle
     effect(() => {
       if (this.authService.isLoggedIn()) {
-        this.router.navigate(['/home']);
+        if (this.authService.isUserAdmin()) {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/home']);
+        }
       }
     });
   }
@@ -42,7 +46,11 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     // Vérification initiale de l'état de connexion
     if (this.authService.isUserLoggedIn()) {
-      this.router.navigate(['/home']);
+      if (this.authService.isUserAdmin()) {
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/home']);
+      }
     }
   }
 
@@ -85,7 +93,7 @@ export class LoginComponent implements OnInit {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isLoading.set(false);
-        // La redirection est gérée par l'effect et le service
+        // La redirection est gérée automatiquement par le service auth et l'effect
       },
       error: (err: Error) => {
         this.isLoading.set(false);

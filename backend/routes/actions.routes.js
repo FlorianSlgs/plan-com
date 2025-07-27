@@ -3,11 +3,9 @@ const router = express.Router();
 const authenticateToken = require('../middlewares/auth');
 const ActionsController = require('../controllers/actions.controller');
 
-// pool doit être passé lors de l'importation de la route dans index.js
 module.exports = (pool) => {
   const actionsController = new ActionsController(pool);
 
-  // Nouvelle route pour récupérer les événements avec les permissions
   router.get('/with-access', authenticateToken, (req, res) => {
     actionsController.getEventsWithAccess(req, res);
   });

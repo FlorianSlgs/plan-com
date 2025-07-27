@@ -15,9 +15,6 @@ export class HomeComponent {
   // Injecter le service
   authService = inject(AuthService);
 
-  // Pas besoin de OnInit juste pour afficher l'état du signal
-  // Pas besoin de stocker isLoggedIn$ car on utilise directement le signal dans le template
-
   logout(): void {
     this.authService.logout();
   }

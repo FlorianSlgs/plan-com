@@ -42,6 +42,10 @@ app.use('/api/actions', actionsRoutes);
 const tasksRoutes = require('./routes/tasks.routes')(pool);
 app.use('/api/tasks', tasksRoutes);
 
+// Routes d'administration
+const adminRoutes = require('./routes/admin.route')(pool);
+app.use('/api/admin', adminRoutes);
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Serveur plan de com l'écoute sur http://localhost:${PORT}`);

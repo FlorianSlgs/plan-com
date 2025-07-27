@@ -18,9 +18,11 @@ export class AuthService {
   // Initialisé à false (car on ne peut plus lire le token côté client)
   private loggedInState = signal<boolean>(false);
   private authChecked = signal<boolean>(false);
+  private userIsAdmin = signal<boolean>(false);
 
   // Signal public en lecture seule pour les composants
   public isLoggedIn = this.loggedInState.asReadonly();
+  public isAdmin = this.userIsAdmin.asReadonly();
 
   constructor() {
     // Vérifier l'auth au démarrage
@@ -42,16 +44,25 @@ export class AuthService {
   login(credentials: { email: string, password: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials, { withCredentials: true })
       .pipe(
-        tap(() => {
+        tap((response) => {
           // Réinitialiser le localStorage avant de définir le nouvel état
           this.clearLocalStorage();
 
           this.loggedInState.set(true);
-          this.router.navigate(['/home']);
+          // Définir le statut admin depuis la réponse
+          this.userIsAdmin.set(response.isAdmin || false);
+          
+          // Redirection basée sur le rôle
+          if (response.isAdmin) {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/home']);
+          }
         }),
         catchError(error => {
           console.error('Login failed:', error);
           this.loggedInState.set(false);
+          this.userIsAdmin.set(false);
           return throwError(() => new Error('Échec de la connexion. Vérifiez vos identifiants.'));
         })
       );
@@ -79,6 +90,7 @@ export class AuthService {
     this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
       next: () => {
         this.loggedInState.set(false);
+        this.userIsAdmin.set(false);
         // Supprimer currentCampaign du localStorage
         localStorage.removeItem('currentCampaign');
         localStorage.removeItem('currentCampaignId');
@@ -87,6 +99,7 @@ export class AuthService {
       },
       error: () => {
         this.loggedInState.set(false);
+        this.userIsAdmin.set(false);
         // Supprimer currentCampaign du localStorage même en cas d'erreur
         localStorage.removeItem('currentCampaign');
         this.router.navigate(['/login']);
@@ -94,15 +107,17 @@ export class AuthService {
     });
   }
 
-  // Méthode pour vérifier l'état de connexion (optionnel : ping une route protégée)
+  // Méthode pour vérifier l'état de connexion
   checkAuth(): Observable<any> {
     return this.http.get(`${this.apiUrl}/me`, { withCredentials: true }).pipe(
       tap(response => {
         this.loggedInState.set(true);
+        this.userIsAdmin.set((response as any).isAdmin || false);
         console.log('checkAuth: utilisateur authentifié', response);
       }),
       catchError(() => {
         this.loggedInState.set(false);
+        this.userIsAdmin.set(false);
         console.log('checkAuth: utilisateur non authentifié');
         return throwError(() => new Error('Non authentifié'));
       })
@@ -128,6 +143,11 @@ export class AuthService {
   // Méthode simple pour vérifier l'état de connexion (utilisée par le Guard et les composants)
   isUserLoggedIn(): boolean {
     return this.isLoggedIn();
+  }
+
+  // Méthode pour vérifier si l'utilisateur est admin
+  isUserAdmin(): boolean {
+    return this.isAdmin();
   }
 
   // Getter pour savoir si la vérification initiale est terminée
