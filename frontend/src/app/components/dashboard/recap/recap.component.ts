@@ -1,10 +1,12 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil, finalize } from 'rxjs';
+import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 import { RouterLink } from '@angular/router';
 
 import { GoalsService } from '../../../services/dashboard/goals/goals.service';
+import { ActionsService } from '../../../services/dashboard/actions/actions.service';
 import { Goal, GoalCard } from '../../../models/goals.model';
+import { CalendarEvent } from '../../../models/event.model';
 
 @Component({
   selector: 'app-recap',
@@ -16,18 +18,22 @@ import { Goal, GoalCard } from '../../../models/goals.model';
 })
 export class RecapComponent implements OnInit, OnDestroy {
   private readonly goalsService = inject(GoalsService);
+  private readonly actionsService = inject(ActionsService);
   private readonly destroy$ = new Subject<void>();
 
   // Signals pour la gestion d'état réactive
   readonly lastGoal = signal<GoalCard | null>(null);
+  readonly lastEvents = signal<CalendarEvent[]>([]);
   readonly loading = signal(false);
+  readonly eventsLoading = signal(false);
   readonly error = signal<string | null>(null);
 
   // Computed signals
   readonly hasLastGoal = computed(() => this.lastGoal() !== null);
+  readonly hasLastEvents = computed(() => this.lastEvents().length > 0);
 
   ngOnInit(): void {
-    this.loadLastGoal();
+    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -36,7 +42,61 @@ export class RecapComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Charge le dernier objectif créé
+   * Charge toutes les données nécessaires
+   */
+  loadData(): void {
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
+    if (!currentCampaignId) {
+      this.error.set('Aucune campagne sélectionnée');
+      return;
+    }
+
+    this.loading.set(true);
+    this.eventsLoading.set(true);
+    this.error.set(null);
+
+    // Charger les goals et les événements en parallèle
+    forkJoin({
+      goals: this.goalsService.getGoalsByCampaignId(currentCampaignId),
+      eventsData: this.actionsService.getEventsWithAccess(currentCampaignId)
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.loading.set(false);
+        this.eventsLoading.set(false);
+      })
+    ).subscribe({
+      next: ({ goals, eventsData }) => {
+        // Traitement des goals
+        if (goals.length > 0) {
+          const sortedGoals = goals.sort((a, b) => b.id.localeCompare(a.id));
+          const lastGoal = this.mapGoalToCard(sortedGoals[0]);
+          this.lastGoal.set(lastGoal);
+        } else {
+          this.lastGoal.set(null);
+        }
+
+        // Traitement des événements - récupérer les 3 derniers
+        if (eventsData.events.length > 0) {
+          const sortedEvents = eventsData.events
+            .map(event => ({ ...event, date: new Date(event.date) }))
+            .sort((a, b) => b.date.getTime() - a.date.getTime())
+            .slice(0, 3); // Prendre les 3 derniers
+          this.lastEvents.set(sortedEvents);
+        } else {
+          this.lastEvents.set([]);
+        }
+      },
+      error: (error) => {
+        this.error.set(error.message);
+        this.lastGoal.set(null);
+        this.lastEvents.set([]);
+      }
+    });
+  }
+
+  /**
+   * Charge le dernier objectif créé (méthode originale conservée)
    */
   loadLastGoal(): void {
     const currentCampaignId = localStorage.getItem('currentCampaignId');
@@ -56,7 +116,6 @@ export class RecapComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (goals: Goal[]) => {
           if (goals.length > 0) {
-            // Trier les objectifs par ID décroissant pour obtenir le plus récent
             const sortedGoals = goals.sort((a, b) => b.id.localeCompare(a.id));
             const lastGoal = this.mapGoalToCard(sortedGoals[0]);
             this.lastGoal.set(lastGoal);
@@ -72,6 +131,43 @@ export class RecapComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Charge les derniers événements
+   */
+  loadLastEvents(): void {
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
+    if (!currentCampaignId) {
+      this.error.set('Aucune campagne sélectionnée');
+      return;
+    }
+
+    this.eventsLoading.set(true);
+    this.error.set(null);
+
+    this.actionsService.getEventsWithAccess(currentCampaignId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.eventsLoading.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.events.length > 0) {
+            const sortedEvents = response.events
+              .map(event => ({ ...event, date: new Date(event.date) }))
+              .sort((a, b) => b.date.getTime() - a.date.getTime())
+              .slice(0, 3);
+            this.lastEvents.set(sortedEvents);
+          } else {
+            this.lastEvents.set([]);
+          }
+        },
+        error: (error) => {
+          this.error.set(error.message);
+          this.lastEvents.set([]);
+        }
+      });
+  }
+
+  /**
    * Efface le message d'erreur
    */
   clearError(): void {
@@ -79,10 +175,24 @@ export class RecapComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Recharge toutes les données
+   */
+  refresh(): void {
+    this.loadData();
+  }
+
+  /**
    * Recharge le dernier objectif
    */
   refreshLastGoal(): void {
     this.loadLastGoal();
+  }
+
+  /**
+   * Recharge les derniers événements
+   */
+  refreshLastEvents(): void {
+    this.loadLastEvents();
   }
 
   /**
