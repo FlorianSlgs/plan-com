@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 import { RouterLink } from '@angular/router';
 
 import { GoalsService } from '../../../services/dashboard/goals/goals.service';
 import { ActionsService } from '../../../services/dashboard/actions/actions.service';
+import { TaskService } from '../../../services/dashboard/tasks/task-service.service';
 import { Goal, GoalCard } from '../../../models/goals.model';
 import { CalendarEvent } from '../../../models/event.model';
+import { Task } from '../../../models/tasks.model';
 
 @Component({
   selector: 'app-recap',
@@ -19,18 +21,35 @@ import { CalendarEvent } from '../../../models/event.model';
 export class RecapComponent implements OnInit, OnDestroy {
   private readonly goalsService = inject(GoalsService);
   private readonly actionsService = inject(ActionsService);
+  private readonly taskService = inject(TaskService);
   private readonly destroy$ = new Subject<void>();
 
   // Signals pour la gestion d'état réactive
   readonly lastGoal = signal<GoalCard | null>(null);
   readonly lastEvents = signal<CalendarEvent[]>([]);
+  readonly lastInProgressTasks = signal<Task[]>([]);
   readonly loading = signal(false);
   readonly eventsLoading = signal(false);
+  readonly tasksLoading = signal(false);
   readonly error = signal<string | null>(null);
 
   // Computed signals
   readonly hasLastGoal = computed(() => this.lastGoal() !== null);
   readonly hasLastEvents = computed(() => this.lastEvents().length > 0);
+  readonly hasLastInProgressTasks = computed(() => this.lastInProgressTasks().length > 0);
+
+  constructor() {
+    // Effect pour écouter les changements des tâches en cours
+    effect(() => {
+      const inProgressTasks = this.taskService.inProgressTasks();
+      if (inProgressTasks.length > 0) {
+        // Prendre les 2 dernières tâches
+        const lastTasks = inProgressTasks.slice(-2);
+        this.lastInProgressTasks.set(lastTasks);
+        this.tasksLoading.set(false);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -53,9 +72,10 @@ export class RecapComponent implements OnInit, OnDestroy {
 
     this.loading.set(true);
     this.eventsLoading.set(true);
+    this.tasksLoading.set(true);
     this.error.set(null);
 
-    // Charger les goals et les événements en parallèle
+    // Charger les goals, les événements et les tâches en parallèle
     forkJoin({
       goals: this.goalsService.getGoalsByCampaignId(currentCampaignId),
       eventsData: this.actionsService.getEventsWithAccess(currentCampaignId)
@@ -93,6 +113,9 @@ export class RecapComponent implements OnInit, OnDestroy {
         this.lastEvents.set([]);
       }
     });
+
+    // Charger les tâches séparément
+    this.loadLastInProgressTasks();
   }
 
   /**
@@ -168,6 +191,18 @@ export class RecapComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Charge les 2 dernières tâches en cours
+   */
+  loadLastInProgressTasks(): void {
+    this.tasksLoading.set(true);
+    
+    // Charger les tâches depuis le serveur
+    this.taskService.fetchTasks();
+    
+    // L'effect dans le constructor va automatiquement mettre à jour les données
+  }
+
+  /**
    * Efface le message d'erreur
    */
   clearError(): void {
@@ -193,6 +228,13 @@ export class RecapComponent implements OnInit, OnDestroy {
    */
   refreshLastEvents(): void {
     this.loadLastEvents();
+  }
+
+  /**
+   * Recharge les dernières tâches en cours
+   */
+  refreshLastInProgressTasks(): void {
+    this.loadLastInProgressTasks();
   }
 
   /**
