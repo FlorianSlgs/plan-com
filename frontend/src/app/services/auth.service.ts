@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ChangePasswordData } from '../models/user.model';
+import { TaskService } from './dashboard/tasks/task-service.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,7 @@ export class AuthService {
 
   private http = inject(HttpClient);
   private router = inject(Router);
+  private taskService = inject(TaskService); // Injection du TaskService
 
   // Signal pour suivre l'état de connexion
   // Initialisé à false (car on ne peut plus lire le token côté client)
@@ -91,6 +93,10 @@ export class AuthService {
       next: () => {
         this.loggedInState.set(false);
         this.userIsAdmin.set(false);
+        
+        // Réinitialiser les données des services
+        this.taskService.clearTasks(); 
+        
         // Supprimer currentCampaign du localStorage
         localStorage.removeItem('currentCampaign');
         localStorage.removeItem('currentCampaignId');
@@ -100,8 +106,14 @@ export class AuthService {
       error: () => {
         this.loggedInState.set(false);
         this.userIsAdmin.set(false);
+        
+        // Réinitialiser les données des services même en cas d'erreur
+        this.taskService.clearTasks(); 
+        
         // Supprimer currentCampaign du localStorage même en cas d'erreur
         localStorage.removeItem('currentCampaign');
+        localStorage.removeItem('currentCampaignId');
+        localStorage.removeItem('events');
         this.router.navigate(['/login']);
       }
     });

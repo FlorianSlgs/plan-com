@@ -171,4 +171,9 @@ export class TaskService {
         }
       });
   }
+
+  clearTasks(): void {
+    this.tasks.set([]);
+    this.permissions.set({ isReadOnly: false });
+  }
 }
