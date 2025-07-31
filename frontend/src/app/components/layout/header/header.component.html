@@ -54,12 +54,17 @@
   [successMessage]="successMessage()"
   [canDeleteCampaign]="canDeleteCampaignFn"
   [pendingInvitations]="pendingInvitations()"
+  [campaignUsers]="getCampaignUsersForIdFn"
   (close)="onCloseSettingsModal()"
   (deleteAccount)="onConfirmDeleteAccount()"
   (deleteCampaign)="onDeleteCampaign($event)"
   (inviteUser)="onInviteUser($event)"
   (acceptInvitation)="onAcceptInvitation($event)"
   (rejectInvitation)="onRejectInvitation($event)"
+  (loadCampaignUsers)="onLoadCampaignUsers($event)"
+  (rejectInvitation)="onRejectInvitation($event)"
+  (loadCampaignUsers)="onLoadCampaignUsers($event)"
+  (revokeAccess)="onRevokeAccess($event)"
 />
 
 <!-- Modal de confirmation de suppression (unique) -->

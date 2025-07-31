@@ -19,6 +19,12 @@ module.exports = (pool) => {
   router.get('/campaigns', authenticateToken, campaignController.getCampaigns(pool));
   router.delete('/campaign/:campaignId', authenticateToken, campaignController.deleteCampaign(pool));
   
+  // Nouvelle route pour récupérer les utilisateurs d'une campagne
+  router.get('/campaign/:campaignId/users', authenticateToken, campaignController.getCampaignUsers(pool));
+
+  // NOUVELLE ROUTE : Supprimer un utilisateur d'une campagne
+  router.delete('/campaign/:campaignId/user/:userId', authenticateToken, campaignController.removeUserFromCampaign(pool));
+  
   // Route pour quitter une campagne partagée
   router.delete('/shared-campaign/:campaignId', authenticateToken, campaignController.leaveSharedCampaign(pool));
   

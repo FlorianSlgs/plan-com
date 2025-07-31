@@ -16,7 +16,11 @@ import {
   InviteUserRequest,
   InviteUserResponse,
   PendingInvitation,
-  PendingInvitationsResponse 
+  PendingInvitationsResponse,
+  CampaignUser,
+  CampaignUsersResponse,
+  RevokeAccessData,
+  RevokeAccessResponse 
 } from '../../models/campaign.model';
 
 @Injectable({
@@ -188,6 +192,39 @@ export class HeaderService {
     }
 
     return this.httpService.delete<InvitationActionResponse>(`${this.apiUrl}/invitation/${invitationId}/reject`)
+      .pipe(
+        catchError(this.errorHandler.handleError)
+      );
+  }
+
+  /**
+   * Récupère les utilisateurs ayant accès à une campagne
+   * Accessible seulement aux propriétaires de la campagne
+   */
+  getCampaignUsers(campaignId: number): Observable<CampaignUser[]> {
+    if (!campaignId) {
+      return this.errorHandler.handleValidationError('L\'ID de campagne est requis');
+    }
+
+    return this.httpService.get<CampaignUsersResponse>(`${this.apiUrl}/campaign/${campaignId}/users`)
+      .pipe(
+        retry(1),
+        catchError(this.errorHandler.handleError),
+        // Extraire seulement le tableau d'utilisateurs
+        map(response => response.users || [])
+      );
+  }
+
+    /**
+   * Révoque l'accès d'un utilisateur à une campagne
+   * Accessible seulement aux propriétaires de la campagne
+   */
+  revokeUserAccess(userId: number, campaignId: number): Observable<RevokeAccessResponse> {
+    if (!userId || !campaignId) {
+      return this.errorHandler.handleValidationError('L\'ID de l\'utilisateur et de la campagne sont requis');
+    }
+
+    return this.httpService.delete<RevokeAccessResponse>(`${this.apiUrl}/campaign/${campaignId}/user/${userId}`)
       .pipe(
         catchError(this.errorHandler.handleError)
       );

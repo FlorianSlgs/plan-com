@@ -2,7 +2,7 @@ import { Component, input, output, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 //Modèles
-import { Campaign,InviteUserData,PendingInvitation } from '../../../../../models/campaign.model';
+import { Campaign, InviteUserData, PendingInvitation, CampaignUser, RevokeAccessData } from '../../../../../models/campaign.model';
 
 @Component({
   selector: 'app-settings-modal',
@@ -22,6 +22,7 @@ export class SettingsModalComponent {
   successMessage = input<string>('');
   canDeleteCampaign = input.required<(campaign: Campaign) => boolean>();
   pendingInvitations = input.required<PendingInvitation[]>();
+  campaignUsers = input.required<(campaignId: number) => CampaignUser[]>();
 
   // Outputs - événements émis vers le composant parent
   close = output<void>();
@@ -30,6 +31,8 @@ export class SettingsModalComponent {
   inviteUser = output<InviteUserData>();
   acceptInvitation = output<number>();
   rejectInvitation = output<number>();
+  loadCampaignUsers = output<number>();
+  revokeAccess = output<RevokeAccessData>();
 
   // État local du composant pour les invitations
   inviteFormVisible = signal<number | null>(null);
@@ -66,12 +69,18 @@ export class SettingsModalComponent {
     this.rejectInvitation.emit(invitationId);
   }
 
+  onLoadCampaignUsers(campaignId: number) {
+    this.loadCampaignUsers.emit(campaignId);
+  }
+
   // Méthodes pour la gestion des invitations
   toggleInviteForm(campaignId: number) {
     if (this.inviteFormVisible() === campaignId) {
       this.hideInviteForm();
     } else {
       this.showInviteForm(campaignId);
+      // Charger les utilisateurs de la campagne quand on ouvre le formulaire
+      this.onLoadCampaignUsers(campaignId);
     }
   }
 
@@ -143,7 +152,7 @@ export class SettingsModalComponent {
   getRoleBadgeClass(role: 'reader' | 'editor'): string {
     return role === 'reader' 
       ? 'bg-blue-100 text-blue-700' 
-      : 'bg-green-100 text-green-700';
+      : 'bg-blue-100 text-blue-700';
   }
 
   // Méthode pour obtenir le texte du créateur
@@ -173,5 +182,11 @@ export class SettingsModalComponent {
         ? 'Quitter cette campagne partagée'
         : 'Impossible de quitter la campagne actuellement sélectionnée';
     }
+  }
+
+  // Nouvelle méthode pour gérer le clic sur le bouton de suppression de l'utilisateur
+  onRevokeAccess(userId: number, campaignId: number) {
+    // Émettre les informations nécessaires au composant parent
+    this.revokeAccess.emit({ userId, campaignId });
   }
 }

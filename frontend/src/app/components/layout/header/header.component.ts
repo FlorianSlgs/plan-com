@@ -16,7 +16,7 @@ import { ProfileModalComponent } from './modals/profile-modal/profile-modal.comp
 import { DeleteConfirmationModalComponent } from './modals/delete-confirmation-modal/delete-confirmation-modal.component';
 
 //Modèles
-import { Campaign, InviteUserData, PendingInvitation } from '../../../models/campaign.model';
+import { Campaign, InviteUserData, PendingInvitation, CampaignUser, RevokeAccessData } from '../../../models/campaign.model';
 import { UpdateProfileData } from '../../../models/user.model';
 
 @Component({
@@ -55,6 +55,9 @@ export class HeaderComponent implements OnInit {
   
   // État des invitations
   pendingInvitations = signal<PendingInvitation[]>([]);
+
+  // État des utilisateurs des campagnes  
+campaignUsers = signal<Map<number, CampaignUser[]>>(new Map());
   
   // État des modals (maintenant géré par le service)
   campaignToDelete = signal<Campaign | null>(null);
@@ -195,6 +198,10 @@ export class HeaderComponent implements OnInit {
   onRejectInvitation(invitationId: number) {
     this.rejectInvitation(invitationId);
   }
+
+  onLoadCampaignUsers(campaignId: number) {
+  this.loadCampaignUsers(campaignId);
+}
 
   onLogout() {
     this.logout.emit();
@@ -420,6 +427,8 @@ export class HeaderComponent implements OnInit {
           if (response.success) {
             this.successMessage.set(response.message);
             this.clearSuccessMessage();
+            // Recharger les utilisateurs de la campagne après une invitation réussie
+            this.loadCampaignUsers(campaignId);
           } else {
             this.error.set(response.message);
           }
@@ -430,6 +439,33 @@ export class HeaderComponent implements OnInit {
           console.error('Erreur invitation:', err);
         }
       });
+  }
+
+  private loadCampaignUsers(campaignId: number) {
+    this.headerService.getCampaignUsers(campaignId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (users) => {
+          // Mettre à jour la map des utilisateurs
+          this.campaignUsers.update(currentMap => {
+            const newMap = new Map(currentMap);
+            newMap.set(campaignId, users);
+            return newMap;
+          });
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des utilisateurs:', err);
+          // Ne pas afficher d'erreur globale pour cette opération optionnelle
+        }
+      });
+  }
+
+  getCampaignUsersForId(campaignId: number): CampaignUser[] {
+    return this.campaignUsers().get(campaignId) || [];
+  }
+
+  get getCampaignUsersForIdFn() {
+    return (campaignId: number) => this.getCampaignUsersForId(campaignId);
   }
 
   private loadPendingInvitations() {
@@ -599,5 +635,32 @@ export class HeaderComponent implements OnInit {
     } else if (this.modalService.states().deleteCampaign) {
       this.onConfirmDeleteCampaign();
     }
+  }
+
+  onRevokeAccess(data: RevokeAccessData) {
+    this.loadingState.set('loading');
+    this.error.set(null);
+    this.successMessage.set('');
+
+    this.headerService.revokeUserAccess(data.userId, data.campaignId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.loadingState.set('idle');
+          if (response.success) {
+            this.successMessage.set(response.message);
+            this.clearSuccessMessage();
+            // Recharger la liste des utilisateurs pour refléter la suppression
+            this.loadCampaignUsers(data.campaignId);
+          } else {
+            this.error.set(response.message);
+          }
+        },
+        error: (err) => {
+          this.loadingState.set('idle');
+          this.error.set(err.message || 'Erreur lors de la révocation de l\'accès');
+          console.error('Erreur révocation accès:', err);
+        }
+      });
   }
 }

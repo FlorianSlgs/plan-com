@@ -60,3 +60,28 @@ export interface InviteUserData {
   campaignId: number;
   role: 'reader' | 'editor';
 }
+
+// Nouveau modèle pour les utilisateurs ayant accès à une campagne
+export interface CampaignUser {
+  userId: number;
+  firstName: string;
+  lastName: string;
+  role: 'reader' | 'editor';
+}
+
+export interface CampaignUsersResponse {
+  users: CampaignUser[];
+  success: boolean;
+}
+
+// Données pour l'événement de révocation d'accès
+export interface RevokeAccessData {
+  userId: number;
+  campaignId: number;
+}
+
+// Réponse de l'API après la révocation d'accès
+export interface RevokeAccessResponse {
+  message: string;
+  success: boolean;
+}
