@@ -14,6 +14,5 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
     { provide: LOCALE_ID, useValue: 'fr-FR' }, // Configurer la locale française
-    // importProvidersFrom(BrowserAnimationsModule) // Si vous utilisez des animations
   ]
 };

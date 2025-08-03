@@ -46,7 +46,7 @@ const validateBirthDate = (birthDate) => {
   return { valid: true };
 };
 
-module.exports = (pool, generateToken) => {
+module.exports = (pool) => {
   // Register route
   router.post('/register', async (req, res) => {
     const { email, password, lastName, firstName, birthDate } = req.body;

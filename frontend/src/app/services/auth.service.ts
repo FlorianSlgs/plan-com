@@ -17,7 +17,7 @@ export class AuthService {
   private taskService = inject(TaskService); // Injection du TaskService
 
   // Signal pour suivre l'état de connexion
-  // Initialisé à false (car on ne peut plus lire le token côté client)
+  // Initialisé à false (car on ne peut pas lire le token côté client)
   private loggedInState = signal<boolean>(false);
   private authChecked = signal<boolean>(false);
   private userIsAdmin = signal<boolean>(false);
@@ -97,10 +97,8 @@ export class AuthService {
         // Réinitialiser les données des services
         this.taskService.clearTasks(); 
         
-        // Supprimer currentCampaign du localStorage
-        localStorage.removeItem('currentCampaign');
-        localStorage.removeItem('currentCampaignId');
-        localStorage.removeItem('events');
+        // Supprimer le localStorage
+        this.clearLocalStorage();
         this.router.navigate(['/login']);
       },
       error: () => {
@@ -136,7 +134,7 @@ export class AuthService {
     );
   }
 
-  // Nouvelle méthode pour changer le mot de passe
+  // Méthode pour changer le mot de passe
   changePassword(passwordData: ChangePasswordData): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/change-password`, passwordData, { withCredentials: true })
       .pipe(

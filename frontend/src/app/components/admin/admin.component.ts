@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
-import { AdminService, Campaign, AdminStats } from '../../services/admin/admin.service';
+import { AdminService } from '../../services/admin/admin.service';
+import { Campaign, AdminStats } from '../../models/admin.model';
 
 @Component({
   selector: 'app-admin',
@@ -116,12 +117,5 @@ export class AdminComponent implements OnInit, OnDestroy {
       month: 'short',
       day: 'numeric'
     });
-  }
-
-  /**
-   * TrackBy function pour optimiser le rendu de la liste
-   */
-  trackByCampaignId(index: number, campaign: Campaign): number {
-    return campaign.id;
   }
 }

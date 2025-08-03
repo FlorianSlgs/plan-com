@@ -4,25 +4,7 @@ import { catchError } from 'rxjs/operators';
 
 import { HttpService } from '../http/http.service';
 import { ErrorsService } from '../errors/errors.service';
-
-export interface Campaign {
-  id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AdminStats {
-  totalCampaigns: number;
-  totalUsers: number;
-  totalAdmins: number;
-}
-
-export interface AdminResponse<T> {
-  success: boolean;
-  data: T;
-  count?: number;
-}
+import { Campaign, AdminStats, AdminResponse } from '../../models/admin.model';
 
 @Injectable({
   providedIn: 'root'
