@@ -30,11 +30,11 @@ app.use(cookieParser());
 const authRoutes = require('./auth.routes')(pool);
 app.use('/api/auth', authRoutes);
 
-const header = require('./routes/header.routes')(pool);
-app.use('/api/header', header);
+const headerRoutes = require('./routes/header.routes')(pool);
+app.use('/api/header', headerRoutes);
 
-const goals = require('./routes/goals.routes')(pool);
-app.use('/api/goals', goals);
+const goalsRoutes = require('./routes/goals.routes')(pool);
+app.use('/api/goals', goalsRoutes);
 
 const actionsRoutes = require('./routes/actions.routes')(pool);
 app.use('/api/actions', actionsRoutes);

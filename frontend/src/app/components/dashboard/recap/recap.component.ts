@@ -42,12 +42,19 @@ export class RecapComponent implements OnInit, OnDestroy {
     // Effect pour écouter les changements des tâches en cours
     effect(() => {
       const inProgressTasks = this.taskService.inProgressTasks();
+    
+      // Toujours mettre à jour les tâches et arrêter le chargement
       if (inProgressTasks.length > 0) {
         // Prendre les 2 dernières tâches
         const lastTasks = inProgressTasks.slice(-2);
         this.lastInProgressTasks.set(lastTasks);
-        this.tasksLoading.set(false);
+      } else {
+        // Pas de tâches en cours
+        this.lastInProgressTasks.set([]);
       }
+      
+      // Toujours arrêter le chargement, qu'il y ait des tâches ou non
+      this.tasksLoading.set(false);
     });
   }
 

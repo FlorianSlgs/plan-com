@@ -57,9 +57,9 @@ export class HeaderComponent implements OnInit {
   pendingInvitations = signal<PendingInvitation[]>([]);
 
   // État des utilisateurs des campagnes  
-campaignUsers = signal<Map<number, CampaignUser[]>>(new Map());
+  campaignUsers = signal<Map<number, CampaignUser[]>>(new Map());
   
-  // État des modals (maintenant géré par le service)
+  // État des modals (géré par le service)
   campaignToDelete = signal<Campaign | null>(null);
 
   constructor(private headerService: HeaderService) {}
@@ -207,7 +207,7 @@ campaignUsers = signal<Map<number, CampaignUser[]>>(new Map());
     this.logout.emit();
   }
 
-  // === Méthodes de logique métier (inchangées) ===
+  // === Méthodes de logique métier ===
 
   private selectCampaign(name: string) {
     const campaign = this.campaigns().find(c => c.name === name);

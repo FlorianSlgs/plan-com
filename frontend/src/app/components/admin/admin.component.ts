@@ -105,7 +105,6 @@ export class AdminComponent implements OnInit, OnDestroy {
    */
   onLogoutClick(): void {
     this.authService.logout();
-    this.logout.emit();
   }
 
   /**
