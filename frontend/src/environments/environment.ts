@@ -5,7 +5,8 @@ export const environment = {
     header: '/header',
     goals: '/goals',
     actions: '/actions',
-    tasks: '/tasks'
+    tasks: '/tasks',
+    targets: '/targets'
   },
   defaultOptions: {
     withCredentials: true,

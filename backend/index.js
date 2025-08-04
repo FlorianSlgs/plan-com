@@ -9,6 +9,7 @@ require('dotenv').config();
 const PORT = process.env.PORT;
 
 app.use('/uploads/goals_images', express.static(__dirname + '/uploads/goals_images'));
+app.use('/uploads/targets_images', express.static(__dirname + '/uploads/targets_images'));
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -35,6 +36,9 @@ app.use('/api/header', headerRoutes);
 
 const goalsRoutes = require('./routes/goals.routes')(pool);
 app.use('/api/goals', goalsRoutes);
+
+const targetsRoutes = require('./routes/targets.routes')(pool);
+app.use('/api/targets', targetsRoutes);
 
 const actionsRoutes = require('./routes/actions.routes')(pool);
 app.use('/api/actions', actionsRoutes);
