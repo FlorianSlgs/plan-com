@@ -4,9 +4,11 @@ import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 import { RouterLink } from '@angular/router';
 
 import { GoalsService } from '../../../services/dashboard/goals/goals.service';
+import { TargetsService } from '../../../services/dashboard/targets/targets.service';
 import { ActionsService } from '../../../services/dashboard/actions/actions.service';
 import { TaskService } from '../../../services/dashboard/tasks/task-service.service';
 import { Goal, GoalCard } from '../../../models/goals.model';
+import { Target, TargetCard } from '../../../models/targets.model';
 import { CalendarEvent } from '../../../models/event.model';
 import { Task } from '../../../models/tasks.model';
 
@@ -20,21 +22,25 @@ import { Task } from '../../../models/tasks.model';
 })
 export class RecapComponent implements OnInit, OnDestroy {
   private readonly goalsService = inject(GoalsService);
+  private readonly targetsService = inject(TargetsService);
   private readonly actionsService = inject(ActionsService);
   private readonly taskService = inject(TaskService);
   private readonly destroy$ = new Subject<void>();
 
   // Signals pour la gestion d'état réactive
   readonly lastGoal = signal<GoalCard | null>(null);
+  readonly lastTarget = signal<TargetCard | null>(null);
   readonly lastEvents = signal<CalendarEvent[]>([]);
   readonly lastInProgressTasks = signal<Task[]>([]);
   readonly loading = signal(false);
+  readonly targetsLoading = signal(false);
   readonly eventsLoading = signal(false);
   readonly tasksLoading = signal(false);
   readonly error = signal<string | null>(null);
 
   // Computed signals
   readonly hasLastGoal = computed(() => this.lastGoal() !== null);
+  readonly hasLastTarget = computed(() => this.lastTarget() !== null);
   readonly hasLastEvents = computed(() => this.lastEvents().length > 0);
   readonly hasLastInProgressTasks = computed(() => this.lastInProgressTasks().length > 0);
 
@@ -78,22 +84,25 @@ export class RecapComponent implements OnInit, OnDestroy {
     }
 
     this.loading.set(true);
+    this.targetsLoading.set(true);
     this.eventsLoading.set(true);
     this.tasksLoading.set(true);
     this.error.set(null);
 
-    // Charger les goals, les événements et les tâches en parallèle
+    // Charger les goals, les targets, les événements et les tâches en parallèle
     forkJoin({
       goals: this.goalsService.getGoalsByCampaignId(currentCampaignId),
+      targets: this.targetsService.getTargetsByCampaignId(currentCampaignId),
       eventsData: this.actionsService.getEventsWithAccess(currentCampaignId)
     }).pipe(
       takeUntil(this.destroy$),
       finalize(() => {
         this.loading.set(false);
+        this.targetsLoading.set(false);
         this.eventsLoading.set(false);
       })
     ).subscribe({
-      next: ({ goals, eventsData }) => {
+      next: ({ goals, targets, eventsData }) => {
         // Traitement des goals
         if (goals.length > 0) {
           const sortedGoals = goals.sort((a, b) => b.id.localeCompare(a.id));
@@ -101,6 +110,15 @@ export class RecapComponent implements OnInit, OnDestroy {
           this.lastGoal.set(lastGoal);
         } else {
           this.lastGoal.set(null);
+        }
+
+        // Traitement des targets
+        if (targets.length > 0) {
+          const sortedTargets = targets.sort((a, b) => b.id.localeCompare(a.id));
+          const lastTarget = this.mapTargetToCard(sortedTargets[0]);
+          this.lastTarget.set(lastTarget);
+        } else {
+          this.lastTarget.set(null);
         }
 
         // Traitement des événements - récupérer les 3 derniers
@@ -117,6 +135,7 @@ export class RecapComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.error.set(error.message);
         this.lastGoal.set(null);
+        this.lastTarget.set(null);
         this.lastEvents.set([]);
       }
     });
@@ -156,6 +175,41 @@ export class RecapComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.error.set(error.message);
           this.lastGoal.set(null);
+        }
+      });
+  }
+
+  /**
+   * Charge la dernière cible créée
+   */
+  loadLastTarget(): void {
+    const currentCampaignId = localStorage.getItem('currentCampaignId');
+    if (!currentCampaignId) {
+      this.error.set('Aucune campagne sélectionnée');
+      return;
+    }
+
+    this.targetsLoading.set(true);
+    this.error.set(null);
+
+    this.targetsService.getTargetsByCampaignId(currentCampaignId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.targetsLoading.set(false))
+      )
+      .subscribe({
+        next: (targets: Target[]) => {
+          if (targets.length > 0) {
+            const sortedTargets = targets.sort((a, b) => b.id.localeCompare(a.id));
+            const lastTarget = this.mapTargetToCard(sortedTargets[0]);
+            this.lastTarget.set(lastTarget);
+          } else {
+            this.lastTarget.set(null);
+          }
+        },
+        error: (error) => {
+          this.error.set(error.message);
+          this.lastTarget.set(null);
         }
       });
   }
@@ -231,6 +285,13 @@ export class RecapComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Recharge la dernière cible
+   */
+  refreshLastTarget(): void {
+    this.loadLastTarget();
+  }
+
+  /**
    * Recharge les derniers événements
    */
   refreshLastEvents(): void {
@@ -260,6 +321,25 @@ export class RecapComponent implements OnInit, OnDestroy {
       description: goal.goals_description,
       items: subgoals,
       imageUrl: `http://localhost:3000/uploads/goals_images/${goal.goals_imageurl}`
+    };
+  }
+
+  /**
+   * Mappe un Target en TargetCard
+   */
+  private mapTargetToCard(target: Target): TargetCard {
+    const subtargets = Array.isArray(target.subtargets) 
+      ? target.subtargets 
+      : (typeof target.subtargets === 'string' 
+          ? JSON.parse(target.subtargets || '[]') 
+          : []);
+
+    return {
+      id: target.id,
+      title: target.targets_name,
+      description: target.targets_description,
+      items: subtargets,
+      imageUrl: `http://localhost:3000/uploads/targets_images/${target.targets_imageurl}`
     };
   }
 }
