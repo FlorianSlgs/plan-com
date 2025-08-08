@@ -1,5 +1,5 @@
 <div class="fixed inset-0 z-0 w-full h-full overflow-hidden">
-  <video autoplay muted loop playsinline oncanplay="this.play()" onloadedmetadata="this.muted = true" class="object-cover w-full h-full" poster="assets/videos/bg_welcome_poster.webp">
+  <video autoplay muted loop playsinline oncanplay="this.play()" onloadedmetadata="this.muted = true" class="object-cover w-full h-full" poster="assets/videos/bg_welcome_poster.webp" aria-hidden="true">
     <source src="/assets/videos/bg_welcome.mp4" type="video/mp4" />
     <source src="/assets/videos/bg_welcome.webm" type="video/webm" />
     Votre navigateur ne supporte pas la vidéo HTML5.
@@ -21,11 +21,11 @@
   <div>
     <!-- Conteneur blanc qui apparaît -->
     <div class="bg-white relative z-20 h-screen flex items-center justify-center overflow-hidden" #whiteContainer>
-            <img src="/assets/images/actions.png" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img1>
-            <img src="/assets/images/modif_objectif.png" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img2>
-            <img src="/assets/images/parametres.png" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img3>
-            <img src="/assets/images/tasks.png" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img4>
-            <img src="/assets/images/objectif.png" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img5>
+            <img src="/assets/images/actions.png" alt="Interface de gestion des actions" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img1>
+            <img src="/assets/images/modif_objectif.png" alt="Interface de modification d'objectifs" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img2>
+            <img src="/assets/images/parametres.png" alt="Interface des paramètres utilisateur" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img3>
+            <img src="/assets/images/tasks.png" alt="Interface de gestion des tâches" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img4>
+            <img src="/assets/images/objectif.png" alt="Interface de création d'objectifs" class="absolute w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-50" #img5>
 
             <h3 class="p-4 sm:p-8 text-3xl sm:text-5xl md:text-6xl font-bold text-gray-800 text-center leading-tight">
               Le travail d'équipe <br> simplifié.
@@ -35,15 +35,15 @@
     
   <div class="relative bg-white" #container>
     <h2 class="absolute text-green-500 w-full text-center text-4xl sm:text-6xl md:text-8xl font-bold" #title1>
-      <span class="material-icons text-green-500 responsive-icon">bolt</span>
+      <span class="material-icons text-green-500 responsive-icon" aria-label="efficacité">bolt</span>
       Efficacité
     </h2>
     <h2 class="absolute text-blue-500 w-full text-center text-4xl sm:text-6xl md:text-8xl font-bold" #title>
-      <span class="material-icons text-blue-500 inline-block responsive-icon">group</span>
+      <span class="material-icons text-blue-500 inline-block responsive-icon" aria-label="cohésion">group</span>
       Cohésion
     </h2>
     <h2 class="absolute text-red-500 w-full text-center text-4xl sm:text-6xl md:text-8xl font-bold" #title>
-      <span class="material-icons text-red-500 responsive-icon">hub</span>
+      <span class="material-icons text-red-500 responsive-icon" aria-label="centralisation">hub</span>
       Centralisation
     </h2>
   </div>

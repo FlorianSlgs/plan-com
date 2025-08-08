@@ -130,7 +130,7 @@
           @if (campaigns().length > 0) {
             <div class="campaigns-list space-y-3 sm:space-y-4" role="list">
               @for (campaign of campaigns(); track campaign.id) {
-                <div class="campaign-card bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow" role="listitem">
+                <div class="campaign-card bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow" role="listitem" aria-label="Sélecteur de campagne">
                   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <!-- Infos campagne -->
                     <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -329,7 +329,7 @@
         
         <!-- Section danger -->
         <section class="danger-section" aria-labelledby="danger-title">          
-          <div class="danger-card bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
+          <div class="danger-card bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6" role="region" aria-label="suppression de compte">
             <div class="flex items-start">
               <span class="material-icons text-red-500 mr-2 sm:mr-3 mt-1 flex-shrink-0">delete_forever</span>
               <div class="flex-1 min-w-0">

@@ -1,11 +1,14 @@
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-3"
+      role="toolbar" 
+     aria-label="Header utilisateur">
   <!-- Photo de profil utilisateur -->
   <div class="relative">
     <img 
       class="w-10 h-10 rounded-full object-cover border border-gray-300 shadow-sm" 
       src="assets/images/users-01.png" 
       alt="Photo de profil de {{ userFullName() }}"
-      loading="lazy" 
+      loading="lazy"
+      role="img"
     />
   </div>
   

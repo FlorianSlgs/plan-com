@@ -7,23 +7,23 @@
       <!-- Colonne 1 - Images et titre -->
       <div class="left-column">
         <div class="space-y-6">
-          <h1 class="text-4xl md:text-7xl font-bold text-center mb-4 md:mb-8 z-20 relative">FOIRE AUX QUESTIONS</h1>
+          <h2 class="text-4xl md:text-7xl font-bold text-center mb-4 md:mb-8 z-20 relative">FOIRE AUX QUESTIONS</h2>
 
           <!-- Images chevauchantes - Version desktop -->
-          <div class="relative h-96 w-full">
+          <div class="relative h-96 w-full" role="img" aria-label="Captures d'écran de l'interface Plan de com'">
             <!-- Image 1 - à gauche -->
             <div class="z-0 absolute -top-3 md:-top-10 -left-5 md:-left-18 w-77 h-60 md:w-96 md:h-64 bg-blue-200 rounded-lg shadow-lg transform rotate-3 hover:rotate-6 transition-transform duration-300">
-              <img src="assets/images/faq_actions.png" alt="Image 1" class="w-full h-full object-cover object-left rounded-lg">
+              <img src="assets/images/faq_actions.png" alt="Image de la vue actions de l'app" class="w-full h-full object-cover object-left rounded-lg">
             </div>
             
             <!-- Image 2 - au centre, légèrement en avant -->
             <div class="z-5 absolute top-40 left-1/2 transform -translate-x-1/2 w-70 md:w-104 h-50 md:h-72 bg-green-200 rounded-lg shadow-xl -rotate-2 hover:rotate-1 transition-transform duration-300">
-              <img src="assets/images/faq_goals.png" alt="Image 2" class="w-full h-full object-cover object-left rounded-lg">
+              <img src="assets/images/faq_goals.png" alt="Image de la vue objectifs de l'app" class="w-full h-full object-cover object-left rounded-lg">
             </div>
             
             <!-- Image 3 - à droite -->
             <div class="z-0 absolute top-6 -right-2 md:-right-8 w:40 md:w-88 sm:w-70 h-30 md:h-56 sm:h-50 bg-purple-200 rounded-lg shadow-lg transform -rotate-6 hover:-rotate-3 transition-transform duration-300">
-              <img src="assets/images/faq_tasks.png" alt="Image 3" class="w-full h-full object-cover object-left rounded-lg">
+              <img src="assets/images/faq_tasks.png" alt="Image de la vue tâches de l'app" class="w-full h-full object-cover object-left rounded-lg">
             </div>
           </div>
         </div>
@@ -36,6 +36,7 @@
           <button 
             (click)="toggleItem(0)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left hover:border-gray-500 transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Qu'est-ce que Plan de com' ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -43,7 +44,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[0]" 
-               [class.max-h-96]="openItems[0]">
+               [class.max-h-96]="openItems[0]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Plan de com' est un tableau de bord collaboratif spécialement conçu pour les équipes de communication. Il centralise la gestion des objectifs, cibles, calendriers et tâches pour optimiser vos campagnes de communication.</p>
             </div>
@@ -55,6 +57,7 @@
           <button 
             (click)="toggleItem(1)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Combien de plans de communication puis-je créer ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -62,7 +65,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[1]" 
-               [class.max-h-96]="openItems[1]">
+               [class.max-h-96]="openItems[1]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Chaque compte utilisateur peut créer jusqu'à 3 plans de communication. Cette limitation permet de maintenir une organisation claire et de se concentrer sur les projets essentiels.</p>
             </div>
@@ -74,6 +78,7 @@
           <button 
             (click)="toggleItem(2)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Comment inviter des collaborateurs sur mon plan de communication ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -81,7 +86,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[2]" 
-               [class.max-h-96]="openItems[2]">
+               [class.max-h-96]="openItems[2]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Vous pouvez inviter des collaborateurs en générant des liens d'invitation depuis votre plan de communication. Vous pouvez leur attribuer un rôle de lecteur (consultation uniquement) ou d'éditeur (modification autorisée).</p>
             </div>
@@ -93,6 +99,7 @@
           <button 
             (click)="toggleItem(3)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Quels sont les différents onglets disponibles dans un plan de communication ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -100,7 +107,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[3]" 
-               [class.max-h-96]="openItems[3]">
+               [class.max-h-96]="openItems[3]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Chaque plan comprend 5 onglets : Objectifs (définition des buts de la campagne), Cibles (identification des publics), Plan d'action (calendrier partagé), Tâches (tableau Kanban) et Récap (vue d'ensemble avec tâches urgentes).</p>
             </div>
@@ -112,6 +120,7 @@
           <button 
             (click)="toggleItem(4)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Comment fonctionne le tableau Kanban ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -119,7 +128,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[4]" 
-               [class.max-h-96]="openItems[4]">
+               [class.max-h-96]="openItems[4]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Le tableau Kanban vous permet de visualiser l'avancement de vos tâches en colonnes (À faire, En cours, Terminé). Vous pouvez glisser-déposer les tâches, les assigner aux membres de l'équipe et suivre leur progression en temps réel.</p>
             </div>
@@ -131,6 +141,7 @@
           <button 
             (click)="toggleItem(5)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Puis-je modifier les informations de mon profil ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -138,7 +149,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[5]" 
-               [class.max-h-96]="openItems[5]">
+               [class.max-h-96]="openItems[5]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Oui, vous pouvez à tout moment modifier vos informations personnelles (nom, prénom, email) ainsi que votre mot de passe depuis les paramètres de votre compte. Une fonction de récupération de mot de passe est également disponible.</p>
             </div>
@@ -150,6 +162,7 @@
           <button 
             (click)="toggleItem(6)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Comment assigner une tâche à un membre de l'équipe ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -157,7 +170,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[6]" 
-               [class.max-h-96]="openItems[6]">
+               [class.max-h-96]="openItems[6]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Lors de la création ou modification d'une tâche, vous pouvez sélectionner un ou plusieurs membres de votre équipe dans la liste des utilisateurs invités sur le plan de communication. Les personnes assignées recevront une notification.</p>
             </div>
@@ -169,6 +183,7 @@
           <button 
             (click)="toggleItem(7)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Quelle est la différence entre un rôle lecteur et éditeur ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -176,7 +191,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[7]" 
-               [class.max-h-96]="openItems[7]">
+               [class.max-h-96]="openItems[7]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Un lecteur peut uniquement consulter le plan de communication et ses différents éléments. Un éditeur peut créer, modifier et supprimer des objectifs, tâches, événements du calendrier et autres éléments du plan de communication.</p>
             </div>
@@ -188,6 +204,7 @@
           <button 
             (click)="toggleItem(8)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Comment fonctionne le calendrier collaboratif ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -195,7 +212,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[8]" 
-               [class.max-h-96]="openItems[8]">
+               [class.max-h-96]="openItems[8]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Le calendrier collaboratif permet à tous les membres de l'équipe de visualiser et ajouter des événements liés à la campagne de communication. Vous pouvez créer des réunions, deadlines et jalons importants visibles par toute l'équipe.</p>
             </div>
@@ -207,6 +225,7 @@
           <button 
             (click)="toggleItem(9)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Puis-je exporter les données de mon plan de communication ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -214,7 +233,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[9]" 
-               [class.max-h-96]="openItems[9]">
+               [class.max-h-96]="openItems[9]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Oui, vous pouvez exporter vos plans de communication au format PDF pour les présenter en réunion, ou au format Excel pour analyser les données. L'export inclut les objectifs, tâches, calendrier et métriques de progression.</p>
             </div>
@@ -226,6 +246,7 @@
           <button 
             (click)="toggleItem(10)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Comment supprimer un plan de communication ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -233,7 +254,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[10]" 
-               [class.max-h-96]="openItems[10]">
+               [class.max-h-96]="openItems[10]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Seul le créateur du plan de communication peut le supprimer. Allez dans les paramètres du plan et cliquez sur "Supprimer le plan". Cette action est irréversible et supprimera toutes les données associées.</p>
             </div>
@@ -245,6 +267,7 @@
           <button 
             (click)="toggleItem(11)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Y a-t-il une limite au nombre de tâches que je peux créer ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -252,7 +275,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[11]" 
-               [class.max-h-96]="openItems[11]">
+               [class.max-h-96]="openItems[11]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Non, il n'y a aucune limite au nombre de tâches que vous pouvez créer dans un plan de communication. Vous pouvez ajouter autant de tâches que nécessaire pour organiser efficacement votre campagne.</p>
             </div>
@@ -264,6 +288,7 @@
           <button 
             (click)="toggleItem(12)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Comment contacter le support technique ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -271,7 +296,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[12]" 
-               [class.max-h-96]="openItems[12]">
+               [class.max-h-96]="openItems[12]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Notre équipe support est disponible du lundi au vendredi de 9h à 18h. Contactez-nous par email à supportplandecom.fr ou via le chat en direct disponible dans l'application. Temps de réponse moyen : 2 heures.</p>
             </div>
@@ -283,6 +309,7 @@
           <button 
             (click)="toggleItem(13)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Mes données sont-elles sécurisées ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -290,7 +317,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[13]" 
-               [class.max-h-96]="openItems[13]">
+               [class.max-h-96]="openItems[13]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">Absolument. Nous utilisons un chiffrement SSL/TLS pour toutes les communications, nos serveurs sont hébergés en Europe (conformité RGPD), et nous effectuons des sauvegardes quotidiennes. Vos données ne sont jamais partagées avec des tiers.</p>
             </div>
@@ -302,6 +330,7 @@
           <button 
             (click)="toggleItem(14)"
             class="w-full flex items-center justify-between p-4 md:p-6 text-left transition-colors duration-200"
+            type="button" aria-label="Ouvrir la question"
           >
             <h3 class="text-base md:text-lg font-semibold text-gray-800 pr-4">Existe-t-il une version mobile de l'application ?</h3>
             <span class="text-xl md:text-2xl font-bold text-gray-600 transform transition-transform duration-200 flex-shrink-0" 
@@ -309,7 +338,8 @@
           </button>
           <div class="overflow-hidden transition-all duration-800 ease-in-out" 
                [class.max-h-0]="!openItems[14]" 
-               [class.max-h-96]="openItems[14]">
+               [class.max-h-96]="openItems[14]"
+               role="region" aria-label="Ouvrir la question">
             <div class="p-4 md:p-6 pt-0">
               <p class="text-sm md:text-base text-gray-600">L'application web est entièrement responsive et s'adapte parfaitement aux smartphones et tablettes. Une application mobile native pour iOS et Android est en cours de développement et sera disponible au premier trimestre 2026.</p>
             </div>

@@ -1,4 +1,4 @@
-<div class="goal-card bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center relative group">
+<div class="goal-card bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center relative group" role="article" aria-label="carte d'objectif">
   
   <!-- Bouton modification en haut à droite (conditionnel) -->
   @if (canEdit()) {
@@ -16,7 +16,7 @@
     </button>
   }
 
-  <h3 class="text-xl font-bold mb-3 text-gray-900">{{ title() }}</h3>
+  <h4 class="text-xl font-bold mb-3 text-gray-900">{{ title() }}</h4>
   
   <!-- Image avec lazy loading et gestion d'erreur -->
   <img 
@@ -27,11 +27,11 @@
     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zNiA0OEw2MCA3Mkw4NCA0OFY4NEgzNlY0OFoiIGZpbGw9IiM5Q0E0QUYiLz4KPHR0ZXh0IHg9IjYwIiB5PSIxMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzZCNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgaW5kaXNwb25pYmxlPC90dGV4dD4KPC9zdmc+Cg=='"  
   />
   
-  <p class="text-gray-700 mb-4">{{ description() }}</p>
+  <p class="text-gray-700 mb-4" aria-label="description de l'objectif">{{ description() }}</p>
   
   <ul class="space-y-2 w-full list-none" role="list">
     @for (item of items(); track trackByItem($index, item)) {
-      <li class="bg-gray-100 text-gray-800 px-3 py-1 rounded" role="listitem">{{ item }}</li>
+      <li class="bg-gray-100 text-gray-800 px-3 py-1 rounded" role="listitem" aria-label="sous-objectif">{{ item }}</li>
     }
     @empty {
       <li class="text-gray-500 italic">Aucun sous-objectif défini</li>

@@ -1,15 +1,15 @@
-<div class="task-management-container max-w-4xl mx-auto p-6">
-  <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<section class="task-management-container max-w-4xl mx-auto p-6" role="region" aria-label="Gestionnaire de tâches">
+  <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <h1 class="text-2xl font-bold text-blue-700">Gestionnaire de tâches</h1>
     @if (isReadOnly()) {
       <div class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-2 rounded">
         <span class="text-sm font-medium">📖 Accès en lecture seule</span>
       </div>
     }
-  </header>
+  </div>
 
-  <main>
-    <div class="kanban-container flex flex-col md:flex-row gap-6">
+  <div>
+    <div class="kanban-container flex flex-col md:flex-row gap-6" role="list" aria-label="Tâche à faire">
       <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <h2 class="flex-1 text-lg font-bold text-blue-700 text-center m-0">À Faire</h2>
@@ -31,7 +31,7 @@
           class="task-list flex-1 flex flex-col gap-3"
           (cdkDropListDropped)="drop($event, 'todo')">
           @for (task of todo(); track task.id) {
-            <div class="task-card bg-white rounded shadow px-4 py-3 border-l-4 border-blue-400 relative group" 
+            <div class="task-card bg-white rounded shadow px-4 py-3 border-l-4 border-blue-400 relative group"  role="article" aria-label="Tâche à faire"
                  [class.cursor-move]="!isReadOnly()" 
                  cdkDrag
                  [cdkDragDisabled]="isReadOnly()">
@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
+      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col" role="list" aria-label="Tâches en cours">
         <div class="flex items-center justify-between mb-4">
           <h2 class="flex-1 text-lg font-bold text-yellow-600 text-center m-0">En Cours</h2>
           @if (!isReadOnly()) {
@@ -81,7 +81,7 @@
           class="task-list flex-1 flex flex-col gap-3"
           (cdkDropListDropped)="drop($event, 'inProgress')">
           @for (task of inProgress(); track task.id) {
-            <div class="task-card bg-white rounded shadow px-4 py-3 border-l-4 border-yellow-400 relative group" 
+            <div class="task-card bg-white rounded shadow px-4 py-3 border-l-4 border-yellow-400 relative group"  role="article" aria-label="Tâche en cours" 
                  [class.cursor-move]="!isReadOnly()" 
                  cdkDrag
                  [cdkDragDisabled]="isReadOnly()">
@@ -110,7 +110,7 @@
         </div>
       </div>
 
-      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col">
+      <div class="kanban-column flex-1 bg-gray-50 rounded-lg shadow p-4 flex flex-col" role="list" aria-label="Tâches terminées">
         <div class="flex items-center justify-between mb-4">
           <h2 class="flex-1 text-lg font-bold text-green-700 text-center m-0">Terminé</h2>
           @if (!isReadOnly()) {
@@ -131,7 +131,7 @@
           class="task-list flex-1 flex flex-col gap-3"
           (cdkDropListDropped)="drop($event, 'done')">
           @for (task of done(); track task.id) {
-            <div class="task-card bg-white rounded shadow px-4 py-3 border-l-4 border-green-400 relative group" 
+            <div class="task-card bg-white rounded shadow px-4 py-3 border-l-4 border-green-400 relative group" role="list" aria-label="Tâches terminées"
                  [class.cursor-move]="!isReadOnly()" 
                  cdkDrag
                  [cdkDragDisabled]="isReadOnly()">
@@ -282,6 +282,6 @@
         </div>
       }
     </div>
-  </main>
+  </div>
 
-</div>
+</section>

@@ -1,5 +1,5 @@
-<div class="calendar-container flex flex-col md:flex-row gap-4">
-  <div class="event-list-container bg-white rounded-lg shadow-md p-6 mb-6 md:mb-0 md:w-1/3 relative">
+<section class="calendar-container flex flex-col md:flex-row gap-4"  role="region" aria-label="Actions et calendrier">
+  <div class="event-list-container bg-white rounded-lg shadow-md p-6 mb-6 md:mb-0 md:w-1/3 relative" role="list" aria-label="Liste des événements">
   <h2 class="text-lg font-bold mb-4 text-blue-700 flex items-center justify-between">
     <span>Événements ({{ displayedEvents().length }})</span>
     <!-- Afficher le bouton d'ajout seulement si l'utilisateur peut modifier -->
@@ -183,7 +183,7 @@
       </div>
     }
 
-    <div class="calendar bg-white rounded-lg shadow-md p-6">
+    <div class="calendar bg-white rounded-lg shadow-md p-6" role="application" aria-label="Calendrier des actions de communication">
       <div class="calendar-header flex items-center justify-between mb-4">
         <button (click)="previousMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold hidden sm:block">&lsaquo; Précédent</button>
         <button (click)="previousMonth()" class="px-3 py-1 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold sm:hidden">&lsaquo;</button>
@@ -222,4 +222,4 @@
       </div>
     </div>
   </div>
-</div>
+</section>

@@ -1,4 +1,4 @@
-<div class="goal-card bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center relative group">
+<div class="goal-card bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center relative group" role="article" aria-label="carte cibles">
   
   <!-- Bouton modification en haut à droite (conditionnel) -->
   @if (canEdit()) {
@@ -7,7 +7,7 @@
       title="Modifier"
       type="button"
       (click)="onEditClick()"
-      [attr.aria-label]="'Modifier l\'cible ' + title()"
+      [attr.aria-label]="'Modifier la cible ' + title()"
     >
       <!-- Icône crayon SVG -->
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" aria-hidden="true">
@@ -16,7 +16,7 @@
     </button>
   }
 
-  <h3 class="text-xl font-bold mb-3 text-gray-900">{{ title() }}</h3>
+  <h4 class="text-xl font-bold mb-3 text-gray-900">{{ title() }}</h4>
   
   <!-- Image avec lazy loading et gestion d'erreur -->
   <img 
@@ -31,7 +31,7 @@
   
   <ul class="space-y-2 w-full list-none" role="list">
     @for (item of items(); track trackByItem($index, item)) {
-      <li class="bg-gray-100 text-gray-800 px-3 py-1 rounded" role="listitem">{{ item }}</li>
+      <li class="bg-gray-100 text-gray-800 px-3 py-1 rounded" role="listitem" aria-label="carte d'objectif">{{ item }}</li>
     }
     @empty {
       <li class="text-gray-500 italic">Aucun sous-cible défini</li>
