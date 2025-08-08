@@ -1,5 +1,5 @@
 import { Component, output, inject, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
@@ -8,7 +8,7 @@ import { Campaign, AdminStats } from '../../models/admin.model';
 
 @Component({
   selector: 'app-admin',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss'
 })

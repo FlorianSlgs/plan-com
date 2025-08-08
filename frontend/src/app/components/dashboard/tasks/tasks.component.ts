@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { A11yModule } from '@angular/cdk/a11y';
 import { TaskService } from '../../../services/dashboard/tasks/task-service.service';
@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule, A11yModule],
+  imports: [DragDropModule, FormsModule, A11yModule],
   templateUrl: './tasks.component.html',
   styleUrls: ['./tasks.component.scss'],
 })

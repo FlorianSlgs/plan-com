@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { A11yModule } from '@angular/cdk/a11y';
 import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 
@@ -11,7 +11,7 @@ import { Goal, CampaignPermissions, GoalCard } from '../../../../models/goals.mo
 @Component({
   selector: 'app-goals',
   standalone: true,
-  imports: [GoalsCardsComponent, ReactiveFormsModule, CommonModule, A11yModule],
+  imports: [GoalsCardsComponent, ReactiveFormsModule, A11yModule],
   templateUrl: './goals.component.html',
   styleUrl: './goals.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -3,12 +3,12 @@
   @if (error(); as errorMsg) {
     <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center justify-between" role="alert">
       <span>{{ errorMsg }}</span>
-      <button 
-        type="button" 
-        (click)="clearError()" 
+      <button
+        type="button"
+        (click)="clearError()"
         class="ml-2 text-red-500 hover:text-red-700"
         aria-label="Fermer le message d'erreur"
-      >
+        >
         ×
       </button>
     </div>
@@ -20,10 +20,10 @@
 
       <!-- Message d'information pour lecture seule -->
       @if (permissions().hasAccess && permissions().isReadOnly) {
-      <div class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-2 rounded">
-        <span class="text-sm font-medium">📖 Accès en lecture seule</span>
-      </div>
-  }
+        <div class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-2 rounded">
+          <span class="text-sm font-medium">📖 Accès en lecture seule</span>
+        </div>
+      }
 
       <!-- Bouton d'ajout conditionnel -->
       @if (canAdd()) {
@@ -63,29 +63,29 @@
           </app-targets-cards>
         }
         @empty {
-          <div class="col-span-full text-center py-12 text-gray-500">
-            <p class="text-lg mb-2">Aucune cible définie</p>
-            @if (canAdd()) {
-              <p class="text-sm">Cliquez sur le bouton + pour ajouter votre première cible</p>
-            }
-          </div>
-        }
-      </div>
-    }
-  </div>
+        <div class="col-span-full text-center py-12 text-gray-500">
+          <p class="text-lg mb-2">Aucune cible définie</p>
+          @if (canAdd()) {
+            <p class="text-sm">Cliquez sur le bouton + pour ajouter votre première cible</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
 </section>
 
 <!-- Modal d'ajout (conditionnel) -->
 @if (showAddCardModal() && canAdd()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" 
-       role="dialog" 
-       aria-modal="true" 
-       aria-labelledby="add-modal-title"
-       (click)="closeAddCardModal()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="add-modal-title"
+    (click)="closeAddCardModal()">
     <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
-         cdkTrapFocus
-         [cdkTrapFocusAutoCapture]="true"
-         (click)="$event.stopPropagation()">
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      (click)="$event.stopPropagation()">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
         (click)="closeAddCardModal()"
@@ -93,229 +93,233 @@
         type="button"
         [attr.aria-label]="'Fermer le modal d\'ajout'"
       >&times;</button>
-      
+
       <h2 id="add-modal-title" class="text-lg font-bold mb-4 text-blue-700">Ajouter une cible</h2>
-      
+
       <form [formGroup]="addForm" (ngSubmit)="addCard()" class="space-y-4">
         <!-- Titre -->
         <div>
           <label class="block mb-1 font-medium" for="add-title">Titre :</label>
-          <input 
+          <input
             id="add-title"
-            type="text" 
-            formControlName="title" 
+            type="text"
+            formControlName="title"
             #firstInputAdd
             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             [class.border-red-500]="addForm.get('title')?.invalid && addForm.get('title')?.touched"
-          />
-          @if (addForm.get('title')?.invalid && addForm.get('title')?.touched) {
-            <p class="text-red-500 text-sm mt-1">Le titre est requis (minimum 3 caractères)</p>
-          }
-        </div>
-
-        <!-- Image -->
-        <div>
-          <label class="block mb-1 font-medium">Image :</label>
-          <label
-            class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded cursor-pointer hover:border-blue-600 transition group"
-            [class.border-red-500]="addForm.get('image')?.invalid && addForm.get('image')?.touched"
-            (dragover)="onDragOver($event)"
-            (drop)="onDrop($event)"
-          >
-            <svg class="w-10 h-10 text-blue-400 group-hover:text-blue-600 mb-2" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 10V6a4 4 0 10-8 0v4M12 16v-4" />
-            </svg>
-            <span class="text-blue-500 group-hover:text-blue-700 font-medium" *ngIf="!imagePreview()">
-              Cliquez ou glissez une image ici
-            </span>
-            <input
-              type="file"
-              (change)="onFileSelected($event)"
-              accept="image/*"
-              class="hidden"
-              [attr.aria-label]="'Sélectionner une image'"
             />
-            @if (imagePreview(); as preview) {
-              <div class="mt-2 flex flex-col items-center">
-                <img [src]="preview" alt="Aperçu de l'image" class="max-h-24 rounded shadow mb-1" />
+            @if (addForm.get('title')?.invalid && addForm.get('title')?.touched) {
+              <p class="text-red-500 text-sm mt-1">Le titre est requis (minimum 3 caractères)</p>
+            }
+          </div>
+
+          <!-- Image -->
+          <div>
+            <label class="block mb-1 font-medium">Image :</label>
+            <label
+              class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded cursor-pointer hover:border-blue-600 transition group"
+              [class.border-red-500]="addForm.get('image')?.invalid && addForm.get('image')?.touched"
+              (dragover)="onDragOver($event)"
+              (drop)="onDrop($event)"
+              >
+              <svg class="w-10 h-10 text-blue-400 group-hover:text-blue-600 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 10V6a4 4 0 10-8 0v4M12 16v-4" />
+                </svg>
+                @if (!imagePreview()) {
+                  <span class="text-blue-500 group-hover:text-blue-700 font-medium">
+                    Cliquez ou glissez une image ici
+                  </span>
+                }
+                <input
+                  type="file"
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                  class="hidden"
+                  [attr.aria-label]="'Sélectionner une image'"
+                  />
+                  @if (imagePreview(); as preview) {
+                    <div class="mt-2 flex flex-col items-center">
+                      <img [src]="preview" alt="Aperçu de l'image" class="max-h-24 rounded shadow mb-1" />
+                    </div>
+                  }
+                </label>
+                @if (addForm.get('image')?.invalid && addForm.get('image')?.touched) {
+                  <p class="text-red-500 text-sm mt-1">Une image est requise</p>
+                }
               </div>
-            }
-          </label>
-          @if (addForm.get('image')?.invalid && addForm.get('image')?.touched) {
-            <p class="text-red-500 text-sm mt-1">Une image est requise</p>
-          }
-        </div>
 
-        <!-- Description -->
-        <div>
-          <label class="block mb-1 font-medium" for="add-description">Description :</label>
-          <textarea 
-            id="add-description"
-            formControlName="description"
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="3"
-          ></textarea>
-        </div>
-
-        <!-- Sous-cibles -->
-        <div>
-          <label class="block mb-1 font-medium" for="add-items">Sous-cibles (séparés par des virgules) :</label>
-          <input 
-            id="add-items"
-            type="text" 
-            formControlName="items"
-            placeholder="Sous-cible 1, Sous-cible 2"
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-500" 
-          />
-        </div>
-
-        <button
-          type="submit"
-          [disabled]="loading() || addForm.invalid"
-          class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          @if (loading()) {
-            <span class="flex items-center justify-center">
-              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Ajout en cours...
-            </span>
-          } @else {
-            Ajouter
-          }
-        </button>
-      </form>
-    </div>
-  </div>
-}
-
-<!-- Modal d'édition (conditionnel) -->
-@if (isEditing() && canEdit()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" 
-       role="dialog" 
-       aria-modal="true" 
-       aria-labelledby="edit-modal-title"
-       (click)="closeEditModal()">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
-         cdkTrapFocus
-         [cdkTrapFocusAutoCapture]="true"
-         (click)="$event.stopPropagation()">
-      <button
-        class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
-        (click)="closeEditModal()"
-        title="Fermer"
-        type="button"
-        [attr.aria-label]="'Fermer le modal d\'édition'"
-      >&times;</button>
-      
-      <h2 id="edit-modal-title" class="text-lg font-bold mb-4 text-blue-700">Modifier l'Cible</h2>
-      
-      <form [formGroup]="editForm" (ngSubmit)="updateCard()" class="space-y-4">
-        <!-- Titre -->
-        <div>
-          <label class="block mb-1 font-medium" for="edit-title">Titre :</label>
-          <input 
-            id="edit-title"
-            type="text" 
-            formControlName="title" 
-            #firstInputEdit
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [class.border-red-500]="editForm.get('title')?.invalid && editForm.get('title')?.touched"
-          />
-          @if (editForm.get('title')?.invalid && editForm.get('title')?.touched) {
-            <p class="text-red-500 text-sm mt-1">Le titre est requis (minimum 3 caractères)</p>
-          }
-        </div>
-
-        <!-- Image -->
-        <div>
-          <label class="block mb-1 font-medium">Image :</label>
-          <label
-            class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded cursor-pointer hover:border-blue-600 transition group"
-            (dragover)="onDragOver($event)"
-            (drop)="onEditDrop($event)"
-          >
-            <svg class="w-10 h-10 text-blue-400 group-hover:text-blue-600 mb-2" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 10V6a4 4 0 10-8 0v4M12 16v-4" />
-            </svg>
-            <span class="text-blue-500 group-hover:text-blue-700 font-medium" *ngIf="!editImagePreview()">
-              Cliquez ou glissez une image ici
-            </span>
-            <input
-              type="file"
-              (change)="onEditFileSelected($event)"
-              accept="image/*"
-              class="hidden"
-              [attr.aria-label]="'Sélectionner une nouvelle image'"
-            />
-            @if (editImagePreview(); as preview) {
-              <div class="mt-2 flex flex-col items-center">
-                <img [src]="preview" alt="Aperçu de l'image" class="max-h-24 rounded shadow mb-1" />
+              <!-- Description -->
+              <div>
+                <label class="block mb-1 font-medium" for="add-description">Description :</label>
+                <textarea
+                  id="add-description"
+                  formControlName="description"
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                ></textarea>
               </div>
-            }
-          </label>
-        </div>
 
-        <!-- Description -->
-        <div>
-          <label class="block mb-1 font-medium" for="edit-description">Description :</label>
-          <textarea 
-            id="edit-description"
-            formControlName="description"
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="3"
-          ></textarea>
-        </div>
+              <!-- Sous-cibles -->
+              <div>
+                <label class="block mb-1 font-medium" for="add-items">Sous-cibles (séparés par des virgules) :</label>
+                <input
+                  id="add-items"
+                  type="text"
+                  formControlName="items"
+                  placeholder="Sous-cible 1, Sous-cible 2"
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-500"
+                  />
+                </div>
 
-        <!-- Sous-cibles -->
-        <div>
-          <label class="block mb-1 font-medium" for="edit-items">Sous-cibles (séparés par des virgules) :</label>
-          <input 
-            id="edit-items"
-            type="text" 
-            formControlName="items"
-            placeholder="Sous-cible 1, Sous-cible 2"
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-500" 
-          />
-        </div>
+                <button
+                  type="submit"
+                  [disabled]="loading() || addForm.invalid"
+                  class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                  @if (loading()) {
+                    <span class="flex items-center justify-center">
+                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Ajout en cours...
+                    </span>
+                  } @else {
+                    Ajouter
+                  }
+                </button>
+              </form>
+            </div>
+          </div>
+        }
 
-        <!-- Boutons d'action -->
-        <div class="space-y-2">
-          <button
-            type="submit"
-            [disabled]="loading() || editForm.invalid"
-            class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            @if (loading()) {
-              <span class="flex items-center justify-center">
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Mise à jour...
-              </span>
-            } @else {
-              Enregistrer les modifications
-            }
-          </button>
-          
-          <button
-            type="button"
-            (click)="deleteTarget()"
-            [disabled]="loading()"
-            class="w-full bg-red-400 text-white font-semibold py-2 rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            @if (loading()) {
-              <span class="flex items-center justify-center">
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Suppression...
-              </span>
-            } @else {
-              Supprimer l'cible
-            }
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-}
+        <!-- Modal d'édition (conditionnel) -->
+        @if (isEditing() && canEdit()) {
+          <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-modal-title"
+            (click)="closeEditModal()">
+            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
+              cdkTrapFocus
+              [cdkTrapFocusAutoCapture]="true"
+              (click)="$event.stopPropagation()">
+              <button
+                class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
+                (click)="closeEditModal()"
+                title="Fermer"
+                type="button"
+                [attr.aria-label]="'Fermer le modal d\'édition'"
+              >&times;</button>
+
+              <h2 id="edit-modal-title" class="text-lg font-bold mb-4 text-blue-700">Modifier l'Cible</h2>
+
+              <form [formGroup]="editForm" (ngSubmit)="updateCard()" class="space-y-4">
+                <!-- Titre -->
+                <div>
+                  <label class="block mb-1 font-medium" for="edit-title">Titre :</label>
+                  <input
+                    id="edit-title"
+                    type="text"
+                    formControlName="title"
+                    #firstInputEdit
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    [class.border-red-500]="editForm.get('title')?.invalid && editForm.get('title')?.touched"
+                    />
+                    @if (editForm.get('title')?.invalid && editForm.get('title')?.touched) {
+                      <p class="text-red-500 text-sm mt-1">Le titre est requis (minimum 3 caractères)</p>
+                    }
+                  </div>
+
+                  <!-- Image -->
+                  <div>
+                    <label class="block mb-1 font-medium">Image :</label>
+                    <label
+                      class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded cursor-pointer hover:border-blue-600 transition group"
+                      (dragover)="onDragOver($event)"
+                      (drop)="onEditDrop($event)"
+                      >
+                      <svg class="w-10 h-10 text-blue-400 group-hover:text-blue-600 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 10V6a4 4 0 10-8 0v4M12 16v-4" />
+                        </svg>
+                        @if (!editImagePreview()) {
+                          <span class="text-blue-500 group-hover:text-blue-700 font-medium">
+                            Cliquez ou glissez une image ici
+                          </span>
+                        }
+                        <input
+                          type="file"
+                          (change)="onEditFileSelected($event)"
+                          accept="image/*"
+                          class="hidden"
+                          [attr.aria-label]="'Sélectionner une nouvelle image'"
+                          />
+                          @if (editImagePreview(); as preview) {
+                            <div class="mt-2 flex flex-col items-center">
+                              <img [src]="preview" alt="Aperçu de l'image" class="max-h-24 rounded shadow mb-1" />
+                            </div>
+                          }
+                        </label>
+                      </div>
+
+                      <!-- Description -->
+                      <div>
+                        <label class="block mb-1 font-medium" for="edit-description">Description :</label>
+                        <textarea
+                          id="edit-description"
+                          formControlName="description"
+                          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          rows="3"
+                        ></textarea>
+                      </div>
+
+                      <!-- Sous-cibles -->
+                      <div>
+                        <label class="block mb-1 font-medium" for="edit-items">Sous-cibles (séparés par des virgules) :</label>
+                        <input
+                          id="edit-items"
+                          type="text"
+                          formControlName="items"
+                          placeholder="Sous-cible 1, Sous-cible 2"
+                          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-500"
+                          />
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="space-y-2">
+                          <button
+                            type="submit"
+                            [disabled]="loading() || editForm.invalid"
+                            class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                            @if (loading()) {
+                              <span class="flex items-center justify-center">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Mise à jour...
+                              </span>
+                            } @else {
+                              Enregistrer les modifications
+                            }
+                          </button>
+
+                          <button
+                            type="button"
+                            (click)="deleteTarget()"
+                            [disabled]="loading()"
+                            class="w-full bg-red-400 text-white font-semibold py-2 rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                            @if (loading()) {
+                              <span class="flex items-center justify-center">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Suppression...
+                              </span>
+                            } @else {
+                              Supprimer l'cible
+                            }
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                }

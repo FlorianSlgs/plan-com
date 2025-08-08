@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, effect } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 
 import { AuthService } from '../../services/auth.service';
 
@@ -10,9 +10,8 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    CommonModule
-  ],
+    RouterLink
+],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })

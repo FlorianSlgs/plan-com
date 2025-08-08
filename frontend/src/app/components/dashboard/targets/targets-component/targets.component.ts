@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { A11yModule } from '@angular/cdk/a11y';
 import { Subject, takeUntil, finalize, forkJoin } from 'rxjs';
 
@@ -11,7 +11,7 @@ import { TargetsCardsComponent } from '../targets-cards/targets-cards.component'
 
 @Component({
   selector: 'app-targets',
-  imports: [TargetsCardsComponent, ReactiveFormsModule, CommonModule, A11yModule],
+  imports: [TargetsCardsComponent, ReactiveFormsModule, A11yModule],
   templateUrl: './targets.component.html',
   styleUrl: './targets.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

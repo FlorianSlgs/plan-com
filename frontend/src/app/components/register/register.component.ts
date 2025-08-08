@@ -10,7 +10,7 @@ import {
   ValidatorFn
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
@@ -21,9 +21,8 @@ import { RegisterFormData } from '../../models/user.model';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    CommonModule
-  ],
+    RouterLink
+],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })

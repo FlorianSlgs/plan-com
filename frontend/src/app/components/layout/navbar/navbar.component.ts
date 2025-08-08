@@ -1,7 +1,7 @@
 // navbar.component.ts
 import { Component, OnInit, HostListener, inject, DestroyRef, signal, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
@@ -11,7 +11,7 @@ import { PendingInvitation } from '../../../models/campaign.model';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterLink, RouterLinkActive],
   standalone: true,
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'

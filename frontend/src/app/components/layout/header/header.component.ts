@@ -1,7 +1,7 @@
-import { Component, OnInit, signal, inject, DestroyRef, output, HostListener } from '@angular/core';
+import { Component, OnInit, signal, inject, DestroyRef, output, HostListener, DOCUMENT } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
-import { DOCUMENT } from '@angular/common';
+
 
 //Services
 import { HeaderService } from '../../../services/header/header.service';
