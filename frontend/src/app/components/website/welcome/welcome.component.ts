@@ -1,4 +1,6 @@
 import { Component, ElementRef, ViewChild, ViewChildren, AfterViewInit, OnDestroy, QueryList } from '@angular/core';
+
+// Import optimisé de GSAP - seulement le core
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -6,6 +8,7 @@ import { FaqComponent } from '../faq/faq.component';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 
+// Enregistrement du plugin une seule fois
 gsap.registerPlugin(ScrollTrigger);
 
 @Component({
