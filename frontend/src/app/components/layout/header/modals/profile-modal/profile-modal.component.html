@@ -8,7 +8,10 @@
     (keydown)="onKeydown($event)"
     tabindex="-1">
     
-    <div class="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 lg:p-8 w-full max-w-md lg:max-w-lg xl:max-w-xl max-h-[90vh] overflow-y-auto relative animate-modal-in">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 lg:p-8 w-full max-w-md lg:max-w-lg xl:max-w-xl max-h-[90vh] overflow-y-auto relative animate-modal-in"
+         cdkTrapFocus
+         [cdkTrapFocusAutoCapture]="true"
+         (click)="$event.stopPropagation()">
       <!-- Header avec bouton fermer -->
       <div class="modal-header flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-200">
         <div>
@@ -65,17 +68,20 @@
             type="text"
             [value]="firstName()"
             (input)="onFirstNameChange($event)"
+            #firstInputProfile
             name="firstName"
             required
             maxlength="50"
             [disabled]="loadingState() === 'loading'"
+            [attr.aria-invalid]="!!getFirstNameError() && isFormDirty()"
+            [attr.aria-describedby]="getFirstNameError() && isFormDirty() ? 'firstName-error' : null"
             class="form-input w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
             [class.border-red-500]="getFirstNameError() && isFormDirty()"
             placeholder="Votre prénom"
             autocomplete="given-name"
           />
           @if (getFirstNameError() && isFormDirty()) {
-            <p class="text-red-500 text-xs mt-1 flex items-center">
+            <p id="firstName-error" class="text-red-500 text-xs mt-1 flex items-center" role="alert">
               <span class="material-icons text-xs mr-1">error</span>
               {{ getFirstNameError() }}
             </p>
@@ -96,13 +102,15 @@
             required
             maxlength="50"
             [disabled]="loadingState() === 'loading'"
+            [attr.aria-invalid]="!!getLastNameError() && isFormDirty()"
+            [attr.aria-describedby]="getLastNameError() && isFormDirty() ? 'lastName-error' : null"
             class="form-input w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
             [class.border-red-500]="getLastNameError() && isFormDirty()"
             placeholder="Votre nom"
             autocomplete="family-name"
           />
           @if (getLastNameError() && isFormDirty()) {
-            <p class="text-red-500 text-xs mt-1 flex items-center">
+            <p id="lastName-error" class="text-red-500 text-xs mt-1 flex items-center" role="alert">
               <span class="material-icons text-xs mr-1">error</span>
               {{ getLastNameError() }}
             </p>
@@ -114,7 +122,8 @@
           <button
             type="submit"
             [disabled]="loadingState() === 'loading' || !isFormValid() || !hasChanges()"
-            class="submit-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm">
+            class="submit-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
+            [attr.aria-busy]="loadingState() === 'loading'">
             @if (loadingState() === 'loading') {
               <div class="loading-spinner w-4 sm:w-5 h-4 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               <span class="hidden sm:inline">Enregistrement...</span>
@@ -140,7 +149,9 @@
           <button
             type="button"
             (click)="togglePasswordSection()"
-            class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium flex items-center gap-1">
+            class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium flex items-center gap-1"
+            [attr.aria-expanded]="showPasswordSection()"
+            aria-controls="password-form">
             @if (showPasswordSection()) {
               <span class="material-icons text-sm">expand_less</span>
               <span class="hidden sm:inline">Masquer</span>
@@ -168,7 +179,7 @@
           }
 
           <!-- Formulaire de changement de mot de passe -->
-          <form (ngSubmit)="onSubmitPasswordChange()" class="space-y-3 sm:space-y-4">
+          <form (ngSubmit)="onSubmitPasswordChange()" id="password-form" class="space-y-3 sm:space-y-4">
             <!-- Mot de passe actuel -->
             <div class="form-group">
               <label for="currentPassword" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
@@ -181,16 +192,19 @@
                 type="password"
                 [value]="currentPassword()"
                 (input)="onCurrentPasswordChange($event)"
+                #firstInputPassword
                 name="currentPassword"
                 required
                 [disabled]="passwordLoadingState() === 'loading'"
+                [attr.aria-invalid]="!!getCurrentPasswordError()"
+                [attr.aria-describedby]="getCurrentPasswordError() ? 'currentPassword-error' : null"
                 class="form-input w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
                 [class.border-red-500]="getCurrentPasswordError()"
                 placeholder="MDP actuel"
                 autocomplete="current-password"
               />
               @if (getCurrentPasswordError()) {
-                <p class="text-red-500 text-xs mt-1 flex items-center">
+                <p id="currentPassword-error" class="text-red-500 text-xs mt-1 flex items-center" role="alert">
                   <span class="material-icons text-xs mr-1">error</span>
                   {{ getCurrentPasswordError() }}
                 </p>
@@ -213,13 +227,15 @@
                 required
                 minlength="8"
                 [disabled]="passwordLoadingState() === 'loading'"
+                [attr.aria-invalid]="!!getNewPasswordError()"
+                [attr.aria-describedby]="getNewPasswordError() ? 'newPassword-error' : null"
                 class="form-input w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
                 [class.border-red-500]="getNewPasswordError()"
                 placeholder="Nouveau MDP"
                 autocomplete="new-password"
               />
               @if (getNewPasswordError()) {
-                <p class="text-red-500 text-xs mt-1 flex items-center">
+                <p id="newPassword-error" class="text-red-500 text-xs mt-1 flex items-center" role="alert">
                   <span class="material-icons text-xs mr-1">error</span>
                   {{ getNewPasswordError() }}
                 </p>
@@ -241,13 +257,15 @@
                 name="confirmPassword"
                 required
                 [disabled]="passwordLoadingState() === 'loading'"
+                [attr.aria-invalid]="!!getConfirmPasswordError()"
+                [attr.aria-describedby]="getConfirmPasswordError() ? 'confirmPassword-error' : null"
                 class="form-input w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
                 [class.border-red-500]="getConfirmPasswordError()"
                 placeholder="Confirmer MDP"
                 autocomplete="new-password"
               />
               @if (getConfirmPasswordError()) {
-                <p class="text-red-500 text-xs mt-1 flex items-center">
+                <p id="confirmPassword-error" class="text-red-500 text-xs mt-1 flex items-center" role="alert">
                   <span class="material-icons text-xs mr-1">error</span>
                   {{ getConfirmPasswordError() }}
                 </p>
@@ -259,7 +277,8 @@
               <button
                 type="submit"
                 [disabled]="passwordLoadingState() === 'loading' || !isPasswordFormValid()"
-                class="submit-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm">
+                class="submit-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
+                [attr.aria-busy]="passwordLoadingState() === 'loading'">
                 @if (passwordLoadingState() === 'loading') {
                   <div class="loading-spinner w-4 sm:w-5 h-4 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span class="hidden sm:inline">Modification...</span>

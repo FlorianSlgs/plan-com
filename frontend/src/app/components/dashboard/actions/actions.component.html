@@ -6,7 +6,7 @@
     @if (canModify()) {
       <button
         class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-2xl hover:bg-blue-700 transition"
-        (click)="showAddEventModal.set(true)"
+        (click)="openAddEventModal()"
         title="Ajouter un événement"
         type="button"
       >+</button>
@@ -55,91 +55,130 @@
   <div class="flex-1 flex flex-col gap-8">
     <!-- Modal d'ajout - Afficher seulement si l'utilisateur peut modifier -->
     @if (showAddEventModal() && canModify()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm bg-white/30">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+      <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="add-event-title"
+           (click)="closeAddEventModal()">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
+             cdkTrapFocus
+             [cdkTrapFocusAutoCapture]="true"
+             (click)="$event.stopPropagation()">
           <button
             class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
-            (click)="showAddEventModal.set(false)"
+            (click)="closeAddEventModal()"
             title="Fermer"
             type="button"
+            aria-label="Fermer le modal d'ajout"
           >&times;</button>
-          <h2 class="text-lg font-bold mb-4 text-blue-700">Ajouter un Nouvel Événement</h2>
-          <div class="mb-4">
-            <label for="eventTitle" class="block mb-1 font-medium">Titre :</label>
-            <input type="text" id="eventTitle"
-              [ngModel]="newEventTitle()" (ngModelChange)="newEventTitle.set($event)"
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div class="mb-4">
-            <label for="eventDate" class="block mb-1 font-medium">Date sélectionnée :</label>
-            <input type="text" id="eventDate"
-              [value]="selectedDate() | date:'dd/MM/yyyy'" readonly disabled
-              class="w-full border border-gray-200 rounded px-3 py-2 bg-gray-100 text-gray-500" />
-            <span class="text-xs text-gray-500">(Cliquez sur une date dans le calendrier pour la sélectionner)</span>
-          </div>
-          <div class="mb-4">
-            <label for="eventTime" class="block mb-1 font-medium">Heure (HH:mm) :</label>
-            <input type="time" id="eventTime"
-              [ngModel]="newEventTime()" (ngModelChange)="newEventTime.set($event)"
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <button
-            (click)="addEvent(); showAddEventModal.set(false)"
-            [disabled]="!newEventTitle() || !selectedDate()"
-            class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-            type="button"
-          >
-            Ajouter l'Événement
-          </button>
+          <h2 id="add-event-title" class="text-lg font-bold mb-4 text-blue-700">Ajouter un Nouvel Événement</h2>
+          <form (ngSubmit)="addEvent()" class="space-y-4">
+            <div class="mb-4">
+              <label for="eventTitle" class="block mb-1 font-medium">Titre :</label>
+              <input type="text" 
+                     id="eventTitle"
+                     #firstInputAdd
+                     [ngModel]="newEventTitle()" 
+                     (ngModelChange)="newEventTitle.set($event)"
+                     required
+                     name="eventTitle"
+                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div class="mb-4">
+              <label for="eventDate" class="block mb-1 font-medium">Date sélectionnée :</label>
+              <input type="text" 
+                     id="eventDate"
+                     [value]="selectedDate() | date:'dd/MM/yyyy'" 
+                     readonly 
+                     disabled
+                     class="w-full border border-gray-200 rounded px-3 py-2 bg-gray-100 text-gray-500" />
+              <span class="text-xs text-gray-500">(Cliquez sur une date dans le calendrier pour la sélectionner)</span>
+            </div>
+            <div class="mb-4">
+              <label for="eventTime" class="block mb-1 font-medium">Heure (HH:mm) :</label>
+              <input type="time" 
+                     id="eventTime"
+                     [ngModel]="newEventTime()" 
+                     (ngModelChange)="newEventTime.set($event)"
+                     name="eventTime"
+                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <button
+              type="submit"
+              [disabled]="!newEventTitle() || !selectedDate()"
+              class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Ajouter l'Événement
+            </button>
+          </form>
         </div>
       </div>
     }
 
     <!-- Modal de modification - Afficher seulement si l'utilisateur peut modifier -->
     @if (showEditEventModal() && canModify()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+      <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="edit-event-title"
+           (click)="closeEditEventModal()">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
+             cdkTrapFocus
+             [cdkTrapFocusAutoCapture]="true"
+             (click)="$event.stopPropagation()">
           <button
             class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
-            (click)="showEditEventModal.set(false)"
+            (click)="closeEditEventModal()"
             title="Fermer"
             type="button"
+            aria-label="Fermer le modal de modification"
           >&times;</button>
-          <h2 class="text-lg font-bold mb-4 text-blue-700">Modifier l'Événement</h2>
-          <div class="mb-4">
-            <label class="block mb-1 font-medium">Titre :</label>
-            <input type="text"
-              [ngModel]="editEventTitle()" (ngModelChange)="editEventTitle.set($event)"
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-1 font-medium">Date :</label>
-            <input type="date"
-              [ngModel]="editEventDate() ? (editEventDate() | date:'yyyy-MM-dd') : ''"
-              (ngModelChange)="onEditEventDateChange($event)"
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-1 font-medium">Heure (HH:mm) :</label>
-            <input type="time"
-              [ngModel]="editEventTime()" (ngModelChange)="editEventTime.set($event)"
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <button
-            (click)="updateEvent()"
-            [disabled]="!editEventTitle() || !editEventDate()"
-            class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-            type="button"
-          >
-            Enregistrer les modifications
-          </button>
-          <button
-            (click)="deleteEvent()"
-            type="button"
-            class="w-full bg-red-400 text-white font-semibold py-2 rounded hover:bg-red-700 transition mt-2"
-          >
-            Supprimer l'événement
-          </button>
+          <h2 id="edit-event-title" class="text-lg font-bold mb-4 text-blue-700">Modifier l'Événement</h2>
+          <form (ngSubmit)="updateEvent()" class="space-y-4">
+            <div class="mb-4">
+              <label class="block mb-1 font-medium">Titre :</label>
+              <input type="text"
+                     #firstInputEdit
+                     [ngModel]="editEventTitle()" 
+                     (ngModelChange)="editEventTitle.set($event)"
+                     required
+                     name="editTitle"
+                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1 font-medium">Date :</label>
+              <input type="date"
+                     [ngModel]="editEventDate() ? (editEventDate() | date:'yyyy-MM-dd') : ''"
+                     (ngModelChange)="onEditEventDateChange($event)"
+                     required
+                     name="editDate"
+                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1 font-medium">Heure (HH:mm) :</label>
+              <input type="time"
+                     [ngModel]="editEventTime()" 
+                     (ngModelChange)="editEventTime.set($event)"
+                     name="editTime"
+                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div class="space-y-2">
+              <button
+                type="submit"
+                [disabled]="!editEventTitle() || !editEventDate()"
+                class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Enregistrer les modifications
+              </button>
+              <button
+                type="button"
+                (click)="deleteEvent()"
+                class="w-full bg-red-400 text-white font-semibold py-2 rounded hover:bg-red-700 transition"
+              >
+                Supprimer l'événement
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     }

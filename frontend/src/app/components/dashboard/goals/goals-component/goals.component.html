@@ -77,8 +77,15 @@
 
 <!-- Modal d'ajout (conditionnel) -->
 @if (showAddCardModal() && canAdd()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" 
+       role="dialog" 
+       aria-modal="true" 
+       aria-labelledby="add-modal-title"
+       (click)="closeAddCardModal()">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
+         cdkTrapFocus
+         [cdkTrapFocusAutoCapture]="true"
+         (click)="$event.stopPropagation()">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
         (click)="closeAddCardModal()"
@@ -97,6 +104,7 @@
             id="add-title"
             type="text" 
             formControlName="title" 
+            #firstInputAdd
             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             [class.border-red-500]="addForm.get('title')?.invalid && addForm.get('title')?.touched"
           />
@@ -184,8 +192,15 @@
 
 <!-- Modal d'édition (conditionnel) -->
 @if (isEditing() && canEdit()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+  <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30" 
+       role="dialog" 
+       aria-modal="true" 
+       aria-labelledby="edit-modal-title"
+       (click)="closeEditModal()">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative"
+         cdkTrapFocus
+         [cdkTrapFocusAutoCapture]="true"
+         (click)="$event.stopPropagation()">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl"
         (click)="closeEditModal()"
@@ -204,6 +219,7 @@
             id="edit-title"
             type="text" 
             formControlName="title" 
+            #firstInputEdit
             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             [class.border-red-500]="editForm.get('title')?.invalid && editForm.get('title')?.touched"
           />

@@ -8,7 +8,10 @@
     (keydown)="onKeydown($event)"
     tabindex="-1">
     
-    <div class="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl relative max-h-[90vh] overflow-y-auto animate-modal-in">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-8 w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl relative max-h-[90vh] overflow-y-auto animate-modal-in"
+         cdkTrapFocus
+         [cdkTrapFocusAutoCapture]="true"
+         (click)="$event.stopPropagation()">
       <!-- Header avec bouton fermer -->
       <div class="modal-header flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-200">
         <div class="flex-1 min-w-0">
@@ -49,20 +52,20 @@
 
         <!-- Section des invitations en attente -->
         @if (pendingInvitations().length > 0) {
-          <section class="invitations-section">
+          <section class="invitations-section" aria-labelledby="invitations-title">
             <div class="section-header flex items-center justify-between mb-3 sm:mb-4">
               <div class="flex items-center flex-1 min-w-0">
                 <span class="material-icons text-orange-600 mr-2 flex-shrink-0">mail</span>
-                <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Invitations en attente</h3>
+                <h3 id="invitations-title" class="text-base sm:text-lg font-semibold text-gray-800 truncate">Invitations en attente</h3>
               </div>
               <span class="text-xs sm:text-sm text-orange-600 bg-orange-100 px-2 py-1 rounded font-medium flex-shrink-0 ml-2">
                 {{ pendingInvitations().length }} invitation(s)
               </span>
             </div>
             
-            <div class="invitations-list space-y-3 sm:space-y-4">
+            <div class="invitations-list space-y-3 sm:space-y-4" role="list">
               @for (invitation of pendingInvitations(); track invitation.id) {
-                <div class="invitation-card bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200 hover:shadow-md transition-shadow">
+                <div class="invitation-card bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200 hover:shadow-md transition-shadow" role="listitem">
                   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <!-- Infos invitation -->
                     <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -86,8 +89,9 @@
                       <button
                         type="button"
                         (click)="onAcceptInvitation(invitation.id)"
-                        class="action-btn accept-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                        class="action-btn accept-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         [disabled]="loadingState() === 'loading'"
+                        [attr.aria-busy]="loadingState() === 'loading'"
                         title="Accepter cette invitation">
                         <span class="material-icons text-sm">check</span>
                         <span class="hidden sm:inline">Accepter</span>
@@ -96,8 +100,9 @@
                       <button
                         type="button"
                         (click)="onRejectInvitation(invitation.id)"
-                        class="action-btn reject-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                        class="action-btn reject-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         [disabled]="loadingState() === 'loading'"
+                        [attr.aria-busy]="loadingState() === 'loading'"
                         title="Refuser cette invitation">
                         <span class="material-icons text-sm">close</span>
                         <span class="hidden sm:inline">Refuser</span>
@@ -111,11 +116,11 @@
         }
         
         <!-- Section des campagnes -->
-        <section class="campaigns-section">
+        <section class="campaigns-section" aria-labelledby="campaigns-title">
           <div class="section-header flex items-center justify-between mb-3 sm:mb-4">
             <div class="flex items-center flex-1 min-w-0">
               <span class="material-icons text-blue-600 mr-2 flex-shrink-0">campaign</span>
-              <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Mes campagnes</h3>
+              <h3 id="campaigns-title" class="text-base sm:text-lg font-semibold text-gray-800 truncate">Mes campagnes</h3>
             </div>
             <span class="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0 ml-2">
               {{ campaigns().length }} campagne(s)
@@ -123,9 +128,9 @@
           </div>
           
           @if (campaigns().length > 0) {
-            <div class="campaigns-list space-y-3 sm:space-y-4">
+            <div class="campaigns-list space-y-3 sm:space-y-4" role="list">
               @for (campaign of campaigns(); track campaign.id) {
-                <div class="campaign-card bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="campaign-card bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow" role="listitem">
                   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <!-- Infos campagne -->
                     <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -153,8 +158,11 @@
                         <button
                           type="button"
                           (click)="toggleInviteForm(campaign.id)"
-                          class="action-btn invite-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          class="action-btn invite-btn flex items-center gap-1 px-2 sm:px-3 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           [disabled]="loadingState() === 'loading'"
+                          [attr.aria-expanded]="inviteFormVisible() === campaign.id"
+                          [attr.aria-controls]="'invite-form-' + campaign.id"
+                          [attr.aria-busy]="loadingState() === 'loading'"
                           title="Inviter un utilisateur à cette campagne">
                           <span class="material-icons text-sm">person_add</span>
                           <span class="hidden sm:inline">Inviter</span>
@@ -167,6 +175,7 @@
                         class="action-btn delete-btn flex items-center gap-1 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors"
                         [class]="canDeleteCampaign()(campaign) ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                         [disabled]="loadingState() === 'loading' || !canDeleteCampaign()(campaign)"
+                        [attr.aria-busy]="loadingState() === 'loading'"
                         [title]="getActionButtonTitle(campaign)">
                         <span class="material-icons text-sm">
                           {{ campaign.user_role === 'owner' ? 'delete' : 'exit_to_app' }}
@@ -178,7 +187,8 @@
                   
                   <!-- Formulaire d'invitation (seulement pour les campagnes dont l'utilisateur est propriétaire) -->
                   @if (inviteFormVisible() === campaign.id && campaign.user_role === 'owner') {
-                    <div class="invite-form mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200 animate-slide-down">
+                    <div class="invite-form mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200 animate-slide-down"
+                         id="invite-form-{{ campaign.id }}">
                       <h4 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
                         <span class="material-icons text-sm mr-1 flex-shrink-0">mail</span>
                         <span class="truncate">Inviter un utilisateur à "{{ campaign.name }}"</span>
@@ -192,15 +202,25 @@
                           <input
                             id="inviteEmail-{{ campaign.id }}"
                             type="email"
-                            [value]="inviteEmail()"
-                            (input)="onInviteEmailChange($event)"
+                            [ngModel]="inviteEmail()"
+                            (ngModelChange)="inviteEmail.set($event)"
+                            #inviteEmailInput
                             name="inviteEmail"
                             required
                             [disabled]="loadingState() === 'loading'"
+                            [attr.aria-invalid]="!isValidEmail(inviteEmail()) && inviteEmail().length > 0"
+                            [attr.aria-describedby]="!isValidEmail(inviteEmail()) && inviteEmail().length > 0 ? 'email-error-' + campaign.id : null"
                             class="form-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                            [class.border-red-500]="!isValidEmail(inviteEmail()) && inviteEmail().length > 0"
                             placeholder="exemple@email.com"
                             autocomplete="email"
                           />
+                          @if (!isValidEmail(inviteEmail()) && inviteEmail().length > 0) {
+                            <p id="email-error-{{ campaign.id }}" class="text-red-500 text-xs mt-1 flex items-center" role="alert">
+                              <span class="material-icons text-xs mr-1">error</span>
+                              Veuillez saisir une adresse email valide
+                            </p>
+                          }
                         </div>
                         
                         <div class="form-group">
@@ -209,8 +229,8 @@
                           </label>
                           <select
                             id="inviteRole-{{ campaign.id }}"
-                            [value]="inviteRole()"
-                            (change)="onInviteRoleChange($event)"
+                            [ngModel]="inviteRole()"
+                            (ngModelChange)="inviteRole.set($event)"
                             name="inviteRole"
                             required
                             [disabled]="loadingState() === 'loading'"
@@ -224,7 +244,8 @@
                           <button
                             type="submit"
                             [disabled]="loadingState() === 'loading' || !inviteEmail().trim() || !isValidEmail(inviteEmail())"
-                            class="submit-btn flex items-center justify-center gap-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="submit-btn flex items-center justify-center gap-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            [attr.aria-busy]="loadingState() === 'loading'">
                             @if (loadingState() === 'loading') {
                               <div class="loading-spinner w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               <span class="hidden sm:inline">Envoi...</span>
@@ -253,9 +274,9 @@
                             <span>Utilisateurs ayant accès ({{ campaignUsers()(campaign.id).length }})</span>
                           </h5>
                           
-                          <div class="users-list space-y-2">
+                          <div class="users-list space-y-2" role="list">
                             @for (user of campaignUsers()(campaign.id); track user.userId) {
-                              <div class="user-item flex items-center justify-between p-2 bg-white rounded border border-blue-100">
+                              <div class="user-item flex items-center justify-between p-2 bg-white rounded border border-blue-100" role="listitem">
                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                                   <div class="user-avatar w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                     <span class="material-icons text-blue-600 text-sm">person</span>
@@ -276,6 +297,7 @@
                                   (click)="onRevokeAccess(user.userId, campaign.id)"
                                   title="Révoquer l'accès de cet utilisateur"
                                   [disabled]="loadingState() === 'loading'"
+                                  [attr.aria-label]="'Révoquer l\'accès de ' + user.firstName + ' ' + user.lastName"
                                   class="text-red-500 hover:text-red-700 disabled:text-gray-400 p-1 rounded-full transition-colors">
                                   <span class="material-icons text-base">person_remove</span>
                                 </button>
@@ -306,12 +328,12 @@
         </section>
         
         <!-- Section danger -->
-        <section class="danger-section">          
+        <section class="danger-section" aria-labelledby="danger-title">          
           <div class="danger-card bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
             <div class="flex items-start">
               <span class="material-icons text-red-500 mr-2 sm:mr-3 mt-1 flex-shrink-0">delete_forever</span>
               <div class="flex-1 min-w-0">
-                <h4 class="font-medium text-red-800 mb-2 text-sm sm:text-base">Supprimer mon compte</h4>
+                <h4 id="danger-title" class="font-medium text-red-800 mb-2 text-sm sm:text-base">Supprimer mon compte</h4>
                 <p class="text-xs sm:text-sm text-red-700 mb-3 sm:mb-4">
                   Cette action supprimera définitivement votre compte et toutes vos campagnes. 
                   Cette action ne peut pas être annulée.
@@ -320,7 +342,8 @@
                   type="button"
                   (click)="onDeleteAccount()"
                   [disabled]="loadingState() === 'loading'"
-                  class="delete-account-btn bg-red-600 text-white font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                  class="delete-account-btn bg-red-600 text-white font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  [attr.aria-busy]="loadingState() === 'loading'">
                   <span class="material-icons mr-2 text-base sm:text-lg">delete_forever</span>
                   @if (loadingState() === 'loading') {
                     <span class="hidden sm:inline">Suppression en cours...</span>

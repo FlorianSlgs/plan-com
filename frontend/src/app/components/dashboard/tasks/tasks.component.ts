@@ -1,6 +1,7 @@
-import { Component, inject, OnInit, effect } from '@angular/core';
+import { Component, inject, OnInit, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { A11yModule } from '@angular/cdk/a11y';
 import { TaskService } from '../../../services/dashboard/tasks/task-service.service';
 import { Task } from '../../../models/tasks.model';
 import { FormsModule } from '@angular/forms';
@@ -8,12 +9,15 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule],
+  imports: [CommonModule, DragDropModule, FormsModule, A11yModule],
   templateUrl: './tasks.component.html',
   styleUrls: ['./tasks.component.scss'],
 })
 export class TasksComponent implements OnInit {
   taskService = inject(TaskService);
+
+  @ViewChild('firstInputAdd') firstInputAdd!: ElementRef<HTMLInputElement>;
+  @ViewChild('firstInputEdit') firstInputEdit!: ElementRef<HTMLInputElement>;
 
   // Utilisation des signaux calculés du service
   todo = this.taskService.todoTasks;
@@ -26,6 +30,14 @@ export class TasksComponent implements OnInit {
   newTaskDescription = '';
   newTaskAssignee = '';
   addTaskStatus: 'todo' | 'inProgress' | 'done' = 'todo';
+
+  // Variables pour le modal d'édition
+  editTaskId: string | null = null;
+  editTaskTitle = '';
+  editTaskDescription = '';
+  editTaskAssignee = '';
+  editTaskStatus: 'todo' | 'inProgress' | 'done' = 'todo';
+  showEditTaskModal = false;
 
   constructor() {
     // Recharge si currentCampaignId change dans le localStorage
@@ -50,6 +62,13 @@ export class TasksComponent implements OnInit {
     this.newTaskTitle = '';
     this.newTaskDescription = '';
     this.newTaskAssignee = '';
+
+    // Focus automatique sur le premier champ après ouverture du modal
+    setTimeout(() => {
+      if (this.firstInputAdd) {
+        this.firstInputAdd.nativeElement.focus();
+      }
+    }, 100);
   }
 
   closeAddTaskModal() {
@@ -76,35 +95,6 @@ export class TasksComponent implements OnInit {
     this.closeAddTaskModal();
   }
 
-  drop(event: CdkDragDrop<Task[]>, newStatus: 'todo' | 'inProgress' | 'done'): void {
-    if (this.isReadOnly()) {
-      // Ne pas permettre le déplacement en mode lecture seule
-      return;
-    }
-
-    if (event.previousContainer === event.container) {
-      // Optionnel : réorganisation locale
-    } else {
-      const taskToMove = event.previousContainer.data[event.previousIndex];
-      this.taskService.updateTaskStatus(taskToMove.id, newStatus);
-    }
-  }
-
-  getConnectedLists(): string[] {
-    // En mode lecture seule, ne pas connecter les listes pour empêcher le drag & drop
-    if (this.isReadOnly()) {
-      return [];
-    }
-    return ['todoList', 'inProgressList', 'doneList'];
-  }
-
-  editTaskId: string | null = null;
-  editTaskTitle = '';
-  editTaskDescription = '';
-  editTaskAssignee = '';
-  editTaskStatus: 'todo' | 'inProgress' | 'done' = 'todo';
-  showEditTaskModal = false;
-
   openEditTaskModal(task: Task) {
     if (this.isReadOnly()) {
       alert('Vous n\'avez accès qu\'en lecture seule à cette campagne.');
@@ -117,6 +107,13 @@ export class TasksComponent implements OnInit {
     this.editTaskAssignee = task.assignee || '';
     this.editTaskStatus = task.status;
     this.showEditTaskModal = true;
+
+    // Focus automatique sur le premier champ après ouverture du modal
+    setTimeout(() => {
+      if (this.firstInputEdit) {
+        this.firstInputEdit.nativeElement.focus();
+      }
+    }, 100);
   }
 
   closeEditTaskModal() {
@@ -152,5 +149,27 @@ export class TasksComponent implements OnInit {
     
     this.taskService.deleteTask(this.editTaskId);
     this.closeEditTaskModal();
+  }
+
+  drop(event: CdkDragDrop<Task[]>, newStatus: 'todo' | 'inProgress' | 'done'): void {
+    if (this.isReadOnly()) {
+      // Ne pas permettre le déplacement en mode lecture seule
+      return;
+    }
+
+    if (event.previousContainer === event.container) {
+      // Optionnel : réorganisation locale
+    } else {
+      const taskToMove = event.previousContainer.data[event.previousIndex];
+      this.taskService.updateTaskStatus(taskToMove.id, newStatus);
+    }
+  }
+
+  getConnectedLists(): string[] {
+    // En mode lecture seule, ne pas connecter les listes pour empêcher le drag & drop
+    if (this.isReadOnly()) {
+      return [];
+    }
+    return ['todoList', 'inProgressList', 'doneList'];
   }
 }

@@ -8,7 +8,10 @@
     (keydown)="onKeydown($event)"
     tabindex="-1">
     
-    <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative animate-modal-in">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative animate-modal-in"
+         cdkTrapFocus
+         [cdkTrapFocusAutoCapture]="true"
+         (click)="$event.stopPropagation()">
       <div class="modal-body text-center">
         <!-- Icône d'avertissement -->
         @if (showWarningIcon()) {
@@ -33,6 +36,7 @@
             type="button"
             (click)="onClose()"
             [disabled]="loadingState() === 'loading'"
+            #cancelButton
             class="cancel-btn flex-1 max-w-32 bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
             {{ cancelButtonText() }}
           </button>
