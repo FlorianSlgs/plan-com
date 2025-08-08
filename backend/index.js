@@ -8,9 +8,6 @@ require('dotenv').config();
 
 const PORT = process.env.PORT;
 
-app.use('/uploads/goals_images', express.static(__dirname + '/uploads/goals_images'));
-app.use('/uploads/targets_images', express.static(__dirname + '/uploads/targets_images'));
-
 // PostgreSQL connection
 const pool = new Pool({
   user: process.env.PGUSER,
@@ -26,6 +23,15 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Route sécurisée pour les images de goals avec middleware d'authentification
+// DOIT être après la création du pool
+const authenticateGoalImage = require('./middlewares/authenticateGoalImage');
+app.use('/uploads/goals_images', authenticateGoalImage(pool), express.static(__dirname + '/uploads/goals_images'));
+
+// Route sécurisée pour les images de targets avec middleware d'authentification
+const authenticateTargetImage = require('./middlewares/authenticateTargetImage');
+app.use('/uploads/targets_images', authenticateTargetImage(pool), express.static(__dirname + '/uploads/targets_images'));
 
 // Importer et utiliser les routes
 const authRoutes = require('./auth.routes')(pool);
