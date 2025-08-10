@@ -1,30 +1,40 @@
-/* import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { TaskService } from './dashboard/tasks/task-service.service';
 import { environment } from '../../environments/environment';
+import { ChangePasswordData } from '../models/user.model';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
-  let mockRouter: jasmine.SpyObj<Router>;
+  let routerSpy: jasmine.SpyObj<Router>;
+  let taskServiceSpy: jasmine.SpyObj<TaskService>;
+  const apiUrl = environment.baseUrl + environment.endpoints.auth;
 
   beforeEach(() => {
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    // Création des spies pour les dépendances
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    taskServiceSpy = jasmine.createSpyObj('TaskService', ['clearTasks']);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         AuthService,
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: routerSpy },
+        { provide: TaskService, useValue: taskServiceSpy }
       ]
     });
 
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
 
-    // Nettoyer le localStorage avant chaque test
-    localStorage.clear();
+    // Gérer l'appel initial à checkAuth dans le constructeur
+    const req = httpMock.expectOne(`${apiUrl}/me`);
+    req.flush({ isAdmin: false }, { status: 401, statusText: 'Unauthorized' });
   });
 
   afterEach(() => {
@@ -32,223 +42,354 @@ describe('AuthService', () => {
     localStorage.clear();
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-  describe('Initial State', () => {
-    it('should initialize loggedIn state as false when no token exists', () => {
-      expect(service.isLoggedIn()).toBeFalsy();
-      expect(service.isUserLoggedIn()).toBeFalsy();
+  describe('Initialisation', () => {
+    it('devrait être créé', () => {
+      expect(service).toBeTruthy();
     });
 
-    it('should initialize loggedIn state as true when token exists', () => {
-      localStorage.setItem('authToken', 'test-token');
-      
-      // Réinitialiser le service pour qu'il lise le token du localStorage
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        imports: [HttpClientTestingModule],
-        providers: [
-          AuthService,
-          { provide: Router, useValue: mockRouter }
-        ]
-      });
-      service = TestBed.inject(AuthService);
-      
-      expect(service.isLoggedIn()).toBeTruthy();
-      expect(service.isUserLoggedIn()).toBeTruthy();
+    it('devrait initialiser avec isLoggedIn à false', () => {
+      expect(service.isLoggedIn()).toBeFalse();
+    });
+
+    it('devrait initialiser avec isAdmin à false', () => {
+      expect(service.isAdmin()).toBeFalse();
     });
   });
 
-  describe('login', () => {
-    it('should login successfully and store token', () => {
-      const credentials = { email: 'test@email.com', password: 'password' };
-      const mockResponse = { token: 'test-token', id: 'user-id' };
+  describe('login()', () => {
+    it('devrait connecter un utilisateur standard avec succès', () => {
+      const credentials = { email: 'user@test.com', password: 'password123' };
+      const mockResponse = { 
+        token: 'mock-token', 
+        isAdmin: false,
+        user: { email: 'user@test.com' }
+      };
 
       service.login(credentials).subscribe(response => {
         expect(response).toEqual(mockResponse);
-        expect(localStorage.getItem('authToken')).toBe('test-token');
-        expect(localStorage.getItem('userId')).toBe('user-id');
-        expect(service.isLoggedIn()).toBeTruthy();
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
+        expect(service.isLoggedIn()).toBeTrue();
+        expect(service.isAdmin()).toBeFalse();
       });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/login`);
+      const req = httpMock.expectOne(`${apiUrl}/login`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(credentials);
+      expect(req.request.withCredentials).toBeTrue();
+      
       req.flush(mockResponse);
+      
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
     });
 
-    it('should handle login error', () => {
-      const credentials = { email: 'test@email.com', password: 'wrong-password' };
-      const errorResponse = { status: 401, statusText: 'Unauthorized' };
+    it('devrait connecter un administrateur avec succès', () => {
+      const credentials = { email: 'admin@test.com', password: 'admin123' };
+      const mockResponse = { 
+        token: 'mock-token', 
+        isAdmin: true,
+        user: { email: 'admin@test.com' }
+      };
+
+      service.login(credentials).subscribe(response => {
+        expect(response).toEqual(mockResponse);
+        expect(service.isLoggedIn()).toBeTrue();
+        expect(service.isAdmin()).toBeTrue();
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush(mockResponse);
+      
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin']);
+    });
+
+    it('devrait gérer les erreurs de connexion', () => {
+      const credentials = { email: 'user@test.com', password: 'wrongpassword' };
+      const errorMessage = 'Invalid credentials';
 
       service.login(credentials).subscribe({
-        next: () => fail('Should have failed'),
+        next: () => fail('devrait avoir échoué'),
         error: (error) => {
           expect(error.message).toBe('Échec de la connexion. Vérifiez vos identifiants.');
-          expect(service.isLoggedIn()).toBeFalsy();
-          expect(localStorage.getItem('authToken')).toBeNull();
+          expect(service.isLoggedIn()).toBeFalse();
+          expect(service.isAdmin()).toBeFalse();
         }
       });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/login`);
-      req.flush({}, errorResponse);
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush({ message: errorMessage }, { status: 401, statusText: 'Unauthorized' });
+    });
+
+    it('devrait nettoyer le localStorage lors de la connexion', () => {
+      // Préparer le localStorage avec des données
+      localStorage.setItem('currentCampaign', 'test-campaign');
+      localStorage.setItem('events', 'test-events');
+      
+      const credentials = { email: 'user@test.com', password: 'password123' };
+      const mockResponse = { isAdmin: false };
+
+      service.login(credentials).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush(mockResponse);
+
+      expect(localStorage.getItem('currentCampaign')).toBeNull();
+      expect(localStorage.getItem('events')).toBeNull();
     });
   });
 
-  describe('register', () => {
-    it('should register successfully and redirect to login', () => {
+  describe('register()', () => {
+    it('devrait inscrire un nouvel utilisateur avec succès', () => {
       const userData = {
-        lastName: 'Dupont',
-        firstName: 'Jean',
-        birthDate: '1990-01-01',
-        email: 'jean.dupont@email.com',
-        password: 'password123'
+        email: 'newuser@test.com',
+        password: 'password123',
+        firstName: 'John',
+        lastName: 'Doe'
       };
-      const mockResponse = { message: 'Registration successful' };
 
       service.register(userData).subscribe(response => {
-        expect(response).toEqual(mockResponse);
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+        expect(response).toBeTruthy();
       });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/register`);
+      const req = httpMock.expectOne(`${apiUrl}/register`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(userData);
-      req.flush(mockResponse);
+      expect(req.request.withCredentials).toBeTrue();
+      
+      req.flush({ success: true });
+      
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
     });
 
-    it('should handle registration error', () => {
-      const userData = {
-        lastName: 'Dupont',
-        firstName: 'Jean',
-        birthDate: '1990-01-01',
-        email: 'existing@email.com',
-        password: 'password123'
-      };
-      const errorResponse = { status: 400, statusText: 'Bad Request' };
+    it('devrait gérer les erreurs d\'inscription avec message du backend', () => {
+      const userData = { email: 'existing@test.com', password: 'password123' };
+      const backendError = { message: 'Email déjà utilisé' };
 
       service.register(userData).subscribe({
-        next: () => fail('Should have failed'),
+        next: () => fail('devrait avoir échoué'),
+        error: (error) => {
+          expect(error.message).toBe('Email déjà utilisé');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/register`);
+      req.flush(backendError, { status: 400, statusText: 'Bad Request' });
+    });
+
+    it('devrait utiliser un message par défaut si pas de message du backend', () => {
+      const userData = { email: 'test@test.com', password: 'password123' };
+
+      service.register(userData).subscribe({
+        next: () => fail('devrait avoir échoué'),
         error: (error) => {
           expect(error.message).toBe("Échec de l'inscription. L'email est peut-être déjà utilisé.");
         }
       });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/register`);
-      req.flush({}, errorResponse);
+      const req = httpMock.expectOne(`${apiUrl}/register`);
+      req.flush({}, { status: 400, statusText: 'Bad Request' });
     });
   });
 
-  describe('logout', () => {
-    it('should logout and clear storage', () => {
-      // Simuler un utilisateur connecté
-      localStorage.setItem('authToken', 'test-token');
-      localStorage.setItem('userId', 'user-id');
-      localStorage.setItem('currentCampaign', 'campaign-data');
+  describe('logout()', () => {
+    it('devrait déconnecter l\'utilisateur avec succès', () => {
+      // Préparer l'état connecté
+      service['loggedInState'].set(true);
+      service['userIsAdmin'].set(true);
+      
+      // Préparer le localStorage
+      localStorage.setItem('currentCampaign', 'test');
+      localStorage.setItem('events', 'test-events');
 
       service.logout();
 
-      expect(localStorage.getItem('authToken')).toBeNull();
-      expect(localStorage.getItem('userId')).toBeNull();
+      const req = httpMock.expectOne(`${apiUrl}/logout`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.withCredentials).toBeTrue();
+      
+      req.flush({ success: true });
+
+      expect(service.isLoggedIn()).toBeFalse();
+      expect(service.isAdmin()).toBeFalse();
+      expect(taskServiceSpy.clearTasks).toHaveBeenCalled();
       expect(localStorage.getItem('currentCampaign')).toBeNull();
-      expect(service.isLoggedIn()).toBeFalsy();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
-    });
-  });
-
-  describe('getToken', () => {
-    it('should return token when exists', () => {
-      localStorage.setItem('authToken', 'test-token');
-      expect(service.getToken()).toBe('test-token');
+      expect(localStorage.getItem('events')).toBeNull();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
     });
 
-    it('should return null when no token exists', () => {
-      expect(service.getToken()).toBeNull();
-    });
-  });
+    it('devrait gérer les erreurs de déconnexion', () => {
+      service['loggedInState'].set(true);
+      localStorage.setItem('currentCampaign', 'test');
 
-  describe('isUserLoggedIn', () => {
-    it('should return true when user is logged in', () => {
-      localStorage.setItem('authToken', 'test-token');
-      
-      // Réinitialiser le service pour qu'il lise le token
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        imports: [HttpClientTestingModule],
-        providers: [
-          AuthService,
-          { provide: Router, useValue: mockRouter }
-        ]
-      });
-      service = TestBed.inject(AuthService);
-      
-      expect(service.isUserLoggedIn()).toBeTruthy();
-    });
-
-    it('should return false when user is not logged in', () => {
-      expect(service.isUserLoggedIn()).toBeFalsy();
-    });
-  });
-
-  describe('Signal State Management', () => {
-    it('should update signal state on successful login', () => {
-      const credentials = { email: 'test@email.com', password: 'password' };
-      const mockResponse = { token: 'test-token', id: 'user-id' };
-
-      expect(service.isLoggedIn()).toBeFalsy();
-
-      service.login(credentials).subscribe(() => {
-        expect(service.isLoggedIn()).toBeTruthy();
-      });
-
-      const req = httpMock.expectOne(`${environment.apiUrl}/login`);
-      req.flush(mockResponse);
-    });
-
-    it('should update signal state on logout', () => {
-      localStorage.setItem('authToken', 'test-token');
-      
-      // Réinitialiser le service pour simuler un état connecté
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        imports: [HttpClientTestingModule],
-        providers: [
-          AuthService,
-          { provide: Router, useValue: mockRouter }
-        ]
-      });
-      service = TestBed.inject(AuthService);
-      
-      expect(service.isLoggedIn()).toBeTruthy();
-      
       service.logout();
-      
-      expect(service.isLoggedIn()).toBeFalsy();
-    });
 
-    it('should maintain signal state consistency with localStorage', () => {
-      // État initial : pas de token
-      expect(service.isLoggedIn()).toBeFalsy();
-      
-      // Simuler ajout de token
-      localStorage.setItem('authToken', 'test-token');
-      // Le signal ne change pas automatiquement car il est géré par le service
-      expect(service.isLoggedIn()).toBeFalsy();
-      
-      // Mais après login, le signal est mis à jour
-      const credentials = { email: 'test@email.com', password: 'password' };
-      const mockResponse = { token: 'new-token', id: 'user-id' };
+      const req = httpMock.expectOne(`${apiUrl}/logout`);
+      req.flush({}, { status: 500, statusText: 'Server Error' });
 
-      service.login(credentials).subscribe(() => {
-        expect(service.isLoggedIn()).toBeTruthy();
-        expect(localStorage.getItem('authToken')).toBe('new-token');
-      });
-
-      const req = httpMock.expectOne(`${environment.apiUrl}/login`);
-      req.flush(mockResponse);
+      expect(service.isLoggedIn()).toBeFalse();
+      expect(taskServiceSpy.clearTasks).toHaveBeenCalled();
+      expect(localStorage.getItem('currentCampaign')).toBeNull();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
     });
   });
-}); */
+
+  describe('checkAuth()', () => {
+    it('devrait confirmer l\'authentification pour un utilisateur connecté', () => {
+      const mockResponse = { 
+        isAdmin: false, 
+        email: 'user@test.com' 
+      };
+
+      service.checkAuth().subscribe(response => {
+        expect(response).toEqual(mockResponse);
+        expect(service.isLoggedIn()).toBeTrue();
+        expect(service.isAdmin()).toBeFalse();
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/me`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.withCredentials).toBeTrue();
+      
+      req.flush(mockResponse);
+    });
+
+    it('devrait confirmer l\'authentification pour un admin', () => {
+      const mockResponse = { 
+        isAdmin: true, 
+        email: 'admin@test.com' 
+      };
+
+      service.checkAuth().subscribe(response => {
+        expect(response).toEqual(mockResponse);
+        expect(service.isLoggedIn()).toBeTrue();
+        expect(service.isAdmin()).toBeTrue();
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/me`);
+      req.flush(mockResponse);
+    });
+
+    it('devrait gérer le cas d\'un utilisateur non authentifié', () => {
+      service.checkAuth().subscribe({
+        next: () => fail('devrait avoir échoué'),
+        error: (error) => {
+          expect(error.message).toBe('Non authentifié');
+          expect(service.isLoggedIn()).toBeFalse();
+          expect(service.isAdmin()).toBeFalse();
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/me`);
+      req.flush({}, { status: 401, statusText: 'Unauthorized' });
+    });
+  });
+
+  describe('changePassword()', () => {
+    it('devrait changer le mot de passe avec succès', () => {
+      const passwordData: ChangePasswordData = {
+        currentPassword: 'oldpass',
+        newPassword: 'newpass',
+        confirmPassword: 'newpass'
+      };
+
+      service.changePassword(passwordData).subscribe(response => {
+        expect(response).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/change-password`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(passwordData);
+      expect(req.request.withCredentials).toBeTrue();
+      
+      req.flush({ success: true, message: 'Password changed successfully' });
+    });
+
+    it('devrait gérer les erreurs avec message du backend', () => {
+      const passwordData: ChangePasswordData = {
+        currentPassword: 'wrongpass',
+        newPassword: 'newpass',
+        confirmPassword: 'newpass'
+      };
+      const backendError = { message: 'Mot de passe actuel incorrect' };
+
+      service.changePassword(passwordData).subscribe({
+        next: () => fail('devrait avoir échoué'),
+        error: (error) => {
+          expect(error.message).toBe('Mot de passe actuel incorrect');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/change-password`);
+      req.flush(backendError, { status: 400, statusText: 'Bad Request' });
+    });
+
+    it('devrait utiliser un message par défaut si pas de message du backend', () => {
+      const passwordData: ChangePasswordData = {
+        currentPassword: 'pass',
+        newPassword: 'newpass',
+        confirmPassword: 'newpass'
+      };
+
+      service.changePassword(passwordData).subscribe({
+        next: () => fail('devrait avoir échoué'),
+        error: (error) => {
+          expect(error.message).toBe('Erreur lors du changement de mot de passe.');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/change-password`);
+      req.flush({}, { status: 500, statusText: 'Server Error' });
+    });
+  });
+
+  describe('Méthodes utilitaires', () => {
+    it('isUserLoggedIn() devrait retourner l\'état de connexion', () => {
+      service['loggedInState'].set(false);
+      expect(service.isUserLoggedIn()).toBeFalse();
+      
+      service['loggedInState'].set(true);
+      expect(service.isUserLoggedIn()).toBeTrue();
+    });
+
+    it('isUserAdmin() devrait retourner le statut admin', () => {
+      service['userIsAdmin'].set(false);
+      expect(service.isUserAdmin()).toBeFalse();
+      
+      service['userIsAdmin'].set(true);
+      expect(service.isUserAdmin()).toBeTrue();
+    });
+
+    it('isAuthChecked() devrait retourner si la vérification est terminée', () => {
+      service['authChecked'].set(false);
+      expect(service.isAuthChecked()).toBeFalse();
+      
+      service['authChecked'].set(true);
+      expect(service.isAuthChecked()).toBeTrue();
+    });
+  });
+
+  describe('clearLocalStorage()', () => {
+    it('devrait supprimer uniquement les clés spécifiées du localStorage', () => {
+      // Ajouter diverses clés au localStorage
+      localStorage.setItem('currentCampaign', 'campaign1');
+      localStorage.setItem('currentCampaignId', '123');
+      localStorage.setItem('events', 'event1,event2');
+      localStorage.setItem('campaignAccess', 'true');
+      localStorage.setItem('otherKey', 'shouldRemain'); // Cette clé ne doit pas être supprimée
+
+      // Appeler la méthode privée via login (qui l'appelle)
+      const credentials = { email: 'user@test.com', password: 'pass' };
+      service.login(credentials).subscribe();
+      
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush({ isAdmin: false });
+
+      // Vérifier que les clés spécifiées sont supprimées
+      expect(localStorage.getItem('currentCampaign')).toBeNull();
+      expect(localStorage.getItem('currentCampaignId')).toBeNull();
+      expect(localStorage.getItem('events')).toBeNull();
+      expect(localStorage.getItem('campaignAccess')).toBeNull();
+      
+      // Vérifier que les autres clés restent
+      expect(localStorage.getItem('otherKey')).toBe('shouldRemain');
+    });
+  });
+});
