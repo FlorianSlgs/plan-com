@@ -7,9 +7,13 @@ Frontend : application Angular située dans le dossier frontend/
 Backend : API Express située dans le dossier backend/
 
 📂 Structure du projet
+
 /
+
 ├── frontend/    # Application Angular
+
 ├── backend/     # API Express
+
 └── README.md    # Ce fichier
 
 🚀 Installation
