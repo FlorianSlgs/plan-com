@@ -1,4 +1,4 @@
-Mon Projet
+Projet de tableau de bord destiné à des équipes de communicants -Gestion de plans de communication interactifs-
 
 Ce projet contient deux parties principales :
 
