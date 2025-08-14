@@ -19,27 +19,36 @@ Backend : API Express située dans le dossier backend/
 🚀 Installation
 1. Cloner le dépôt
 git clone <https://github.com/FlorianSlgs/plan-com/tree/1669100e5a4bbc780aff7082baf057a5cf879dc4>
-cd <plan-com>
+cd plan-com
 
 2. Installation des dépendances
+
 Frontend
+
 cd frontend
+
 npm install
 
 Backend
+
 cd backend
+
 npm install
 
 ▶️ Lancer le projet
-Lancer le backend
-cd backend
-npm start
 
+Lancer le backend
+
+cd backend
+
+npm start
 
 Par défaut, l’API tourne sur http://localhost:3000 (modifiable dans la config fichier ".env")
 
 Lancer le frontend
+
 cd frontend
+
 npm start
 
 
@@ -63,8 +72,11 @@ PORT=3000 (modifiable si besoin)
 (Ajouter d’autres variables selon vos besoins)
 
 📦 Build pour la production
+
 Frontend
+
 cd frontend
+
 npm build --configuration production
 
 🛠 Technologies utilisées
