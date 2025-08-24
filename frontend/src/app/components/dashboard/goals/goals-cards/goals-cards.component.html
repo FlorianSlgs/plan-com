@@ -33,8 +33,5 @@
     @for (item of items(); track trackByItem($index, item)) {
       <li class="bg-gray-100 text-gray-800 px-3 py-1 rounded" role="listitem" aria-label="sous-objectif">{{ item }}</li>
     }
-    @empty {
-      <li class="text-gray-500 italic">Aucun sous-objectif défini</li>
-    }
   </ul>
 </div>
