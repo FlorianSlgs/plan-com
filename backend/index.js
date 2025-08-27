@@ -25,7 +25,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Route sécurisée pour les images de goals avec middleware d'authentification
-// DOIT être après la création du pool
 const authenticateGoalImage = require('./middlewares/authenticateGoalImage');
 app.use('/uploads/goals_images', authenticateGoalImage(pool), express.static(__dirname + '/uploads/goals_images'));
 
@@ -56,7 +55,7 @@ app.use('/api/tasks', tasksRoutes);
 const adminRoutes = require('./routes/admin.route')(pool);
 app.use('/api/admin', adminRoutes);
 
-// Start the server
+// Lancer le server
 app.listen(PORT, () => {
   console.log(`Serveur plan de com l'écoute sur http://localhost:${PORT}`);
 });
