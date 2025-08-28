@@ -93,6 +93,13 @@ module.exports = (pool) => {
   // Login route
   router.post('/login', async (req, res) => {
     console.log('=== DÉBUT LOGIN ==='); // AJOUT 1
+    console.log('Origin:', req.headers.origin);
+    console.log('User-Agent:', req.headers['user-agent']);
+    console.log('Referer:', req.headers.referer);
+    console.log('Host:', req.headers.host);
+    console.log('Cookies reçus:', req.cookies);
+    console.log('Protocol:', req.protocol);
+    console.log('Secure:', req.secure);
     
     const { email, password } = req.body;
 
@@ -132,9 +139,10 @@ module.exports = (pool) => {
       res.cookie('authToken', token, {
         httpOnly: true,
         secure: true,  // Même config que login
-        sameSite: 'lax',         // Même config que login
+        sameSite: 'none',         // Même config que login
         domain: '.duckdns.org',
-        maxAge: 7 * 24 * 60 * 60 * 1000
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/' 
       });
 
       console.log('=== APRÈS COOKIE ==='); // AJOUT 4
@@ -154,8 +162,9 @@ module.exports = (pool) => {
     res.clearCookie('authToken', {
       httpOnly: true,
       secure: true,  // Même config que login
-      sameSite: 'lax',         // Même config que login
+      sameSite: 'none',         // Même config que login
       domain: '.duckdns.org',
+      path: '/' 
     });
     return res.status(200).json({ message: 'Déconnexion réussie.' });
   });
