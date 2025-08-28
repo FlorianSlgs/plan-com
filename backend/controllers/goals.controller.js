@@ -51,7 +51,7 @@ class GoalsController {
       const result = await this.goalsService.createGoal(goalData);
       res.status(201).json({ 
         message: 'Objectif enregistré.', 
-        filePath: result.filePath // URL complète retournée par le service
+        filePath: result.filePath 
       });
     } catch (error) {
       console.error('Erreur dans createGoalWithImage:', error);
@@ -121,11 +121,8 @@ class GoalsController {
         imageUrl
       };
 
-      const result = await this.goalsService.updateGoal(goalId, updateData, userId);
-      res.json({ 
-        message: 'Objectif mis à jour.',
-        imageUrl: result.imageUrl // URL complète si une image a été mise à jour
-      });
+      await this.goalsService.updateGoal(goalId, updateData, userId);
+      res.json({ message: 'Objectif mis à jour.' });
     } catch (error) {
       console.error('Erreur dans updateGoal:', error);
       

@@ -6,19 +6,6 @@
 class GoalsService {
   constructor(pool) {
     this.pool = pool;
-    // Déterminer l'URL de base selon l'environnement
-    this.baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://plancom.duckdns.org'
-      : 'http://localhost:3000';
-  }
-
-  /**
-   * Construit l'URL complète pour une image
-   * @param {string} filename - Nom du fichier image
-   * @returns {string|null} - URL complète ou null
-   */
-  buildImageUrl(filename) {
-    return filename ? `${this.baseUrl}/uploads/goals_images/${filename}` : null;
   }
 
   /**
@@ -88,10 +75,7 @@ class GoalsService {
         [userId, campaignId, title, description, subgoals, filePath]
       );
 
-      return { 
-        success: true, 
-        filePath: this.buildImageUrl(filePath)
-      };
+      return { success: true, filePath };
     } catch (error) {
       console.error('Erreur lors de la création du goal:', error);
       throw error;
@@ -121,11 +105,7 @@ class GoalsService {
         [campaignId]
       );
       
-      // Transforme les résultats pour inclure les URLs complètes
-      return result.rows.map(goal => ({
-        ...goal,
-        goals_imageurl: this.buildImageUrl(goal.goals_imageurl)
-      }));
+      return result.rows;
     } catch (error) {
       console.error('Erreur lors de la récupération des goals:', error);
       throw error;
@@ -213,10 +193,7 @@ class GoalsService {
         values
       );
 
-      return { 
-        success: true,
-        imageUrl: imageUrl ? this.buildImageUrl(imageUrl) : null
-      };
+      return { success: true };
     } catch (error) {
       console.error('Erreur lors de la mise à jour du goal:', error);
       throw error;
