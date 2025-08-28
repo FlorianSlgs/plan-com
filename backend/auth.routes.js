@@ -133,7 +133,7 @@ module.exports = (pool) => {
         httpOnly: true,
         secure: true,  // Même config que login
         sameSite: 'none',         // Même config que login
-        /* domain: process.env.DOMAIN  */
+        domain: '.duckdns.org',
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
@@ -155,7 +155,7 @@ module.exports = (pool) => {
       httpOnly: true,
       secure: true,  // Même config que login
       sameSite: 'none',         // Même config que login
-      /* domain: process.env.DOMAIN  */
+      domain: '.duckdns.org',
     });
     return res.status(200).json({ message: 'Déconnexion réussie.' });
   });
