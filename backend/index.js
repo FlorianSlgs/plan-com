@@ -65,8 +65,6 @@ pool.on('error', (err, client) => {
 
 console.log('=====================================');
 
-app.set('trust proxy', true);
-
 app.use(cors({
   origin: process.env.CORS,
   credentials: true,

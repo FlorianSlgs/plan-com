@@ -138,8 +138,8 @@ module.exports = (pool) => {
       // Ajoute le token dans un cookie HTTP Only
       res.cookie('authToken', token, {
         httpOnly: true,
-        secure: true,  // Même config que login
-        sameSite: 'none',         // Même config que login
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         domain: '.duckdns.org',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/' 
@@ -161,8 +161,8 @@ module.exports = (pool) => {
   router.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
       httpOnly: true,
-      secure: true,  // Même config que login
-      sameSite: 'none',         // Même config que login
+      secure: isSecure,
+      sameSite: isSecure ? 'none' : 'lax',
       domain: '.duckdns.org',
       path: '/' 
     });
