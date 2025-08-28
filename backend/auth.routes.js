@@ -25,12 +25,12 @@ const validateBirthDate = (birthDate) => {
   const today = new Date();
   const birth = new Date(birthDate);
   
-  // Vérifier que la date n'est pas dans le futur
+  // VÃ©rifier que la date n'est pas dans le futur
   if (birth > today) {
-    return { valid: false, message: "La date de naissance ne peut pas être dans le futur." };
+    return { valid: false, message: "La date de naissance ne peut pas Ãªtre dans le futur." };
   }
   
-  // Calculer l'âge
+  // Calculer l'Ã¢ge
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
   
@@ -38,7 +38,7 @@ const validateBirthDate = (birthDate) => {
     age--;
   }
   
-  // Vérifier que la personne a plus de 12 ans
+  // VÃ©rifier que la personne a plus de 12 ans
   if (age <= 12) {
     return { valid: false, message: "Vous devez avoir plus de 12 ans pour vous inscrire." };
   }
@@ -58,7 +58,7 @@ module.exports = (pool) => {
     // Validation du mot de passe
     if (!validatePassword(password)) {
       return res.status(400).json({ 
-        message: 'Le mot de passe doit contenir au minimum 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial.' 
+        message: 'Le mot de passe doit contenir au minimum 8 caractÃ¨res avec au moins une majuscule, une minuscule, un chiffre et un caractÃ¨re spÃ©cial.' 
       });
     }
 
@@ -71,7 +71,7 @@ module.exports = (pool) => {
     try {
       const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
       if (existingUser.rows.length > 0) {
-        return res.status(409).json({ message: "L'email est déjà utilisé." });
+        return res.status(409).json({ message: "L'email est dÃ©jÃ  utilisÃ©." });
       }
 
       // Hash du mot de passe
@@ -83,7 +83,7 @@ module.exports = (pool) => {
       );
       console.log('Utilisateur inscrit:', { email, lastName, firstName, birthDate });
 
-      return res.status(201).json({ message: 'Inscription réussie.' });
+      return res.status(201).json({ message: 'Inscription rÃ©ussie.' });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: 'Erreur serveur.' });
@@ -92,7 +92,16 @@ module.exports = (pool) => {
 
   // Login route
   router.post('/login', async (req, res) => {
-    console.log('=== DÉBUT LOGIN ==='); // AJOUT 1
+    // Console.log pour debug HTTP/HTTPS
+    console.log('🔍 DEBUG LOGIN - Protocole détecté:', req.secure ? 'HTTPS' : 'HTTP');
+    console.log('🔍 Headers reçus:', {
+      'x-forwarded-proto': req.headers['x-forwarded-proto'],
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'host': req.headers.host,
+      'user-agent': req.headers['user-agent'],
+      'origin': req.headers.origin,
+      'referer': req.headers.referer
+    });
     
     const { email, password } = req.body;
 
@@ -113,15 +122,20 @@ module.exports = (pool) => {
         return res.status(401).json({ message: 'Identifiants invalides.' });
       }
 
-      console.log('=== CRÉATION TOKEN ==='); // AJOUT 2
-
       const token = jwt.sign(
         { id: user.id, email: user.email, isAdmin: user.admin || false },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      console.log('=== AVANT COOKIE CONFIG ==='); // AJOUT 3
+      // Console.log pour debug cookie
+      console.log('🍪 Configuration cookie:', {
+        httpOnly: true,
+        secure: process.env.SECURE,
+        sameSite: process.env.SAMESITE,
+        domain: process.env.DOMAIN,
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
       // Ajoute le token dans un cookie HTTP Only
       res.cookie('authToken', token, {
@@ -132,14 +146,11 @@ module.exports = (pool) => {
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
-      console.log('=== APRÈS COOKIE ==='); // AJOUT 4
-
       return res.status(200).json({ 
-        message: 'Connexion réussie.',
+        message: 'Connexion rÃ©ussie.',
         isAdmin: user.admin || false
       });
     } catch (err) {
-      console.error('=== ERREUR LOGIN ===', err); // AJOUT 5
       return res.status(500).json({ message: 'Erreur serveur.' });
     }
   });
@@ -148,33 +159,33 @@ module.exports = (pool) => {
   router.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
       httpOnly: true,
-      secure: process.env.SECURE,  // Même config que login
-      sameSite: process.env.SAMESITE,         // Même config que login
+      secure: process.env.SECURE,  // MÃªme config que login
+      sameSite: process.env.SAMESITE,         // MÃªme config que login
       domain: process.env.DOMAIN 
     });
-    return res.status(200).json({ message: 'Déconnexion réussie.' });
+    return res.status(200).json({ message: 'DÃ©connexion rÃ©ussie.' });
   });
 
   // Me route
   router.get('/me', authenticateToken, async (req, res) => {
     try {
-      // Récupérer les informations complètes de l'utilisateur depuis la base de données
+      // RÃ©cupÃ©rer les informations complÃ¨tes de l'utilisateur depuis la base de donnÃ©es
       const userResult = await pool.query('SELECT id, email, admin FROM users WHERE id = $1', [req.user.id]);
       
       if (userResult.rows.length === 0) {
-        return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+        return res.status(404).json({ message: 'Utilisateur non trouvÃ©.' });
       }
 
       const user = userResult.rows[0];
       
-      // req.user contient les infos du token, mais on récupère les infos fraîches de la DB
+      // req.user contient les infos du token, mais on rÃ©cupÃ¨re les infos fraÃ®ches de la DB
       res.status(200).json({ 
         id: user.id, 
         email: user.email,
         isAdmin: user.admin || false
       });
     } catch (err) {
-      console.error('Erreur lors de la récupération des informations utilisateur:', err);
+      console.error('Erreur lors de la rÃ©cupÃ©ration des informations utilisateur:', err);
       return res.status(500).json({ message: 'Erreur serveur.' });
     }
   });
@@ -183,9 +194,9 @@ module.exports = (pool) => {
   router.post('/change-password', authenticateToken, async (req, res) => {
     try {
       const { currentPassword, newPassword, confirmPassword } = req.body;
-      const userId = req.user.id; // Récupéré du token d'authentification
+      const userId = req.user.id; // RÃ©cupÃ©rÃ© du token d'authentification
 
-      // Validation des données d'entrée
+      // Validation des donnÃ©es d'entrÃ©e
       if (!currentPassword || !newPassword || !confirmPassword) {
         return res.status(400).json({
           success: false,
@@ -200,26 +211,26 @@ module.exports = (pool) => {
         });
       }
 
-      // Validation de la complexité du nouveau mot de passe
+      // Validation de la complexitÃ© du nouveau mot de passe
       if (!validatePassword(newPassword)) {
         return res.status(400).json({
           success: false,
-          message: 'Le nouveau mot de passe doit contenir au minimum 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial'
+          message: 'Le nouveau mot de passe doit contenir au minimum 8 caractÃ¨res avec au moins une majuscule, une minuscule, un chiffre et un caractÃ¨re spÃ©cial'
         });
       }
 
-      // Récupérer l'utilisateur depuis la base de données
+      // RÃ©cupÃ©rer l'utilisateur depuis la base de donnÃ©es
       const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
       if (userResult.rows.length === 0) {
         return res.status(404).json({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Utilisateur non trouvÃ©'
         });
       }
 
       const user = userResult.rows[0];
 
-      // Vérifier le mot de passe actuel
+      // VÃ©rifier le mot de passe actuel
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
       if (!isCurrentPasswordValid) {
         return res.status(400).json({
@@ -228,30 +239,30 @@ module.exports = (pool) => {
         });
       }
 
-      // Vérifier que le nouveau mot de passe est différent de l'ancien
+      // VÃ©rifier que le nouveau mot de passe est diffÃ©rent de l'ancien
       const isSamePassword = await bcrypt.compare(newPassword, user.password);
       if (isSamePassword) {
         return res.status(400).json({
           success: false,
-          message: 'Le nouveau mot de passe doit être différent du mot de passe actuel'
+          message: 'Le nouveau mot de passe doit Ãªtre diffÃ©rent du mot de passe actuel'
         });
       }
 
       // Hasher le nouveau mot de passe
       const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
-      // Mettre à jour le mot de passe dans la base de données
+      // Mettre Ã  jour le mot de passe dans la base de donnÃ©es
       await pool.query(
         'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
         [hashedNewPassword, userId]
       );
 
-      console.log('Mot de passe modifié pour l\'utilisateur:', userId);
+      console.log('Mot de passe modifiÃ© pour l\'utilisateur:', userId);
 
-      // Réponse de succès
+      // RÃ©ponse de succÃ¨s
       res.status(200).json({
         success: true,
-        message: 'Mot de passe modifié avec succès'
+        message: 'Mot de passe modifiÃ© avec succÃ¨s'
       });
 
     } catch (error) {
