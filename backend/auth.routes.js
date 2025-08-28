@@ -128,21 +128,12 @@ module.exports = (pool) => {
         { expiresIn: '7d' }
       );
 
-      // Console.log pour debug cookie
-      console.log('🍪 Configuration cookie:', {
-        httpOnly: true,
-        secure: process.env.SECURE,
-        sameSite: process.env.SAMESITE,
-        domain: process.env.DOMAIN,
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      });
-
       // Ajoute le token dans un cookie HTTP Only
       res.cookie('authToken', token, {
         httpOnly: true,
         secure: true,
         sameSite: "None",
-        domain: "plancomserver.duckdns.org",
+        path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
@@ -161,7 +152,7 @@ module.exports = (pool) => {
       httpOnly: true,
       secure: true,
       sameSite: "None",
-      domain: "plancomserver.duckdns.org",
+      path: "/",
     });
     return res.status(200).json({ message: 'DÃ©connexion rÃ©ussie.' });
   });
