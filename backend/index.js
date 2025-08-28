@@ -17,7 +17,7 @@ const pool = new Pool({
   port: process.env.PGPORT,
 });
 
-// TEST DE CONNEXION POSTGRESQL - AJOUT
+// TEST DE CONNEXION POSTGRESQL
 console.log('=== TEST DE CONNEXION POSTGRESQL ===');
 console.log('Host:', process.env.PGHOST);
 console.log('Database:', process.env.PGDATABASE);
@@ -64,6 +64,8 @@ pool.on('error', (err, client) => {
 });
 
 console.log('=====================================');
+
+app.set('trust proxy', true);
 
 app.use(cors({
   origin: process.env.CORS,
