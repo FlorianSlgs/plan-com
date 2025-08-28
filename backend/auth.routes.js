@@ -132,7 +132,7 @@ module.exports = (pool) => {
       res.cookie('authToken', token, {
         httpOnly: true,
         secure: true,  // Même config que login
-        sameSite: 'none',         // Même config que login
+        sameSite: 'lax',         // Même config que login
         domain: '.duckdns.org',
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
@@ -154,7 +154,7 @@ module.exports = (pool) => {
     res.clearCookie('authToken', {
       httpOnly: true,
       secure: true,  // Même config que login
-      sameSite: 'none',         // Même config que login
+      sameSite: 'lax',         // Même config que login
       domain: '.duckdns.org',
     });
     return res.status(200).json({ message: 'Déconnexion réussie.' });
