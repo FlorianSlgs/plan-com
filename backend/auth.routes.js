@@ -131,9 +131,9 @@ module.exports = (pool) => {
       // Ajoute le token dans un cookie HTTP Only
       res.cookie('authToken', token, {
         httpOnly: true,
-        secure: process.env.SECURE,
-        sameSite: process.env.SAMESITE,
-        domain: process.env.DOMAIN,
+        secure: true,  // Même config que login
+        sameSite: 'none',         // Même config que login
+        /* domain: process.env.DOMAIN  */
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
@@ -153,9 +153,9 @@ module.exports = (pool) => {
   router.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
       httpOnly: true,
-      secure: process.env.SECURE === 'true',  // Même config que login
-      sameSite: process.env.SAMESITE,         // Même config que login
-      domain: process.env.DOMAIN 
+      secure: true,  // Même config que login
+      sameSite: 'none',         // Même config que login
+      /* domain: process.env.DOMAIN  */
     });
     return res.status(200).json({ message: 'Déconnexion réussie.' });
   });
