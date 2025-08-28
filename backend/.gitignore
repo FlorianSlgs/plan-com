@@ -17,9 +17,28 @@ pids
 # dotenv environment variables
 .env
 
-# Uploaded files
-uploads/
-uploads/goals_images/
+# Par défaut, ignorer tout le contenu des uploads
+uploads/*
+
+# MAIS garder les dossiers eux-mêmes
+!uploads/*/
+
+# Cas spécifiques par dossier :
+
+# 1. goals_images/ : dossier vide (avec .gitkeep)
+uploads/goals_images/*
+!uploads/goals_images/.gitkeep
+
+# 2. targets_images/ : dossier vide (avec .gitkeep)  
+uploads/targets_images/*
+!uploads/targets_images/.gitkeep
+
+# 3. users_images/ : contenu inclus (rien à ignorer pour ce dossier)
+# (pas de règle = le contenu sera inclus)
+
+# Exception : permettre le contenu de users_images/
+!uploads/users_images/
+!uploads/users_images/**
 
 # OS files
 .DS_Store
