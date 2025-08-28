@@ -92,6 +92,8 @@ module.exports = (pool) => {
 
   // Login route
   router.post('/login', async (req, res) => {
+    console.log('=== DÉBUT LOGIN ==='); // AJOUT 1
+    
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -111,13 +113,15 @@ module.exports = (pool) => {
         return res.status(401).json({ message: 'Identifiants invalides.' });
       }
 
+      console.log('=== CRÉATION TOKEN ==='); // AJOUT 2
+
       const token = jwt.sign(
         { id: user.id, email: user.email, isAdmin: user.admin || false },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      // AJOUTEZ CE CONSOLE.LOG ICI
+      console.log('=== AVANT COOKIE CONFIG ==='); // AJOUT 3
       console.log('Cookie config:', {
         secure: process.env.SECURE,
         sameSite: process.env.SAMESITE,
@@ -130,15 +134,17 @@ module.exports = (pool) => {
         secure: process.env.SECURE,
         sameSite: process.env.SAMESITE,
         domain: process.env.DOMAIN,
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+        maxAge: 7 * 24 * 60 * 60 * 1000
       });
+
+      console.log('=== APRÈS COOKIE ==='); // AJOUT 4
 
       return res.status(200).json({ 
         message: 'Connexion réussie.',
         isAdmin: user.admin || false
       });
     } catch (err) {
-      console.error(err);
+      console.error('=== ERREUR LOGIN ===', err); // AJOUT 5
       return res.status(500).json({ message: 'Erreur serveur.' });
     }
   });

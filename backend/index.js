@@ -79,15 +79,7 @@ app.get('/test-db', async (req, res) => {
     const userCount = await pool.query('SELECT COUNT(*) as count FROM users');
     
     res.json({
-      status: '✅ PostgreSQL fonctionne',
-      timestamp: result.rows[0].current_time,
-      version: result.rows[0].pg_version.split(' ')[0],
-      user_count: userCount.rows[0].count,
-      connection_info: {
-        host: process.env.PGHOST,
-        database: process.env.PGDATABASE,
-        port: process.env.PGPORT
-      }
+      status: '✅ PostgreSQL fonctionne'
     });
   } catch (err) {
     console.error('❌ ERREUR DANS /test-db:', err);
