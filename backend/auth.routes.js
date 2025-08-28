@@ -117,6 +117,13 @@ module.exports = (pool) => {
         { expiresIn: '7d' }
       );
 
+      // AJOUTEZ CE CONSOLE.LOG ICI
+      console.log('Cookie config:', {
+        secure: process.env.SECURE,
+        sameSite: process.env.SAMESITE,
+        domain: process.env.DOMAIN
+      });
+
       // Ajoute le token dans un cookie HTTP Only
       res.cookie('authToken', token, {
         httpOnly: true,
