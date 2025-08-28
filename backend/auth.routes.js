@@ -93,13 +93,6 @@ module.exports = (pool) => {
   // Login route
   router.post('/login', async (req, res) => {
     console.log('=== DÉBUT LOGIN ==='); // AJOUT 1
-    console.log('Origin:', req.headers.origin);
-    console.log('User-Agent:', req.headers['user-agent']);
-    console.log('Referer:', req.headers.referer);
-    console.log('Host:', req.headers.host);
-    console.log('Cookies reçus:', req.cookies);
-    console.log('Protocol:', req.protocol);
-    console.log('Secure:', req.secure);
     
     const { email, password } = req.body;
 
@@ -129,20 +122,14 @@ module.exports = (pool) => {
       );
 
       console.log('=== AVANT COOKIE CONFIG ==='); // AJOUT 3
-      console.log('Cookie config:', {
-        secure: process.env.SECURE,
-        sameSite: process.env.SAMESITE,
-        domain: process.env.DOMAIN
-      });
 
       // Ajoute le token dans un cookie HTTP Only
       res.cookie('authToken', token, {
         httpOnly: true,
-        secure: isSecure,
-        sameSite: isSecure ? 'none' : 'lax',
-        domain: '.duckdns.org',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/' 
+        secure: process.env.SECURE,
+        sameSite: process.env.SAMESITE,
+        domain: process.env.DOMAIN,
+        maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
       console.log('=== APRÈS COOKIE ==='); // AJOUT 4
@@ -161,10 +148,9 @@ module.exports = (pool) => {
   router.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
       httpOnly: true,
-      secure: isSecure,
-      sameSite: isSecure ? 'none' : 'lax',
-      domain: '.duckdns.org',
-      path: '/' 
+      secure: process.env.SECURE,  // Même config que login
+      sameSite: process.env.SAMESITE,         // Même config que login
+      domain: process.env.DOMAIN 
     });
     return res.status(200).json({ message: 'Déconnexion réussie.' });
   });
