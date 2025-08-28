@@ -1,5 +1,5 @@
 export const environment = {
-  baseUrl: 'https://plancomserver.duckdns.org/api/api',
+  baseUrl: 'https://plancomserver.duckdns.org/api',
   endpoints: {
     auth: '/auth',
     header: '/header',
