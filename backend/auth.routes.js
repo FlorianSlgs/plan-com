@@ -128,23 +128,31 @@ module.exports = (pool) => {
         { expiresIn: '7d' }
       );
 
-      // Console.log pour debug cookie
-      console.log('🍪 Configuration cookie:', {
+      // Détection automatique du protocole basée sur les headers et l'origin
+      const isSecureConnection = req.secure || 
+                                req.headers['x-forwarded-proto'] === 'https' || 
+                                req.headers.origin?.startsWith('https://');
+
+      // Configuration du cookie avec gestion du domaine
+      const cookieConfig = {
         httpOnly: true,
-        secure: process.env.SECURE,
-        sameSite: process.env.SAMESITE,
-        domain: process.env.DOMAIN,
+        secure: isSecureConnection, // Détection automatique
+        sameSite: process.env.SAMESITE || 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000
-      });
+      };
+
+      // N'ajouter le domaine que s'il est défini et valide
+      if (process.env.DOMAIN && process.env.DOMAIN !== 'localhost' && !req.headers.host?.includes('localhost')) {
+        cookieConfig.domain = process.env.DOMAIN;
+      }
+
+      // Console.log pour debug cookie
+      console.log('🍪 Configuration cookie:', cookieConfig);
+      console.log('🌐 Host actuel:', req.headers.host);
+      console.log('🔐 Connexion sécurisée détectée:', isSecureConnection);
 
       // Ajoute le token dans un cookie HTTP Only
-      res.cookie('authToken', token, {
-        httpOnly: true,
-        secure: process.env.SECURE,
-        sameSite: process.env.SAMESITE,
-        domain: process.env.DOMAIN,
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      });
+      res.cookie('authToken', token, cookieConfig);
 
       return res.status(200).json({ 
         message: 'Connexion rÃ©ussie.',
@@ -157,12 +165,23 @@ module.exports = (pool) => {
 
   // Logout route
   router.post('/logout', (req, res) => {
-    res.clearCookie('authToken', {
+    // Détection automatique du protocole basée sur les headers et l'origin
+    const isSecureConnection = req.secure || 
+                              req.headers['x-forwarded-proto'] === 'https' || 
+                              req.headers.origin?.startsWith('https://');
+
+    const clearConfig = {
       httpOnly: true,
-      secure: process.env.SECURE,  // MÃªme config que login
-      sameSite: process.env.SAMESITE,         // MÃªme config que login
-      domain: process.env.DOMAIN 
-    });
+      secure: isSecureConnection,
+      sameSite: process.env.SAMESITE || 'none'
+    };
+
+    // N'ajouter le domaine que s'il est défini et valide
+    if (process.env.DOMAIN && process.env.DOMAIN !== 'localhost' && !req.headers.host?.includes('localhost')) {
+      clearConfig.domain = process.env.DOMAIN;
+    }
+
+    res.clearCookie('authToken', clearConfig);
     return res.status(200).json({ message: 'DÃ©connexion rÃ©ussie.' });
   });
 
