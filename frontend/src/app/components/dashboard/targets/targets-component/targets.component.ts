@@ -9,6 +9,9 @@ import { TargetCard, CampaignPermissions, Target } from '../../../../models/targ
 
 import { TargetsCardsComponent } from '../targets-cards/targets-cards.component';
 
+// Import de l'environnement
+import { environment } from '../../../../../environments/environment';
+
 @Component({
   selector: 'app-targets',
   imports: [TargetsCardsComponent, ReactiveFormsModule, A11yModule],
@@ -474,8 +477,9 @@ export class TargetsComponent implements OnInit, OnDestroy {
       title: target.targets_name || 'Sans titre',
       description: target.targets_description || '',
       items: subtargets,
+      // Utilisation de environment.baseUrl
       imageUrl: target.targets_imageurl 
-        ? `http://localhost:3000/uploads/targets_images/${target.targets_imageurl}`
+        ? `${environment.baseUrl.replace('/api', '')}/uploads/targets_images/${target.targets_imageurl}`
         : '/assets/images/placeholder-image.png' // Image de fallback
     };
   }

@@ -8,6 +8,9 @@ import { GoalsCardsComponent } from '../goals-cards/goals-cards.component';
 import { GoalsService } from '../../../../services/dashboard/goals/goals.service';
 import { Goal, CampaignPermissions, GoalCard } from '../../../../models/goals.model';
 
+// Import de l'environnement
+import { environment } from '../../../../../environments/environment';
+
 @Component({
   selector: 'app-goals',
   standalone: true,
@@ -474,8 +477,9 @@ export class GoalsComponent implements OnInit, OnDestroy {
       title: goal.goals_name || 'Sans titre',
       description: goal.goals_description || '',
       items: subgoals,
+      // Utilisation de environment.baseUrl
       imageUrl: goal.goals_imageurl 
-        ? `http://localhost:3000/uploads/goals_images/${goal.goals_imageurl}`
+        ? `${environment.baseUrl.replace('/api', '')}/uploads/goals_images/${goal.goals_imageurl}`
         : '/assets/images/placeholder-image.png' // Image de fallback
     };
   }
