@@ -12,6 +12,9 @@ import { Target, TargetCard } from '../../../models/targets.model';
 import { CalendarEvent } from '../../../models/event.model';
 import { Task } from '../../../models/tasks.model';
 
+// Import de l'environnement
+import { environment } from '../../../../environments/environment';
+
 @Component({
   selector: 'app-recap',
   standalone: true,
@@ -320,7 +323,9 @@ export class RecapComponent implements OnInit, OnDestroy {
       title: goal.goals_name,
       description: goal.goals_description,
       items: subgoals,
-      imageUrl: `http://localhost:3000/uploads/goals_images/${goal.goals_imageurl}`
+      imageUrl: goal.goals_imageurl
+        ?`${environment.baseUrl.replace('/api', '')}/uploads/goals_images/${goal.goals_imageurl}`
+        : '/assets/images/placeholder-image.png' // Image de fallback
     };
   }
 
@@ -339,7 +344,9 @@ export class RecapComponent implements OnInit, OnDestroy {
       title: target.targets_name,
       description: target.targets_description,
       items: subtargets,
-      imageUrl: `http://localhost:3000/uploads/targets_images/${target.targets_imageurl}`
+      imageUrl: target.targets_imageurl
+        ?`${environment.baseUrl.replace('/api', '')}/uploads/targets_images/${target.targets_imageurl}`
+        : '/assets/images/placeholder-image.png' // Image de fallback
     };
   }
 }
